@@ -1,0 +1,78 @@
+services:
+  postgres:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: s4n
+      POSTGRES_PASSWORD: s4n_dev_password
+      POSTGRES_DB: s4n
+    ports:
+      - "5432:5432"
+    volumes:
+      - s4n_postgres:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U s4n -d s4n"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+
+  api:
+    build:
+      context: .
+      dockerfile: apps/api/Dockerfile
+    environment:
+      DATABASE_URL: postgresql://s4n:s4n_dev_password@postgres:5432/s4n
+      S4N_MASTER_KEY: ${S4N_MASTER_KEY:-AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=}
+      S4N_ENV: development
+      S4N_DASHBOARD_ORIGIN: http://localhost:5180
+      PORT: "8787"
+    ports:
+      - "8787:8787"
+    depends_on:
+      postgres:
+        condition: service_healthy
+    healthcheck:
+      test:
+        [
+          "CMD",
+          "node",
+          "-e",
+          "fetch('http://127.0.0.1:8787/api/health').then((r)=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))",
+        ]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+      start_period: 20s
+
+  web:
+    build:
+      context: .
+      dockerfile: apps/web/Dockerfile
+      args:
+        VITE_API_URL: http://localhost:8787
+    ports:
+      - "5180:80"
+    depends_on:
+      api:
+        condition: service_healthy
+
+  overlay:
+    build:
+      context: .
+      dockerfile: apps/overlay/Dockerfile
+      args:
+        VITE_API_URL: http://localhost:8787
+    ports:
+      - "5181:80"
+    depends_on:
+      api:
+        condition: service_healthy
+
+  docs:
+    build:
+      context: .
+      dockerfile: apps/docs/Dockerfile
+    ports:
+      - "4321:80"
+
+volumes:
+  s4n_postgres:

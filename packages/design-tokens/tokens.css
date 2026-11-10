@@ -1,0 +1,42 @@
+/*
+ * S4N 的視覺基礎。溫暖紙色、硃砂印、靛藍字，留白比線條多。
+ * Spacing follows Tailwind's 4px scale. Named steps below are the ones
+ * shells should prefer: 4, 8, 12, 16, 24, 32, 48, 72.
+ */
+:root {
+  --s4n-color-paper: #f3eee6;
+  --s4n-color-paper-raised: #fbf8f3;
+  --s4n-color-ink: #241c18;
+  --s4n-color-ink-soft: #6b5e56;
+  --s4n-color-line: #e3d8cb;
+  --s4n-color-cinnabar: #8f3d34;
+  --s4n-color-cinnabar-fill: #a84b40;
+  --s4n-color-cinnabar-soft: #f4e4de;
+  --s4n-color-indigo: #2c3a55;
+  --s4n-color-moss: #3d6a58;
+  --s4n-color-warning: #8a5a2a;
+
+  --s4n-font-serif: "Noto Serif TC", "Iowan Old Style", "Palatino Linotype", Palatino, serif;
+  --s4n-font-sans: "Noto Sans TC", "PingFang TC", "Microsoft JhengHei", sans-serif;
+
+  --s4n-space-1: 0.25rem;
+  --s4n-space-2: 0.5rem;
+  --s4n-space-3: 0.75rem;
+  --s4n-space-4: 1rem;
+  --s4n-space-5: 1.5rem;
+  --s4n-space-6: 2rem;
+  --s4n-space-7: 3rem;
+  --s4n-space-8: 4.5rem;
+
+  --s4n-radius-sm: 0.5rem;
+  --s4n-radius-card: 1.25rem;
+  --s4n-radius-pill: 999px;
+
+  --s4n-shadow-soft: 0 24px 60px -40px rgba(70, 42, 28, 0.55);
+
+  --s4n-motion-swift: 180ms;
+  --s4n-motion-calm: 420ms;
+  --s4n-ease-out: cubic-bezier(0.22, 1, 0.36, 1);
+
+  color-scheme: light;
+}

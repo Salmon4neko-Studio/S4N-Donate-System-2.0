@@ -1,0 +1,28 @@
+{
+  "id": "official.alerts",
+  "name": "贊助提醒",
+  "version": "0.0.0",
+  "api": "0.1",
+  "description": "疊層提醒的佔位。尚未播放動畫。",
+  "kind": [
+    "overlay"
+  ],
+  "permissions": [
+    "events.subscribe",
+    "overlay.slot"
+  ],
+  "entry": {
+    "overlay": "./src/index.ts"
+  },
+  "settingsSchema": {
+    "type": "object",
+    "additionalProperties": false,
+    "properties": {
+      "durationMs": {
+        "type": "integer",
+        "title": "顯示時間（毫秒）",
+        "minimum": 1000
+      }
+    }
+  }
+}

@@ -1,0 +1,23 @@
+{
+  "name": "s4n-donate-system",
+  "private": true,
+  "version": "0.0.0",
+  "type": "module",
+  "packageManager": "pnpm@10.33.4",
+  "engines": {
+    "node": ">=22.13"
+  },
+  "scripts": {
+    "predev": "pnpm db:generate",
+    "dev": "pnpm --parallel --filter @s4n/api --filter @s4n/web --filter @s4n/overlay --filter @s4n/docs dev",
+    "typecheck": "pnpm db:generate && pnpm -r --if-present typecheck",
+    "test": "pnpm -r --if-present test",
+    "build": "pnpm -r --if-present build",
+    "db:generate": "pnpm --filter @s4n/api db:generate",
+    "db:migrate": "pnpm --filter @s4n/api db:migrate",
+    "db:deploy": "pnpm --filter @s4n/api db:deploy"
+  },
+  "devDependencies": {
+    "typescript": "catalog:"
+  }
+}

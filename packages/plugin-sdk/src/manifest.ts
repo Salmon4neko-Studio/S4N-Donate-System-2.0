@@ -1,0 +1,236 @@
+import { PERMISSIONS, type Permission } from "./permissions.js";
+
+export const PLUGIN_API_VERSION = "0.1" as const;
+
+export const PLUGIN_KINDS = [
+  "overlay",
+  "dashboard",
+  "connector",
+  "payment",
+  "processor",
+] as const;
+
+export type PluginKind = (typeof PLUGIN_KINDS)[number];
+
+export interface PluginEntry {
+  overlay?: string;
+  dashboard?: string;
+  worker?: string;
+}
+
+export interface SettingsField {
+  type: "string" | "number" | "boolean" | "integer";
+  title?: string;
+  description?: string;
+  enum?: readonly string[];
+  minimum?: number;
+  /**
+   * Core encrypts the value at rest and never returns it in plaintext.
+   * This is an open annotation, not a standard JSON Schema keyword.
+   */
+  "x-s4n-secret"?: boolean;
+}
+
+export interface SettingsSchema {
+  type: "object";
+  properties: Record<string, SettingsField>;
+  required?: readonly string[];
+  additionalProperties?: boolean;
+}
+
+export interface PluginManifest {
+  id: string;
+  name: string;
+  version: string;
+  api: typeof PLUGIN_API_VERSION;
+  description?: string;
+  kind: readonly PluginKind[];
+  permissions: readonly Permission[];
+  entry: PluginEntry;
+  settingsSchema: SettingsSchema;
+}
+
+export class ManifestError extends Error {
+  constructor(message: string) {
+    super(message);
+    this.name = "ManifestError";
+  }
+}
+
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return typeof value === "object" && value !== null && !Array.isArray(value);
+}
+
+function expectString(value: unknown, label: string): string {
+  if (typeof value !== "string" || value.trim() === "") {
+    throw new ManifestError(`${label} must be a non-empty string`);
+  }
+  return value;
+}
+
+export function secretFieldKeys(schema: SettingsSchema): string[] {
+  return Object.entries(schema.properties)
+    .filter(([, field]) => field["x-s4n-secret"] === true)
+    .map(([key]) => key);
+}
+
+export function parseManifest(value: unknown): PluginManifest {
+  if (!isRecord(value)) throw new ManifestError("manifest must be an object");
+
+  const id = expectString(value.id, "id");
+  if (!/^[a-z0-9]+(?:[.-][a-z0-9]+)+$/.test(id)) {
+    throw new ManifestError("id must be lowercase and contain a dot or hyphen");
+  }
+
+  const api = expectString(value.api, "api");
+  if (api !== PLUGIN_API_VERSION) {
+    throw new ManifestError(`unsupported api ${api}`);
+  }
+
+  const kind = readKinds(value.kind);
+  const permissions = readPermissions(value.permissions);
+  const entry = readEntry(value.entry);
+  const settingsSchema = parseSettingsSchema(value.settingsSchema);
+
+  const manifest: PluginManifest = {
+    id,
+    name: expectString(value.name, "name"),
+    version: expectString(value.version, "version"),
+    api: PLUGIN_API_VERSION,
+    kind,
+    permissions,
+    entry,
+    settingsSchema,
+  };
+
+  if (value.description !== undefined) {
+    manifest.description = expectString(value.description, "description");
+  }
+
+  assertManifestCoherent(manifest);
+  return manifest;
+}
+
+export function assertManifestCoherent(manifest: PluginManifest): void {
+  const isPayment = manifest.kind.includes("payment");
+  const providesPayments = manifest.permissions.includes("payments.provider");
+
+  if (isPayment && !providesPayments) {
+    throw new ManifestError("payment plugins must request payments.provider");
+  }
+  if (providesPayments && !isPayment) {
+    throw new ManifestError("payments.provider requires kind payment");
+  }
+  if (isPayment && manifest.entry.worker === undefined) {
+    throw new ManifestError("payment plugins need a worker entry");
+  }
+
+  const secrets = secretFieldKeys(manifest.settingsSchema);
+  if (secrets.length > 0 && !manifest.permissions.includes("secrets")) {
+    throw new ManifestError("secret settings require the secrets permission");
+  }
+}
+
+function readKinds(value: unknown): PluginKind[] {
+  if (!Array.isArray(value) || value.length === 0) {
+    throw new ManifestError("kind must be a non-empty array");
+  }
+  return value.map((item, index) => {
+    if (typeof item !== "string" || !PLUGIN_KINDS.includes(item as PluginKind)) {
+      throw new ManifestError(`kind[${index}] is invalid`);
+    }
+    return item as PluginKind;
+  });
+}
+
+function readPermissions(value: unknown): Permission[] {
+  if (!Array.isArray(value)) throw new ManifestError("permissions must be an array");
+  return value.map((item, index) => {
+    if (typeof item !== "string" || !PERMISSIONS.includes(item as Permission)) {
+      throw new ManifestError(`permissions[${index}] is invalid`);
+    }
+    return item as Permission;
+  });
+}
+
+function readEntry(value: unknown): PluginEntry {
+  if (!isRecord(value)) throw new ManifestError("entry must be an object");
+  const entry: PluginEntry = {};
+  for (const key of ["overlay", "dashboard", "worker"] as const) {
+    const item = value[key];
+    if (item === undefined) continue;
+    if (typeof item !== "string" || item.length === 0) {
+      throw new ManifestError(`entry.${key} must be a path`);
+    }
+    entry[key] = item;
+  }
+  if (entry.overlay === undefined && entry.dashboard === undefined && entry.worker === undefined) {
+    throw new ManifestError("entry needs overlay, dashboard, or worker");
+  }
+  return entry;
+}
+
+function parseSettingsSchema(value: unknown): SettingsSchema {
+  if (!isRecord(value) || value.type !== "object" || !isRecord(value.properties)) {
+    throw new ManifestError("settingsSchema must be an object schema");
+  }
+
+  const properties: Record<string, SettingsField> = {};
+  for (const [key, raw] of Object.entries(value.properties)) {
+    if (!/^[A-Za-z][A-Za-z0-9]*$/.test(key)) {
+      throw new ManifestError(`settings field ${key} has an invalid name`);
+    }
+    properties[key] = parseField(raw);
+  }
+
+  const schema: SettingsSchema = { type: "object", properties };
+  if (value.additionalProperties !== undefined) {
+    if (typeof value.additionalProperties !== "boolean") {
+      throw new ManifestError("additionalProperties must be a boolean");
+    }
+    schema.additionalProperties = value.additionalProperties;
+  }
+  if (value.required !== undefined) {
+    if (!Array.isArray(value.required)) {
+      throw new ManifestError("required must be an array");
+    }
+    const required = value.required.map((item, index) => {
+      if (typeof item !== "string" || properties[item] === undefined) {
+        throw new ManifestError(`required[${index}] is not a field`);
+      }
+      return item;
+    });
+    schema.required = required;
+  }
+  return schema;
+}
+
+function parseField(value: unknown): SettingsField {
+  if (!isRecord(value)) throw new ManifestError("settings field must be an object");
+  const type = value.type;
+  if (type !== "string" && type !== "number" && type !== "boolean" && type !== "integer") {
+    throw new ManifestError("settings field type is invalid");
+  }
+  const field: SettingsField = { type };
+  if (value.title !== undefined) field.title = expectString(value.title, "title");
+  if (value.description !== undefined) {
+    field.description = expectString(value.description, "description");
+  }
+  if (value["x-s4n-secret"] !== undefined) {
+    if (value["x-s4n-secret"] !== true && value["x-s4n-secret"] !== false) {
+      throw new ManifestError("x-s4n-secret must be a boolean");
+    }
+    field["x-s4n-secret"] = value["x-s4n-secret"];
+  }
+  if (value.minimum !== undefined) {
+    if (typeof value.minimum !== "number") throw new ManifestError("minimum must be a number");
+    field.minimum = value.minimum;
+  }
+  if (value.enum !== undefined) {
+    if (!Array.isArray(value.enum) || value.enum.some((item) => typeof item !== "string")) {
+      throw new ManifestError("enum must be an array of strings");
+    }
+    field.enum = value.enum as string[];
+  }
+  return field;
+}

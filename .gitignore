@@ -1,0 +1,11 @@
+node_modules/
+dist/
+.astro/
+.turbo/
+*.tsbuildinfo
+.env
+.env.local
+apps/api/generated/
+*.log
+.DS_Store
+coverage/

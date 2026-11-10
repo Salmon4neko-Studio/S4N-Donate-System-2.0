@@ -1,0 +1,13 @@
+.git
+uploads
+node_modules
+**/node_modules
+dist
+**/dist
+.astro
+**/.astro
+apps/api/generated
+*.log
+.env
+.env.local
+coverage

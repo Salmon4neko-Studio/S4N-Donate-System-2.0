@@ -1,0 +1,35 @@
+{
+  "id": "official.goals",
+  "name": "目標進度",
+  "version": "0.0.0",
+  "api": "0.1",
+  "description": "目標條的佔位。尚未計算進度。",
+  "kind": [
+    "overlay",
+    "dashboard"
+  ],
+  "permissions": [
+    "events.subscribe",
+    "overlay.slot",
+    "dashboard.settings"
+  ],
+  "entry": {
+    "overlay": "./src/index.ts",
+    "dashboard": "./src/index.ts"
+  },
+  "settingsSchema": {
+    "type": "object",
+    "additionalProperties": false,
+    "properties": {
+      "title": {
+        "type": "string",
+        "title": "目標名稱"
+      },
+      "targetMinor": {
+        "type": "integer",
+        "title": "目標金額（最小貨幣單位）",
+        "minimum": 1
+      }
+    }
+  }
+}

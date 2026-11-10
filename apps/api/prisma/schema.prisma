@@ -1,0 +1,80 @@
+generator client {
+  provider = "prisma-client"
+  output   = "../generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+/// Operator account. Passwords are stored only as Argon2id hashes.
+/// Login is not implemented in this skeleton.
+model Operator {
+  id           String    @id @default(cuid())
+  email        String    @unique
+  passwordHash String
+  sessions     Session[]
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+}
+
+/// Opaque server-side session. The cookie stores only this id.
+model Session {
+  id         String   @id @default(cuid())
+  operatorId String
+  operator   Operator @relation(fields: [operatorId], references: [id], onDelete: Cascade)
+  expiresAt  DateTime
+  createdAt  DateTime @default(now())
+
+  @@index([operatorId])
+}
+
+model PluginInstallation {
+  id             String                   @id
+  enabled        Boolean                  @default(false)
+  version        String
+  publicSettings Json                     @default("{}")
+  secrets        EncryptedPluginSetting[]
+  createdAt      DateTime                 @default(now())
+  updatedAt      DateTime                 @updatedAt
+}
+
+/// Plugin secrets sealed with AES-256-GCM under S4N_MASTER_KEY.
+/// Dashboard reads never select these columns.
+model EncryptedPluginSetting {
+  id         String             @id @default(cuid())
+  pluginId   String
+  plugin     PluginInstallation @relation(fields: [pluginId], references: [id], onDelete: Cascade)
+  fieldKey   String
+  ciphertext Bytes
+  iv         Bytes
+  authTag    Bytes
+  createdAt  DateTime           @default(now())
+  updatedAt  DateTime           @updatedAt
+
+  @@unique([pluginId, fieldKey])
+}
+
+/// Core donation ledger. Payment plugins do not write this table.
+/// donorName and message are untrusted donor input.
+model Donation {
+  id          String         @id @default(cuid())
+  providerId  String
+  providerRef String?
+  amountMinor Int
+  currency    String
+  status      DonationStatus
+  donorName   String
+  message     String
+  createdAt   DateTime       @default(now())
+  updatedAt   DateTime       @updatedAt
+
+  @@unique([providerId, providerRef])
+  @@index([status, createdAt])
+}
+
+enum DonationStatus {
+  created
+  succeeded
+  failed
+}
