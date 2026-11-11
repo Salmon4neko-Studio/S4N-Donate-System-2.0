@@ -8,8 +8,8 @@
 :root {
   --ts-primary-400: var(--s4n-color-orange);
   --ts-primary-500: var(--s4n-color-orange);
-  --ts-primary-600: var(--s4n-color-orange-fill);
-  --ts-primary-700: var(--s4n-color-orange-hover);
+  --ts-primary-600: var(--s4n-color-orange);
+  --ts-primary-700: var(--s4n-color-orange-ink);
   --ts-primary-800: var(--s4n-color-orange-active);
   --ts-primary-900: #7a4200;
 
@@ -34,8 +34,8 @@
   --ts-negative-800: #5c151b;
   --ts-negative-900: #3d0d11;
 
-  --ts-accent-color: var(--ts-primary-600);
-  --ts-accent-foreground-color: #ffffff;
+  --ts-accent-color: var(--s4n-color-orange);
+  --ts-accent-foreground-color: #1a1512;
 
   --ts-gray-50: var(--s4n-color-paper-raised);
   --ts-gray-75: #f6f0e7;
@@ -52,7 +52,7 @@
   --ts-link-700: var(--s4n-color-indigo);
 
   --ts-tonal-primary-400: var(--s4n-color-orange-soft);
-  --ts-tonal-primary-800: var(--s4n-color-orange-hover);
+  --ts-tonal-primary-800: var(--s4n-color-orange-ink);
   --ts-tonal-positive-400: #e5f2eb;
   --ts-tonal-positive-800: #244538;
   --ts-tonal-warning-400: #f6ead7;
@@ -159,13 +159,13 @@ h2.ts-header {
 .ts-app-sidebar .item:focus-visible,
 .ts-text.is-link:focus-visible,
 a.ts-button:focus-visible {
-  outline: 2px solid var(--s4n-color-orange-hover);
+  outline: 2px solid var(--s4n-color-orange-ink);
   outline-offset: 2px;
 }
 
 .ts-input:focus-within,
 .ts-select:focus-within {
-  outline: 2px solid var(--s4n-color-orange-hover);
+  outline: 2px solid var(--s4n-color-orange-ink);
   outline-offset: 2px;
   border-radius: var(--ts-border-radius-element);
 }
@@ -184,11 +184,15 @@ a.ts-button:focus-visible {
 }
 
 .ts-button.is-accent:hover {
-  --accent-color: var(--ts-primary-700);
+  --accent-color: var(--s4n-color-orange-hover);
 }
 
 .ts-button.is-accent:active {
-  --accent-color: var(--ts-primary-800);
+  --accent-color: var(--s4n-color-orange-active);
+}
+
+.ts-button.is-accent.is-loading::after {
+  color: #1a1512;
 }
 
 .s4n-kicker {
