@@ -1,4 +1,9 @@
-const base = import.meta.env.VITE_API_URL ?? "http://127.0.0.1:8787";
+function apiUrl(path: string): URL {
+  const base = import.meta.env.DEV
+    ? window.location.origin
+    : (import.meta.env.VITE_API_URL ?? "http://localhost:8787");
+  return new URL(path, base);
+}
 
 export class ApiError extends Error {
   readonly status: number;
@@ -15,8 +20,9 @@ export class ApiError extends Error {
 export async function api<T>(path: string, init?: RequestInit): Promise<T> {
   let response: Response;
   try {
-    response = await fetch(new URL(path, base), {
+    response = await fetch(apiUrl(path), {
       ...init,
+      credentials: "include",
       headers: {
         accept: "application/json",
         ...(init?.body ? { "content-type": "application/json" } : {}),
@@ -43,9 +49,12 @@ export interface HealthResponse {
 export interface PluginField {
   key: string;
   title: string | null;
+  description: string | null;
   type: string;
   secret: boolean;
   required: boolean;
+  enum: string[] | null;
+  minimum: number | null;
 }
 
 export interface PluginSummary {
@@ -56,6 +65,29 @@ export interface PluginSummary {
   kind: string[];
   permissions: string[];
   official: boolean;
-  activation: "not_implemented";
+  enabled: boolean;
   settingsFields: PluginField[];
+}
+
+export interface SettingsFieldState extends PluginField {
+  configured: boolean;
+  value?: string | number | boolean;
+}
+
+export interface DonationRow {
+  id: string;
+  providerId: string;
+  providerRef: string | null;
+  amountMinor: number;
+  currency: string;
+  status: "created" | "succeeded" | "failed";
+  donorName: string;
+  message: string;
+  createdAt: string;
+}
+
+export interface OverlayLink {
+  configured: boolean;
+  url: string | null;
+  pluginId: string;
 }

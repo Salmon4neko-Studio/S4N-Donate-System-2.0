@@ -14,6 +14,7 @@ test("plugins cannot emit core payment events, even through a cast", () => {
   });
   const emit = bus.emit as (type: string, payload: unknown) => void;
   assert.throws(() => emit("s4n.donation.succeeded", { donationId: "d" }), /cannot emit/);
+  assert.throws(() => emit("s4n.donation.test", { donationId: "t" }), /cannot emit/);
 });
 
 test("plugins can emit a chat message through the SDK", () => {

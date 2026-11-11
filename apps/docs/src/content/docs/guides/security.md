@@ -1,6 +1,6 @@
 ---
 title: 安全性
-description: 主金鑰、密文設定、回呼記帳，以及這次還沒做的認證。
+description: 主金鑰、密文設定、營運者工作階段、疊層權杖與回呼記帳。
 ---
 
 ## 主金鑰與密文
@@ -23,22 +23,32 @@ description: 主金鑰、密文設定、回呼記帳，以及這次還沒做的�
 
 官方的綠界與歐付寶工人目前固定回 `not_implemented`。它們沒有帳本可以寫。
 
-贊助人名稱、留言與聊天文字在型別上是 `UntrustedText`。疊層現在不渲染這些文字。消毒留到之後的疊層與語音。
+贊助人名稱、留言與聊天文字在型別上是 `UntrustedText`。贊助提醒把控制字元拿掉之後，以文字節點顯示，不把內容當成 HTML。語音仍然沒有合成。
 
 ## 權限
 
-第一階段只有核心允許清單上的官方外掛能使用 `payments.provider`、`secrets`、`network`。清單是明確的 id，不是看到 `official.` 前綴就放行。`events.emit` 也不能發送 `s4n.donation.created`、`succeeded`、`failed`。
+第一階段只有核心允許清單上的官方外掛能使用 `payments.provider`、`secrets`、`network`。清單是明確的 id，不是看到 `official.` 前綴就放行。`events.emit` 也不能發送 `s4n.donation.created`、`succeeded`、`failed` 或 `s4n.donation.test`。
 
 社群外掛的預設是 `events.subscribe`、`overlay.slot`、`dashboard.settings`。
 
-## 認證還是佔位
+## 營運者認證
 
-登入路由沒有掛上。預定的做法寫在 `apps/api/src/auth/constants.ts`：
+儀表板 API 需要工作階段。贊助頁建立贊助、付款回呼與健康檢查不需要。
 
-- Session cookie 名稱 `s4n_session`，`httpOnly`、`Secure`、`SameSite=Lax`，值是伺服器上的工作階段 id
-- 密碼演算法預定為 Argon2id（記憶體 19 MiB、時間成本 2、平行度 1）。這次沒有安裝原生模組
+- Cookie 名稱 `s4n_session`，`httpOnly`、`SameSite=Lax`。只有 `S4N_ENV=production` 會加 `Secure`，否則本機 HTTP 存不住
+- 值是伺服器 `Session` 列的編號，不是瀏覽器可以自行延展的權杖
+- 密碼是 Argon2id，參數在 `apps/api/src/auth/constants.ts`。雜湊由 `hash-wasm` 計算，沒有額外的原生模組
+- 工作階段約 12 小時到期。超過 15 分鐘會換成新編號，到期時間不延長
+- 登入有固定窗口限流。錯誤的密碼與不存在的帳號回同一種錯誤
+- 初次設定在已經有營運者時會拒絕
 - 會改變狀態的儀表板請求要通過來源允許清單。本機會同時接受 `localhost` 與 `127.0.0.1`
 - 付款回呼不是瀏覽器請求，不看 Origin，改由外掛驗簽
-- 回呼與設定寫入有單一行程的固定窗口限流。多個 API 實例不會共用計數
+- 回呼、設定與登入的限流都在單一程序的記憶體裡
 
-這不是完整的認證產品，也還沒有內容安全政策。
+## 疊層權杖
+
+OBS 不帶登入 Cookie。疊層網址帶一組每個營運者一枚的權杖。伺服器存 SHA-256 作查找，並用主金鑰把權杖密封，這樣已登入的儀表板還可以顯示網址。重新產生會換掉這兩份資料，舊權杖立即失效。
+
+這組網址等於通行憑證。不要提交到版本庫，也不要貼到會記錄網址的公開服務。
+
+還沒有內容安全政策。多個 API 實例也不會共用工作階段以外的即時狀態；工作階段本身在資料庫裡。

@@ -15,6 +15,9 @@ test("donation creation stops at the unimplemented provider and does not write t
         touched = true;
         return "lost_race";
       },
+      async listRecent() {
+        return [];
+      },
     },
   });
 

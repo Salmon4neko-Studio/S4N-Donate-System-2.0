@@ -8,14 +8,18 @@ datasource db {
 }
 
 /// Operator account. Passwords are stored only as Argon2id hashes.
-/// Login is not implemented in this skeleton.
+/// The overlay token is sealed with the master key. Lookup uses the hash.
 model Operator {
-  id           String    @id @default(cuid())
-  email        String    @unique
-  passwordHash String
-  sessions     Session[]
-  createdAt    DateTime  @default(now())
-  updatedAt    DateTime  @updatedAt
+  id                 String    @id @default(cuid())
+  email              String    @unique
+  passwordHash       String
+  overlayTokenHash   String?   @unique
+  overlayCiphertext  Bytes?
+  overlayIv          Bytes?
+  overlayAuthTag     Bytes?
+  sessions           Session[]
+  createdAt          DateTime  @default(now())
+  updatedAt          DateTime  @updatedAt
 }
 
 /// Opaque server-side session. The cookie stores only this id.

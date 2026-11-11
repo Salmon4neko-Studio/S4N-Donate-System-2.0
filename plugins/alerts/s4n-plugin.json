@@ -3,7 +3,7 @@
   "name": "贊助提醒",
   "version": "0.0.0",
   "api": "0.1",
-  "description": "疊層提醒的佔位。尚未播放動畫。",
+  "description": "在疊層顯示贊助人、金額與留言。沒有動畫序列。",
   "kind": [
     "overlay"
   ],

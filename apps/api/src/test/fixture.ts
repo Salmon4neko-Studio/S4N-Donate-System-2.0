@@ -1,44 +1,92 @@
+import assert from "node:assert/strict";
 import type { Hono } from "hono";
 import { createApp, type AppDeps } from "../app.js";
+import type { SessionEnv } from "../auth/session.js";
+import { createAuthService, type AuthService } from "../auth/service.js";
 import { createCoreBus, type CoreBus } from "../realtime/bus.js";
 import { createMemoryLedger } from "../payments/memory-ledger.js";
 import type { Ledger } from "../payments/ledger.js";
 import { createOfficialCatalog, createPaymentRegistry, type PaymentRegistry } from "../plugins/catalog.js";
+import { createMemoryInstallations, type InstallationStore } from "../plugins/installations.js";
 import { createMemorySecretStore } from "../plugins/memory-store.js";
+import { createMemoryAuthStore } from "../auth/store.js";
 import type { SecretStore } from "../plugins/settings.js";
 
-export function createTestApp(overrides: Partial<AppDeps> = {}): {
-  app: Hono;
+export const TEST_ORIGIN = "http://localhost:5180";
+export const TEST_OPERATOR = {
+  email: "operator@example.com",
+  password: "correct-horse-battery",
+};
+
+type TestOverrides = Partial<AppDeps> & {
+  sessionTtlMs?: number;
+  rotateAfterMs?: number;
+};
+
+export function createTestApp(overrides: TestOverrides = {}): {
+  app: Hono<SessionEnv>;
   masterKey: Buffer;
   secrets: SecretStore;
   ledger: Ledger;
   bus: CoreBus;
   providers: PaymentRegistry;
+  auth: AuthService;
+  installations: InstallationStore;
 } {
-  const masterKey = Buffer.alloc(32, 7);
-  const catalog = createOfficialCatalog();
-  const secrets = createMemorySecretStore();
-  const ledger = createMemoryLedger();
-  const bus = createCoreBus();
-  const providers = createPaymentRegistry(catalog);
+  const { sessionTtlMs, rotateAfterMs, auth: authOverride, ...rest } = overrides;
+  const masterKey = rest.masterKey ?? Buffer.alloc(32, 7);
+  const catalog = rest.catalog ?? createOfficialCatalog();
+  const secrets = rest.secrets ?? createMemorySecretStore();
+  const ledger = rest.ledger ?? createMemoryLedger();
+  const bus = rest.bus ?? createCoreBus();
+  const providers = rest.providers ?? createPaymentRegistry(catalog);
+  const installations = rest.installations ?? createMemoryInstallations();
+  const auth =
+    authOverride ??
+    createAuthService({
+      store: createMemoryAuthStore(),
+      masterKey,
+      ...(sessionTtlMs !== undefined ? { ttlMs: sessionTtlMs } : {}),
+      ...(rotateAfterMs !== undefined ? { rotateAfterMs } : {}),
+    });
   const app = createApp({
     envName: "test",
-    dashboardOrigin: "http://localhost:5180",
+    dashboardOrigin: TEST_ORIGIN,
+    overlayOrigin: "http://localhost:5181",
     masterKey,
     catalog,
     providers,
     secrets,
+    installations,
     ledger,
     bus,
+    auth,
     pingDatabase: async () => "unconfigured",
-    ...overrides,
+    ...rest,
   });
-  return {
-    app,
-    masterKey: overrides.masterKey ?? masterKey,
-    secrets: overrides.secrets ?? secrets,
-    ledger: overrides.ledger ?? ledger,
-    bus: overrides.bus ?? bus,
-    providers: overrides.providers ?? providers,
-  };
+  return { app, masterKey, secrets, ledger, bus, providers, auth, installations };
+}
+
+export function sessionCookie(response: Response): string {
+  const cookies = response.headers.getSetCookie();
+  const pair = cookies
+    .map((cookie) => cookie.split(";")[0] ?? "")
+    .find((cookie) => cookie.startsWith("s4n_session="));
+  if (pair === undefined || pair.length <= "s4n_session=".length) {
+    throw new Error(`missing session cookie: ${cookies.join(" | ")}`);
+  }
+  return pair;
+}
+
+export async function setupOperator(app: Hono<SessionEnv>): Promise<string> {
+  const response = await app.request("/api/auth/setup", {
+    method: "POST",
+    headers: {
+      origin: TEST_ORIGIN,
+      "content-type": "application/json",
+    },
+    body: JSON.stringify(TEST_OPERATOR),
+  });
+  assert.equal(response.status, 201);
+  return sessionCookie(response);
 }

@@ -6,7 +6,7 @@ export default defineConfig({
   integrations: [
     starlight({
       title: "S4N DONATE SYSTEM 2.0",
-      description: "模組化贊助平台的骨架文件。",
+      description: "模組化贊助平台的文件。",
       defaultLocale: "root",
       locales: {
         root: { label: "繁體中文", lang: "zh-TW" },
@@ -32,6 +32,7 @@ export default defineConfig({
           items: [
             { label: "簡介", slug: "index" },
             { label: "本機開發", slug: "guides/local-dev" },
+            { label: "登入、外掛與疊層", slug: "guides/operator" },
             { label: "Docker Compose", slug: "guides/compose" },
             { label: "安全性", slug: "guides/security" },
           ],

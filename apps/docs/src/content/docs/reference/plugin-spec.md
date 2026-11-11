@@ -38,11 +38,12 @@ description: s4n-plugin.json、權限、密文欄位，以及外掛可以收發�
 
 外掛只能透過 `@s4n/plugin-sdk` 的 `createPluginBus` 訂閱與發送。
 
-核心付款事件，外掛不能發送：
+核心保留事件，外掛不能發送：
 
 - `s4n.donation.created`
 - `s4n.donation.succeeded`
 - `s4n.donation.failed`
+- `s4n.donation.test`（工作台的測試贊助，不寫入帳本）
 
 其餘事件：
 

@@ -4,7 +4,7 @@ import { asUntrustedText, type AnyS4nEvent } from "@s4n/events";
 import type { PaymentProvider } from "@s4n/plugin-sdk";
 import { createMemoryLedger } from "./memory-ledger.js";
 import { PaymentRegistry } from "../plugins/catalog.js";
-import { createTestApp } from "../test/fixture.js";
+import { createTestApp, setupOperator, TEST_ORIGIN } from "../test/fixture.js";
 
 test("unknown and non-payment callbacks never touch the ledger", async () => {
   let touched = false;
@@ -17,6 +17,9 @@ test("unknown and non-payment callbacks never touch the ledger", async () => {
       async markSucceeded() {
         touched = true;
         return "lost_race";
+      },
+      async listRecent() {
+        return [];
       },
     },
   });
@@ -60,12 +63,13 @@ test("a verified callback records the server order once and ignores the body amo
   providers.register(provider);
 
   const { app, bus } = createTestApp({ ledger, providers });
+  const cookie = await setupOperator(app);
   const events: AnyS4nEvent[] = [];
   bus.subscribe((event) => events.push(event));
 
   const saved = await app.request("/api/plugins/official.ecpay/settings", {
     method: "PUT",
-    headers: { origin: "http://localhost:5180", "content-type": "application/json" },
+    headers: { origin: TEST_ORIGIN, cookie, "content-type": "application/json" },
     body: JSON.stringify({
       values: {
         merchantId: "sentinel-merchant-9f3a",

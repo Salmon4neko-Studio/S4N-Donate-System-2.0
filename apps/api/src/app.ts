@@ -1,14 +1,20 @@
 import { randomUUID } from "node:crypto";
 import { Hono } from "hono";
 import { cors } from "hono/cors";
+import { asUntrustedText } from "@s4n/events";
 import { PaymentNotImplemented } from "@s4n/plugin-sdk";
 import type { RuntimeEnv } from "./env.js";
 import { originAllowlist, originGuard } from "./auth/origin.js";
 import { rateLimit } from "./auth/rate-limit.js";
+import { registerAuthRoutes } from "./auth/routes.js";
+import type { AuthService } from "./auth/service.js";
+import { requireSession, sessionCookieSecure, type SessionEnv } from "./auth/session.js";
+import { isRecord, readJson } from "./http.js";
 import { handlePaymentCallback } from "./payments/callback.js";
 import type { Ledger } from "./payments/ledger.js";
 import { planDonation, validateDonationRequest } from "./payments/plan.js";
 import type { LoadedPlugin, PaymentRegistry } from "./plugins/catalog.js";
+import type { InstallationStore } from "./plugins/installations.js";
 import { decryptPluginSecrets } from "./plugins/secrets.js";
 import {
   redactSettings,
@@ -17,24 +23,35 @@ import {
   type SecretStore,
 } from "./plugins/settings.js";
 import type { CoreBus } from "./realtime/bus.js";
+import { ALERTS_PLUGIN_ID, overlayPageUrl } from "./realtime/overlay-url.js";
 
 export interface AppDeps {
   envName: RuntimeEnv;
   dashboardOrigin: string;
+  overlayOrigin: string;
   masterKey: Buffer;
   catalog: readonly LoadedPlugin[];
   providers: PaymentRegistry;
   secrets: SecretStore;
+  installations: InstallationStore;
   ledger: Ledger;
   bus: CoreBus;
+  auth: AuthService;
   pingDatabase: () => Promise<"up" | "down" | "unconfigured">;
   callbackRateLimit?: { windowMs: number; max: number };
+  loginRateLimit?: { windowMs: number; max: number };
 }
 
-export function createApp(deps: AppDeps): Hono {
-  const app = new Hono();
+export function createApp(deps: AppDeps): Hono<SessionEnv> {
+  const app = new Hono<SessionEnv>();
   const allowedOrigins = originAllowlist(deps.dashboardOrigin);
   const callbackLimit = deps.callbackRateLimit ?? { windowMs: 60_000, max: 60 };
+  const secureCookie = sessionCookieSecure(deps.envName);
+  const session = requireSession(deps.auth, {
+    secure: secureCookie,
+    rotateAfterMs: deps.auth.rotateAfterMs,
+  });
+  const guard = originGuard(allowedOrigins);
 
   app.use("*", async (c, next) => {
     c.header("x-content-type-options", "nosniff");
@@ -53,18 +70,31 @@ export function createApp(deps: AppDeps): Hono {
     }),
   );
 
+  registerAuthRoutes(app, {
+    auth: deps.auth,
+    allowedOrigins,
+    secureCookie,
+    ...(deps.loginRateLimit ? { loginRateLimit: deps.loginRateLimit } : {}),
+  });
+
   app.get("/api/health", async (c) => {
     const database = await deps.pingDatabase();
     return c.json({
       service: "s4n-api",
       status: "ok",
       database,
-      realtime: "stub",
+      realtime: "websocket",
       payments: deps.providers.ids(),
     });
   });
 
-  app.get("/api/plugins", (c) => {
+  app.get("/api/plugins", session, async (c) => {
+    let enabled = new Set<string>();
+    try {
+      enabled = new Set(await deps.installations.enabledIds());
+    } catch {
+      return c.json({ error: "plugins_unavailable" }, 503);
+    }
     return c.json({
       plugins: deps.catalog.map((plugin) => ({
         id: plugin.manifest.id,
@@ -74,14 +104,28 @@ export function createApp(deps: AppDeps): Hono {
         kind: plugin.manifest.kind,
         permissions: plugin.manifest.permissions,
         official: true,
-        activation: "not_implemented",
+        enabled: enabled.has(plugin.manifest.id),
         settingsFields: describeFields(plugin),
       })),
     });
   });
 
-  app.get("/api/plugins/:id/settings", async (c) => {
-    c.header("cache-control", "no-store");
+  app.put("/api/plugins/:id/enabled", session, guard, async (c) => {
+    const plugin = findPlugin(deps.catalog, c.req.param("id"));
+    if (plugin === undefined) return c.json({ error: "unknown_plugin" }, 404);
+    const body = await readJson(c.req.raw);
+    if (!body.ok || !isRecord(body.value) || typeof body.value.enabled !== "boolean") {
+      return c.json({ error: "invalid_enabled" }, 422);
+    }
+    try {
+      await deps.installations.setEnabled(plugin.manifest.id, body.value.enabled, plugin.manifest.version);
+    } catch {
+      return c.json({ error: "plugins_unavailable" }, 503);
+    }
+    return c.json({ pluginId: plugin.manifest.id, enabled: body.value.enabled });
+  });
+
+  app.get("/api/plugins/:id/settings", session, async (c) => {
     const plugin = findPlugin(deps.catalog, c.req.param("id"));
     if (plugin === undefined) return c.json({ error: "unknown_plugin" }, 404);
     try {
@@ -108,14 +152,14 @@ export function createApp(deps: AppDeps): Hono {
 
   app.put(
     "/api/plugins/:id/settings",
-    originGuard(allowedOrigins),
+    session,
+    guard,
     rateLimit({
       windowMs: 60_000,
       max: 30,
       key: (c) => `settings:${c.req.param("id")}:${c.req.header("x-forwarded-for") ?? "local"}`,
     }),
     async (c) => {
-      c.header("cache-control", "no-store");
       const plugin = findPlugin(deps.catalog, c.req.param("id"));
       if (plugin === undefined) return c.json({ error: "unknown_plugin" }, 404);
       const body = await readJson(c.req.raw);
@@ -140,9 +184,35 @@ export function createApp(deps: AppDeps): Hono {
     },
   );
 
+  app.get("/api/donations", session, async (c) => {
+    try {
+      const donations = await deps.ledger.listRecent(50);
+      return c.json({ donations });
+    } catch {
+      return c.json({ error: "ledger_unavailable" }, 503);
+    }
+  });
+
+  app.post("/api/donations/test", session, guard, async (c) => {
+    const body = await readJson(c.req.raw);
+    if (!body.ok) return c.json({ error: "invalid_json" }, 422);
+    const parsed = validateDonationRequest(testDonationBody(body.value));
+    if (!parsed.ok) return c.json({ error: "invalid_donation", issues: parsed.issues }, 422);
+    const event = deps.bus.publish("s4n.donation.test", {
+      donationId: `test_${randomUUID()}`,
+      providerId: "s4n.test",
+      amountMinor: parsed.value.amountMinor,
+      currency: "TWD",
+      donorName: asUntrustedText(parsed.value.donorName),
+      message: asUntrustedText(parsed.value.message),
+      test: true,
+    });
+    return c.json({ test: true, eventId: event.id });
+  });
+
   app.post(
     "/api/donations",
-    originGuard(allowedOrigins),
+    guard,
     rateLimit({
       windowMs: 60_000,
       max: 20,
@@ -186,11 +256,38 @@ export function createApp(deps: AppDeps): Hono {
       }
 
       if (secretsFailed) return c.json({ error: "secrets_unavailable" }, 503);
-      // Official providers throw before this. A resolved createPayment is still
-      // not a finished checkout: the skeleton does not persist the order.
       return c.json({ error: "payment_not_implemented", pluginId: provider.pluginId }, 501);
     },
   );
+
+  app.get("/api/overlay", session, async (c) => {
+    try {
+      const token = await deps.auth.readOverlayToken(c.get("operatorId"));
+      if (token === null) {
+        return c.json({ configured: false, url: null, pluginId: ALERTS_PLUGIN_ID });
+      }
+      return c.json({
+        configured: true,
+        url: overlayPageUrl(deps.overlayOrigin, token),
+        pluginId: ALERTS_PLUGIN_ID,
+      });
+    } catch {
+      return c.json({ error: "overlay_unavailable" }, 503);
+    }
+  });
+
+  app.post("/api/overlay/token", session, guard, async (c) => {
+    try {
+      const token = await deps.auth.issueOverlayToken(c.get("operatorId"));
+      return c.json({
+        configured: true,
+        url: overlayPageUrl(deps.overlayOrigin, token),
+        pluginId: ALERTS_PLUGIN_ID,
+      });
+    } catch {
+      return c.json({ error: "overlay_unavailable" }, 503);
+    }
+  });
 
   app.post(
     "/api/payments/:pluginId/callback",
@@ -223,15 +320,28 @@ export function createApp(deps: AppDeps): Hono {
   return app;
 }
 
+function testDonationBody(value: unknown): unknown {
+  if (!isRecord(value)) return value;
+  return {
+    pluginId: "s4n.test",
+    currency: "TWD",
+    amountMinor: value.amountMinor,
+    donorName: value.donorName,
+    message: value.message,
+  };
+}
+
 function describeFields(plugin: LoadedPlugin) {
   const required = new Set(plugin.manifest.settingsSchema.required ?? []);
   return Object.entries(plugin.manifest.settingsSchema.properties).map(([key, field]) => ({
     key,
     title: field.title ?? null,
+    description: field.description ?? null,
     type: field.type,
     secret: field["x-s4n-secret"] === true,
     required: required.has(key),
     enum: field.enum ?? null,
+    minimum: field.minimum ?? null,
   }));
 }
 
@@ -242,16 +352,4 @@ function findPlugin(catalog: readonly LoadedPlugin[], id: string): LoadedPlugin 
 function callbackUrl(requestUrl: string, pluginId: string): string {
   const url = new URL(requestUrl);
   return `${url.origin}/api/payments/${pluginId}/callback`;
-}
-
-async function readJson(request: Request): Promise<{ ok: true; value: unknown } | { ok: false }> {
-  try {
-    return { ok: true, value: await request.json() };
-  } catch {
-    return { ok: false };
-  }
-}
-
-function isRecord(value: unknown): value is Record<string, unknown> {
-  return typeof value === "object" && value !== null && !Array.isArray(value);
 }

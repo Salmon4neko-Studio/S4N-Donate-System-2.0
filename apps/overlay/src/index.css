@@ -27,8 +27,48 @@ body[data-transparent="1"] {
   background: transparent;
 }
 
-body:not([data-transparent="1"]) {
+@keyframes s4n-rise {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .s4n-rise {
+    animation: s4n-rise var(--s4n-motion-calm) var(--s4n-ease-out);
+  }
+}
+
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+body:not([data-transparent="1"]):not([data-stage="checker"]) {
   background:
     radial-gradient(900px 420px at 80% -20%, rgba(168, 75, 64, 0.12), transparent 50%),
     var(--s4n-color-paper);
+}
+
+body[data-stage="checker"] {
+  background-color: #1c1714;
+  background-image:
+    linear-gradient(45deg, #2a2420 25%, transparent 25%),
+    linear-gradient(-45deg, #2a2420 25%, transparent 25%),
+    linear-gradient(45deg, transparent 75%, #2a2420 75%),
+    linear-gradient(-45deg, transparent 75%, #2a2420 75%);
+  background-size: 28px 28px;
+  background-position: 0 0, 0 14px, 14px -14px, -14px 0;
 }

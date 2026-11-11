@@ -38,6 +38,17 @@ export interface DonationFailedPayload {
   reason: "verification_failed" | "declined" | "expired" | "unknown";
 }
 
+/** Dashboard preview. Never written to the paid ledger. */
+export interface DonationTestPayload {
+  donationId: string;
+  providerId: "s4n.test";
+  amountMinor: number;
+  currency: "TWD";
+  donorName: UntrustedText;
+  message: UntrustedText;
+  test: true;
+}
+
 export interface ChatMessagePayload {
   messageId: string;
   platform: "twitch" | "youtube";
@@ -76,6 +87,7 @@ export interface S4nEventMap {
   "s4n.donation.created": DonationCreatedPayload;
   "s4n.donation.succeeded": DonationSucceededPayload;
   "s4n.donation.failed": DonationFailedPayload;
+  "s4n.donation.test": DonationTestPayload;
   "s4n.chat.message": ChatMessagePayload;
   "s4n.goal.updated": GoalUpdatedPayload;
   "s4n.tts.request": TtsRequestPayload;
@@ -84,7 +96,10 @@ export interface S4nEventMap {
 
 export type S4nEventName = keyof S4nEventMap;
 
-export type PluginEmittableEventName = Exclude<S4nEventName, CorePaymentEventName>;
+export type PluginEmittableEventName = Exclude<
+  S4nEventName,
+  CorePaymentEventName | "s4n.donation.test"
+>;
 
 export interface S4nEvent<T extends S4nEventName = S4nEventName> {
   type: T;
