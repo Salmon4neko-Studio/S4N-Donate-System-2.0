@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { DonationList } from "@/components/donation-list";
+import { Note } from "@/components/fields";
 import { api, type DonationRow } from "@/lib/api";
 
 type LoadState =
@@ -22,21 +23,17 @@ export function DonationsPage() {
   }, []);
 
   return (
-    <div className="flex flex-col gap-8">
-      <header className="max-w-2xl">
-        <p className="text-xs tracking-[0.18em] text-cinnabar">帳本</p>
-        <h1 className="mt-3 font-serif text-4xl leading-tight text-balance">贊助紀錄</h1>
-        <p className="mt-4 text-base leading-7 text-ink-soft">
+    <div className="s4n-stack is-loose">
+      <header className="s4n-intro">
+        <p className="s4n-kicker">帳本</p>
+        <h1 className="ts-header is-huge">贊助紀錄</h1>
+        <p className="ts-text is-description s4n-lede">
           這裡只讀核心帳本。測試贊助不會出現。名稱與留言是贊助人輸入的文字。時間以台北時間顯示。
         </p>
       </header>
 
-      {state.status === "loading" ? <p className="text-sm text-ink-soft">正在讀取帳本…</p> : null}
-      {state.status === "error" ? (
-        <p className="text-sm text-cinnabar" role="status">
-          帳本沒有回應。
-        </p>
-      ) : null}
+      {state.status === "loading" ? <p className="ts-text is-description">正在讀取帳本…</p> : null}
+      {state.status === "error" ? <Note tone="danger">帳本沒有回應。</Note> : null}
       {state.status === "ready" && state.donations.length === 0 ? <EmptyLedger /> : null}
       {state.status === "ready" && state.donations.length > 0 ? (
         <DonationList
@@ -50,11 +47,12 @@ export function DonationsPage() {
 
 function EmptyLedger() {
   return (
-    <section className="max-w-xl rounded-card border border-dashed border-line bg-paper-raised/70 px-8 py-12 text-center shadow-soft">
-      <h2 className="font-serif text-3xl">帳本還沒有贊助</h2>
-      <p className="mt-4 text-sm leading-7 text-ink-soft">
-        完成付款後，待付款、已付款和未成功都會列在這裡。測試按鈕只把預覽送到疊層。
-      </p>
+    <section className="ts-box is-hollowed">
+      <div className="ts-blankslate">
+        <span className="ts-icon is-receipt-icon" aria-hidden="true" />
+        <h2 className="header">帳本還沒有贊助</h2>
+        <p className="description">完成付款後，待付款、已付款和未成功都會列在這裡。測試按鈕只把預覽送到疊層。</p>
+      </div>
     </section>
   );
 }

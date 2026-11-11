@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { PluginCard } from "@/components/plugin-card";
+import { Note } from "@/components/fields";
 import { api, type PluginSummary } from "@/lib/api";
 
 type LoadState =
@@ -22,24 +23,27 @@ export function PluginsPage() {
   }, []);
 
   return (
-    <div className="flex flex-col gap-8">
-      <div className="max-w-2xl">
-        <p className="text-xs tracking-[0.18em] text-cinnabar">外掛庫</p>
-        <h1 className="mt-3 font-serif text-4xl leading-tight text-balance">已安裝的外掛</h1>
-        <p className="mt-4 text-base leading-7 text-ink-soft">
+    <div className="s4n-stack is-loose">
+      <header className="s4n-intro">
+        <p className="s4n-kicker">外掛庫</p>
+        <h1 className="ts-header is-huge">已安裝的外掛</h1>
+        <p className="ts-text is-description s4n-lede">
           清單來自每份 s4n-plugin.json。可以啟用或停用。標成密文的欄位只會告訴你已設定或尚未設定，不會把明文或密文送回瀏覽器。
         </p>
-      </div>
+      </header>
 
-      {state.status === "loading" ? <p className="text-sm text-ink-soft">正在讀取外掛庫…</p> : null}
-      {state.status === "error" ? (
-        <p className="text-sm text-cinnabar" role="status">
-          讀不到外掛庫。
-        </p>
+      {state.status === "loading" ? <p className="ts-text is-description">正在讀取外掛庫…</p> : null}
+      {state.status === "error" ? <Note tone="danger">讀不到外掛庫。</Note> : null}
+      {state.status === "ready" && state.plugins.length === 0 ? (
+        <section className="ts-box is-hollowed">
+          <div className="ts-blankslate">
+            <span className="ts-icon is-puzzle-piece-icon" aria-hidden="true" />
+            <p className="header">官方目錄是空的。</p>
+          </div>
+        </section>
       ) : null}
-      {state.status === "ready" && state.plugins.length === 0 ? <p className="text-sm text-ink-soft">官方目錄是空的。</p> : null}
       {state.status === "ready" ? (
-        <ul className="grid gap-4">
+        <ul className="s4n-stack">
           {state.plugins.map((plugin) => (
             <li key={plugin.id}>
               <PluginCard plugin={plugin} />

@@ -1,9 +1,5 @@
 import { useEffect, useState, type FormEvent } from "react";
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
+import { buttonClass, Field, Hint, Note, TextInput } from "@/components/fields";
 import { ApiError, api, type PluginSummary, type SettingsFieldState } from "@/lib/api";
 
 const kindLabel: Record<string, string> = {
@@ -56,56 +52,73 @@ export function PluginCard({ plugin, settingsOpen }: { plugin: PluginSummary; se
   }
 
   return (
-    <Card className="rounded-card border-line bg-paper-raised shadow-soft">
-      <CardHeader className="gap-3">
-        <div className="flex flex-wrap items-baseline justify-between gap-3">
-          <CardTitle className="font-serif text-2xl font-medium">{plugin.name}</CardTitle>
-          <code className="text-xs text-ink-soft">{plugin.id}</code>
+    <article className="ts-box is-raised">
+      <div className="ts-content is-padded s4n-stack">
+        <div className="s4n-split">
+          <h2 className="ts-header is-large">{plugin.name}</h2>
+          <code className="ts-text is-code">{plugin.id}</code>
         </div>
-        <CardDescription className="text-sm leading-6">{plugin.description ?? "沒有說明。"}</CardDescription>
-        <div className="flex flex-wrap gap-2">
+        <p className="ts-text is-description">{plugin.description ?? "沒有說明。"}</p>
+        <div className="ts-wrap is-middle-aligned">
           {plugin.kind.map((kind) => (
-            <Badge key={kind} variant={kind === "payment" ? "default" : "secondary"}>
+            <span key={kind} className={kind === "payment" ? "ts-badge is-accent" : "ts-badge is-secondary"}>
               {kindLabel[kind] ?? kind}
-            </Badge>
+            </span>
           ))}
-          <Badge variant="outline">{enabled ? "啟用中" : "已停用"}</Badge>
-          {plugin.official ? <Badge variant="outline">官方</Badge> : null}
+          <span className="ts-badge is-outlined">{enabled ? "啟用中" : "已停用"}</span>
+          {plugin.official ? <span className="ts-badge is-outlined">官方</span> : null}
         </div>
-        <div className="flex flex-wrap gap-2">
-          <Button type="button" variant={enabled ? "outline" : "default"} className="h-9 px-3" disabled={pending} onClick={() => void toggle()} aria-pressed={enabled}>
+        <div className="s4n-choices">
+          <button
+            type="button"
+            className={buttonClass({
+              tone: enabled ? "neutral" : "accent",
+              variant: enabled ? "outlined" : "solid",
+              icon: "start",
+              loading: pending,
+            })}
+            disabled={pending}
+            onClick={() => void toggle()}
+            aria-pressed={enabled}
+          >
+            <span className={enabled ? "ts-icon is-pause-icon" : "ts-icon is-play-icon"} aria-hidden="true" />
             {pending ? "更新中…" : enabled ? "停用" : "啟用"}
-          </Button>
+          </button>
           {plugin.settingsFields.length > 0 ? (
-            <Button type="button" variant="outline" className="h-9 px-3" aria-expanded={open} onClick={() => setOpen((value) => !value)}>
+            <button
+              type="button"
+              className={buttonClass({ variant: "outlined", icon: "start" })}
+              aria-expanded={open}
+              onClick={() => setOpen((value) => !value)}
+            >
+              <span className="ts-icon is-gear-icon" aria-hidden="true" />
               {open ? "隱藏設定" : "設定"}
-            </Button>
+            </button>
           ) : null}
         </div>
         {plugin.kind.includes("payment") ? (
-          <p className="text-sm leading-6 text-ink-soft">
-            啟用且必填欄位都設定之後，才會出現在贊助頁。密文只顯示已設定或尚未設定。
-          </p>
+          <p className="ts-text is-description">啟用且必填欄位都設定之後，才會出現在贊助頁。密文只顯示已設定或尚未設定。</p>
         ) : null}
-        {notice ? <p className="text-sm text-cinnabar">{notice}</p> : null}
-      </CardHeader>
+        {notice ? <Note tone="danger">{notice}</Note> : null}
+      </div>
       {open ? (
-        <CardContent className="grid gap-6">
+        <div className="ts-content is-tertiary is-padded s4n-stack">
+          <div className="ts-divider" />
           <SettingsForm pluginId={plugin.id} />
           <div>
-            <h2 className="text-sm text-ink">權限</h2>
-            <ul className="mt-2 flex flex-col gap-1 text-sm text-ink-soft">
+            <h3 className="ts-header">權限</h3>
+            <ul className="ts-list">
               {plugin.permissions.map((permission) => (
-                <li key={permission}>
-                  <code className="text-ink">{permission}</code>
-                  <span className="ml-2">{permissionLabel[permission] ?? ""}</span>
+                <li key={permission} className="item">
+                  <code className="ts-text is-code">{permission}</code>
+                  <span className="ts-text is-description">{permissionLabel[permission] ? ` ${permissionLabel[permission]}` : ""}</span>
                 </li>
               ))}
             </ul>
           </div>
-        </CardContent>
+        </div>
       ) : null}
-    </Card>
+    </article>
   );
 }
 
@@ -180,34 +193,46 @@ function SettingsForm({ pluginId }: { pluginId: string }) {
     }
   }
 
-  if (error !== null && fields === null) return <p className="text-sm text-cinnabar">{error}</p>;
-  if (fields === null) return <p className="text-sm text-ink-soft">正在讀取設定…</p>;
+  if (error !== null && fields === null) return <Note tone="danger">{error}</Note>;
+  if (fields === null) return <p className="ts-text is-description">正在讀取設定…</p>;
 
   return (
-    <form onSubmit={onSubmit} className="flex flex-col gap-4">
+    <form onSubmit={onSubmit} className="s4n-fields">
       {fields.map((field) => (
-        <div key={field.key} className="flex flex-col gap-2">
-          <div className="flex flex-wrap items-center gap-2">
-            <Label htmlFor={`${pluginId}-${field.key}`}>{field.title ?? field.key}</Label>
-            {field.secret ? <Badge variant="outline">{field.configured ? "已設定" : "尚未設定"}</Badge> : null}
-            {field.required ? <span className="text-xs text-ink-soft">必填</span> : null}
-          </div>
+        <Field
+          key={field.key}
+          id={`${pluginId}-${field.key}`}
+          label={field.title ?? field.key}
+          extra={
+            <>
+              {field.secret ? <span className="ts-badge is-outlined">{field.configured ? "已設定" : "尚未設定"}</span> : null}
+              {field.required ? <span className="ts-text is-description is-small">必填</span> : null}
+            </>
+          }
+          hint={
+            <>
+              {field.secret ? <Hint>只會存成密文。這個畫面不會再顯示內容。</Hint> : null}
+              {field.description ? <Hint>{field.description}</Hint> : null}
+            </>
+          }
+        >
           {field.enum !== null ? (
-            <select
-              id={`${pluginId}-${field.key}`}
-              className="h-10 rounded-lg border border-input bg-paper px-3 text-sm"
-              value={drafts[field.key] ?? ""}
-              onChange={(event) => setDrafts((current) => ({ ...current, [field.key]: event.target.value }))}
-            >
-              <option value="">請選擇</option>
-              {field.enum.map((option) => (
-                <option key={option} value={option}>
-                  {enumLabel[option] ?? option}
-                </option>
-              ))}
-            </select>
+            <div className="ts-select is-fluid">
+              <select
+                id={`${pluginId}-${field.key}`}
+                value={drafts[field.key] ?? ""}
+                onChange={(event) => setDrafts((current) => ({ ...current, [field.key]: event.target.value }))}
+              >
+                <option value="">請選擇</option>
+                {field.enum.map((option) => (
+                  <option key={option} value={option}>
+                    {enumLabel[option] ?? option}
+                  </option>
+                ))}
+              </select>
+            </div>
           ) : (
-            <Input
+            <TextInput
               id={`${pluginId}-${field.key}`}
               type={field.secret ? "password" : field.type === "integer" || field.type === "number" ? "number" : "text"}
               min={field.minimum ?? undefined}
@@ -216,21 +241,17 @@ function SettingsForm({ pluginId }: { pluginId: string }) {
               placeholder={field.secret ? (field.configured ? "已設定，留空表示不變更" : "尚未設定") : undefined}
               value={drafts[field.key] ?? ""}
               onChange={(event) => setDrafts((current) => ({ ...current, [field.key]: event.target.value }))}
-              className="h-10"
             />
           )}
-          {field.secret ? (
-            <p className="text-xs leading-5 text-ink-soft">只會存成密文。這個畫面不會再顯示內容。</p>
-          ) : null}
-          {field.description ? <p className="text-xs leading-5 text-ink-soft">{field.description}</p> : null}
-        </div>
+        </Field>
       ))}
-      <div className="flex flex-wrap items-center gap-3">
-        <Button type="submit" className="h-10 px-4" disabled={pending}>
+      <div className="s4n-choices">
+        <button type="submit" className={buttonClass({ tone: "accent", icon: "start", loading: pending })} disabled={pending}>
+          <span className="ts-icon is-check-icon" aria-hidden="true" />
           {pending ? "儲存中…" : "儲存設定"}
-        </Button>
-        {saved ? <p className="text-sm text-ink">已儲存。密文不會再顯示。</p> : null}
-        {error ? <p className="text-sm text-cinnabar">{error}</p> : null}
+        </button>
+        {saved ? <p className="ts-text">已儲存。密文不會再顯示。</p> : null}
+        {error ? <Note tone="danger">{error}</Note> : null}
       </div>
     </form>
   );

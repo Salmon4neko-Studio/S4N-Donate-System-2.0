@@ -107,9 +107,9 @@ plugins/tts       佔位
 - 事件匯流排與登入限流都在單一程序的記憶體裡。重啟會忘掉尚未送出的事件與限流計數；帳號與工作階段在資料庫。
 - 測試贊助是 `s4n.donation.test`，不寫入帳本。疊層權杖以 SHA-256 查找，並用主金鑰密封，方便儀表板再次顯示網址。
 - 開發用主金鑰是 32 個零位元組。正式環境拒絕它。
-- 儀表板元件使用 shadcn/ui，顏色改成紙色與硃砂，不是預設的灰。
-- 視覺先做淺色。間距沿用 Tailwind 的 4px 刻度。
+- 儀表板與公開贊助頁以 Tocas UI 5 為主，紙色、橘色、靛藍對到它的 CSS 變數。實心按鈕底色是 `#f28500`，字是 `#1a1512`（對比 7.01:1）。淺底小字用 `#995400`。Tocas 沒有的版面（側欄在手機上的橫向導覽、OBS 預覽畫布）用自訂元件補上。OBS 疊層的提醒卡維持紙色，左邊線用 `#f28500`。
+- 儀表板預設淺色，側欄可以切換 Tocas 暗色。公開贊助頁維持淺色。字體是本機的 Noto Sans TC 與 Noto Serif TC，不連外部字型服務。
 
 ## English
 
-Operators can sign in, enable plugins, and preview a test donation on the alerts overlay. ECPay and O'Pay can open a credit-card checkout; the ledger amount is the server order, and a test donation is still not written to the ledger. Set `S4N_PUBLIC_BASE_URL` so provider callbacks are not built from an internal host. Login needs PostgreSQL. The event bus and login rate limit are in-memory and single-process. See the Traditional Chinese sections above for ports, setup, and the decisions this tree had to make.
+The dashboard and public donate pages use Tocas UI, themed with the paper, orange, and indigo tokens. The OBS overlay stays on its own styles. Operators can sign in, enable plugins, and preview a test donation on the alerts overlay. ECPay and O'Pay can open a credit-card checkout; the ledger amount is the server order, and a test donation is still not written to the ledger. Set `S4N_PUBLIC_BASE_URL` so provider callbacks are not built from an internal host. Login needs PostgreSQL. The event bus and login rate limit are in-memory and single-process. See the Traditional Chinese sections above for ports, setup, and the decisions this tree had to make.

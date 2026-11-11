@@ -1,11 +1,6 @@
 import { useEffect, useState, type FormEvent } from "react";
 import { Link } from "react-router";
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
+import { buttonClass, Field, Note, TextArea, TextInput } from "@/components/fields";
 import { api, type HealthResponse } from "@/lib/api";
 import { sendTestDonation, testDonationErrorMessage } from "@/lib/test-donation";
 
@@ -46,104 +41,116 @@ export function DashboardPage() {
   }
 
   return (
-    <div className="flex flex-col gap-8">
-      <div className="max-w-2xl">
-        <p className="text-xs tracking-[0.18em] text-cinnabar">營運</p>
-        <h1 className="mt-3 font-serif text-4xl leading-tight text-balance">工作台</h1>
-        <p className="mt-4 text-base leading-7 text-ink-soft">
+    <div className="s4n-stack is-loose">
+      <header className="s4n-intro">
+        <p className="s4n-kicker">營運</p>
+        <h1 className="ts-header is-huge">工作台</h1>
+        <p className="ts-text is-description s4n-lede">
           從這裡送出測試贊助、打開帳本，並把疊層網址貼進 OBS。測試事件不會寫進帳本。真實贊助從贊助頁付款。
         </p>
-      </div>
+      </header>
 
       <HealthLine state={state} />
 
-      <Card className="rounded-card border-line bg-paper-raised shadow-soft">
-        <CardHeader>
-          <CardTitle className="font-serif text-2xl font-medium">測試贊助</CardTitle>
-          <CardDescription>送給已啟用的贊助提醒。畫面上會標成測試，帳本維持空白。</CardDescription>
-        </CardHeader>
-        <CardContent>
-          <form onSubmit={onTest} className="grid gap-4 md:grid-cols-2">
-            <div className="flex flex-col gap-2">
-              <Label htmlFor="test-name">顯示名稱</Label>
-              <Input id="test-name" maxLength={40} value={donorName} onChange={(event) => setDonorName(event.target.value)} />
+      <section className="ts-box is-raised is-top-indicated">
+        <div className="ts-content is-padded">
+          <div className="ts-header is-large is-start-icon">
+            <span className="ts-icon is-flask-icon" aria-hidden="true" />
+            測試贊助
+          </div>
+          <p className="ts-text is-description">送給已啟用的贊助提醒。畫面上會標成測試，帳本維持空白。</p>
+          <form onSubmit={onTest} className="ts-grid is-2-columns s4n-form-grid">
+            <div className="column">
+              <Field id="test-name" label="顯示名稱">
+                <TextInput id="test-name" maxLength={40} value={donorName} onChange={(event) => setDonorName(event.target.value)} />
+              </Field>
             </div>
-            <div className="flex flex-col gap-2">
-              <Label htmlFor="test-amount">金額（新台幣）</Label>
-              <Input
-                id="test-amount"
-                type="number"
-                min={1}
-                step={1}
-                value={amount}
-                onChange={(event) => setAmount(Number(event.target.value))}
-              />
+            <div className="column">
+              <Field id="test-amount" label="金額（新台幣）">
+                <TextInput
+                  id="test-amount"
+                  type="number"
+                  min={1}
+                  step={1}
+                  value={amount}
+                  onChange={(event) => setAmount(Number(event.target.value))}
+                />
+              </Field>
             </div>
-            <div className="flex flex-col gap-2 md:col-span-2">
-              <Label htmlFor="test-message">留言</Label>
-              <Textarea
-                id="test-message"
-                maxLength={200}
-                value={message}
-                onChange={(event) => setMessage(event.target.value)}
-              />
+            <div className="column is-wide">
+              <Field id="test-message" label="留言">
+                <TextArea id="test-message" maxLength={200} value={message} onChange={(event) => setMessage(event.target.value)} />
+              </Field>
             </div>
-            <div className="flex flex-col items-start gap-3 md:col-span-2">
-              <Button type="submit" className="h-10 px-4" disabled={testState.status === "sending"}>
+            <div className="column is-wide s4n-fields">
+              <button type="submit" className={buttonClass({ tone: "accent", icon: "start", loading: testState.status === "sending" })} disabled={testState.status === "sending"}>
+                <span className="ts-icon is-paper-plane-icon" aria-hidden="true" />
                 {testState.status === "sending" ? "送出中…" : "送出測試贊助"}
-              </Button>
+              </button>
               {testState.status === "sent" ? (
-                <p className="text-sm leading-6 text-ink" role="status">
-                  已送出測試事件。這筆不會進入帳本。請先在外掛庫啟用「贊助提醒」，疊層才看得到。
-                </p>
+                <Note>已送出測試事件。這筆不會進入帳本。請先在外掛庫啟用「贊助提醒」，疊層才看得到。</Note>
               ) : null}
-              {testState.status === "error" ? (
-                <p className="text-sm leading-6 text-cinnabar" role="status">
-                  {testState.message}
-                </p>
-              ) : null}
+              {testState.status === "error" ? <Note tone="danger">{testState.message}</Note> : null}
             </div>
           </form>
-        </CardContent>
-      </Card>
+        </div>
+      </section>
 
-      <section className="grid gap-4 lg:grid-cols-3">
-        <Card className="rounded-card border-line bg-paper-raised shadow-soft">
-          <CardHeader>
-            <CardTitle className="font-serif text-2xl font-medium">帳本</CardTitle>
-            <CardDescription>待付款、已付款和未成功。</CardDescription>
-          </CardHeader>
-          <CardContent className="text-sm leading-6 text-ink-soft">
-            測試贊助不會出現在帳本。
-            <Link to="/donations" className="ml-1 text-indigo underline-offset-4 hover:underline">
-              查看帳本
-            </Link>
-          </CardContent>
-        </Card>
-        <Card className="rounded-card border-line bg-paper-raised shadow-soft">
-          <CardHeader>
-            <CardTitle className="font-serif text-2xl font-medium">疊層</CardTitle>
-            <CardDescription>OBS 瀏覽器來源使用權杖網址。</CardDescription>
-          </CardHeader>
-          <CardContent className="text-sm leading-6 text-ink-soft">
-            重新產生之後，舊網址會失效。
-            <Link to="/overlay" className="ml-1 text-indigo underline-offset-4 hover:underline">
-              複製網址
-            </Link>
-          </CardContent>
-        </Card>
-        <Card className="rounded-card border-line bg-paper-raised shadow-soft">
-          <CardHeader>
-            <CardTitle className="font-serif text-2xl font-medium">外掛</CardTitle>
-            <CardDescription>啟用、停用，以及密文設定。</CardDescription>
-          </CardHeader>
-          <CardContent className="text-sm leading-6 text-ink-soft">
-            密文只會顯示已設定或尚未設定。
-            <Link to="/plugins" className="ml-1 text-indigo underline-offset-4 hover:underline">
-              打開外掛庫
-            </Link>
-          </CardContent>
-        </Card>
+      <section className="ts-grid is-3-columns s4n-cards">
+        <article className="column ts-box is-raised is-top-indicated">
+          <div className="ts-content is-padded">
+            <div className="ts-header is-start-icon">
+              <span className="ts-icon is-receipt-icon" aria-hidden="true" />
+              帳本
+            </div>
+            <p className="ts-text is-description">待付款、已付款和未成功。</p>
+            <p className="ts-text is-description">
+              測試贊助不會出現在帳本。
+              <Link to="/donations" className="ts-text is-link">
+                查看帳本
+              </Link>
+            </p>
+          </div>
+          <div className="symbol" aria-hidden="true">
+            <span className="ts-icon is-receipt-icon s4n-symbol" />
+          </div>
+        </article>
+        <article className="column ts-box is-raised is-top-indicated">
+          <div className="ts-content is-padded">
+            <div className="ts-header is-start-icon">
+              <span className="ts-icon is-display-icon" aria-hidden="true" />
+              疊層
+            </div>
+            <p className="ts-text is-description">OBS 瀏覽器來源使用權杖網址。</p>
+            <p className="ts-text is-description">
+              重新產生之後，舊網址會失效。
+              <Link to="/overlay" className="ts-text is-link">
+                複製網址
+              </Link>
+            </p>
+          </div>
+          <div className="symbol" aria-hidden="true">
+            <span className="ts-icon is-display-icon s4n-symbol" />
+          </div>
+        </article>
+        <article className="column ts-box is-raised is-top-indicated">
+          <div className="ts-content is-padded">
+            <div className="ts-header is-start-icon">
+              <span className="ts-icon is-puzzle-piece-icon" aria-hidden="true" />
+              外掛
+            </div>
+            <p className="ts-text is-description">啟用、停用，以及密文設定。</p>
+            <p className="ts-text is-description">
+              密文只會顯示已設定或尚未設定。
+              <Link to="/plugins" className="ts-text is-link">
+                打開外掛庫
+              </Link>
+            </p>
+          </div>
+          <div className="symbol" aria-hidden="true">
+            <span className="ts-icon is-puzzle-piece-icon s4n-symbol" />
+          </div>
+        </article>
       </section>
     </div>
   );
@@ -151,14 +158,10 @@ export function DashboardPage() {
 
 function HealthLine({ state }: { state: LoadState }) {
   if (state.status === "loading") {
-    return <p className="text-sm text-ink-soft">正在詢問核心 API…</p>;
+    return <p className="ts-text is-description">正在詢問核心 API…</p>;
   }
   if (state.status === "error") {
-    return (
-      <p className="text-sm text-cinnabar" role="status">
-        核心 API 沒有回應。請確認 `pnpm dev` 已啟動。
-      </p>
-    );
+    return <Note tone="danger">核心 API 沒有回應。請確認 `pnpm dev` 已啟動。</Note>;
   }
 
   const database =
@@ -169,11 +172,11 @@ function HealthLine({ state }: { state: LoadState }) {
         : "資料庫未設定";
 
   return (
-    <div className="flex flex-wrap items-center gap-2" role="status">
-      <Badge variant="secondary">核心已回應</Badge>
-      <Badge variant="outline">{database}</Badge>
-      <Badge variant="outline">付款外掛 {state.health.payments.length}</Badge>
-      <Badge variant="outline">即時通道已接上</Badge>
+    <div className="ts-wrap is-middle-aligned" role="status">
+      <span className="ts-badge is-accent">核心已回應</span>
+      <span className="ts-badge is-outlined">{database}</span>
+      <span className="ts-badge is-outlined">付款外掛 {state.health.payments.length}</span>
+      <span className="ts-badge is-outlined">即時通道已接上</span>
     </div>
   );
 }

@@ -1,6 +1,5 @@
 import { useState } from "react";
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
+import { buttonClass, Note } from "@/components/fields";
 import { api, type DonationRow } from "@/lib/api";
 import { formatTwd } from "@/lib/money";
 import { providerLabel } from "@/lib/payment";
@@ -12,9 +11,21 @@ const statusLabel: Record<DonationRow["status"], string> = {
   failed: "未成功",
 };
 
+const statusClass: Record<DonationRow["status"], string> = {
+  created: "ts-badge is-warning",
+  succeeded: "ts-badge is-positive",
+  failed: "ts-badge is-negative",
+};
+
+const indicatorClass: Record<DonationRow["status"], string> = {
+  created: "is-warning",
+  succeeded: "is-positive",
+  failed: "is-negative",
+};
+
 export function DonationList({ donations, onChange }: { donations: DonationRow[]; onChange: (next: DonationRow[]) => void }) {
   return (
-    <ul className="flex flex-col gap-3">
+    <ul className="s4n-stack">
       {donations.map((donation) => (
         <li key={donation.id}>
           <DonationItem donation={donation} onChange={onChange} />
@@ -53,38 +64,44 @@ function DonationItem({
   }
 
   return (
-    <article className="rounded-card border border-line bg-paper-raised px-5 py-4 shadow-soft">
-      <header className="flex flex-wrap items-baseline justify-between gap-3">
-        <h2 className="font-serif text-2xl">{donation.donorName}</h2>
-        <p className="text-lg text-cinnabar">{formatTwd(donation.amountMinor)}</p>
-      </header>
-      {donation.message ? <p className="mt-2 text-sm leading-6 text-ink-soft">{donation.message}</p> : null}
-      <dl className="mt-3 flex flex-wrap gap-x-4 gap-y-2 text-sm text-ink-soft">
-        <div className="flex items-center gap-2">
-          <dt className="sr-only">狀態</dt>
-          <dd>
-            <Badge variant="outline">{statusLabel[donation.status]}</Badge>
-          </dd>
-        </div>
-        <div>
-          <dt className="sr-only">付款</dt>
-          <dd>{providerLabel[donation.providerId] ?? donation.providerId}</dd>
-        </div>
-        <div>
-          <dt className="sr-only">時間</dt>
-          <dd>
+    <article className={`ts-box is-raised is-start-indicated ${indicatorClass[donation.status]}`}>
+      <div className="ts-content is-padded">
+        <header className="s4n-split">
+          <h2 className="ts-header is-large">{donation.donorName}</h2>
+          <p className="ts-statistic is-accent">
+            <span className="value">{formatTwd(donation.amountMinor)}</span>
+          </p>
+        </header>
+        {donation.message ? <p className="ts-text is-description">{donation.message}</p> : null}
+        <div className="ts-meta is-secondary is-small">
+          <span className="item">
+            <span className="s4n-visually-hidden">狀態</span>
+            <span className={statusClass[donation.status]}>{statusLabel[donation.status]}</span>
+          </span>
+          <span className="item">
+            <span className="s4n-visually-hidden">付款</span>
+            {providerLabel[donation.providerId] ?? donation.providerId}
+          </span>
+          <span className="item">
+            <span className="s4n-visually-hidden">時間</span>
             <time dateTime={donation.createdAt}>{formatTaipei(donation.createdAt)}</time>
-          </dd>
+          </span>
         </div>
-      </dl>
-      {canReconcile ? (
-        <div className="mt-3 flex flex-wrap items-center gap-3">
-          <Button type="button" variant="outline" className="h-9 px-3" disabled={pending} onClick={() => void reconcile()}>
-            {pending ? "查詢中…" : "向金流查詢"}
-          </Button>
-          {note ? <p className="text-sm text-cinnabar">{note}</p> : null}
-        </div>
-      ) : null}
+        {canReconcile ? (
+          <div className="s4n-choices">
+            <button
+              type="button"
+              className={buttonClass({ variant: "outlined", size: "small", icon: "start", loading: pending })}
+              disabled={pending}
+              onClick={() => void reconcile()}
+            >
+              <span className="ts-icon is-rotate-icon" aria-hidden="true" />
+              {pending ? "查詢中…" : "向金流查詢"}
+            </button>
+            {note ? <Note tone="danger">{note}</Note> : null}
+          </div>
+        ) : null}
+      </div>
     </article>
   );
 }
