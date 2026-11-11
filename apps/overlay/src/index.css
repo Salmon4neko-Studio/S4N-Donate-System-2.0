@@ -23,6 +23,11 @@ body {
   color: var(--s4n-color-ink);
 }
 
+html:has(body[data-transparent="1"]) {
+  background: transparent;
+  color-scheme: normal;
+}
+
 body[data-transparent="1"] {
   background: transparent;
 }

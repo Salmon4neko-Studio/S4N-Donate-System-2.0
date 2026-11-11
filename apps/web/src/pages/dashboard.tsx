@@ -6,7 +6,8 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { ApiError, api, type HealthResponse } from "@/lib/api";
+import { api, type HealthResponse } from "@/lib/api";
+import { sendTestDonation, testDonationErrorMessage } from "@/lib/test-donation";
 
 type LoadState =
   | { status: "loading" }
@@ -37,17 +38,10 @@ export function DashboardPage() {
     event.preventDefault();
     setTestState({ status: "sending" });
     try {
-      await api("/api/donations/test", {
-        method: "POST",
-        body: JSON.stringify({ donorName, amountMinor: amount, message }),
-      });
+      await sendTestDonation({ donorName, amountMinor: amount, message });
       setTestState({ status: "sent" });
     } catch (error) {
-      const messageText =
-        error instanceof ApiError && error.status === 422
-          ? "名稱、金額或留言的格式不對。"
-          : "測試事件沒有送出。";
-      setTestState({ status: "error", message: messageText });
+      setTestState({ status: "error", message: testDonationErrorMessage(error) });
     }
   }
 

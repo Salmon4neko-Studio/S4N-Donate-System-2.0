@@ -1,0 +1,65 @@
+/* OBS canvas fit and preview backgrounds. Dashboard chrome stays in the component. */
+
+.overlay-preview-stage {
+  position: relative;
+  width: min(100%, calc(70vh * var(--canvas-w) / var(--canvas-h)));
+  aspect-ratio: var(--canvas-w) / var(--canvas-h);
+  margin-inline: auto;
+  overflow: hidden;
+  border: 1px solid var(--s4n-color-line);
+  border-radius: var(--s4n-radius-sm);
+  background-color: #1c1714;
+}
+
+.overlay-preview-stage[data-bg="dark"] {
+  background-color: #1c1714;
+  background-image:
+    linear-gradient(45deg, #2a2420 25%, transparent 25%),
+    linear-gradient(-45deg, #2a2420 25%, transparent 25%),
+    linear-gradient(45deg, transparent 75%, #2a2420 75%),
+    linear-gradient(-45deg, transparent 75%, #2a2420 75%);
+  background-size: 28px 28px;
+  background-position:
+    0 0,
+    0 14px,
+    14px -14px,
+    -14px 0;
+}
+
+.overlay-preview-stage[data-bg="light"] {
+  background-color: #f7f1e8;
+  background-image:
+    linear-gradient(45deg, #e4d9cc 25%, transparent 25%),
+    linear-gradient(-45deg, #e4d9cc 25%, transparent 25%),
+    linear-gradient(45deg, transparent 75%, #e4d9cc 75%),
+    linear-gradient(-45deg, transparent 75%, #e4d9cc 75%);
+  background-size: 28px 28px;
+  background-position:
+    0 0,
+    0 14px,
+    14px -14px,
+    -14px 0;
+}
+
+.overlay-preview-stage[data-bg="green"] {
+  background-color: #00ff00;
+  background-image: none;
+}
+
+.overlay-preview-stage[data-bg="image"] {
+  background-color: #1c1714;
+  background-image: var(--stage-image);
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+}
+
+.overlay-preview-stage iframe {
+  position: absolute;
+  top: 0;
+  left: 0;
+  border: 0;
+  background: transparent;
+  pointer-events: none;
+  transform-origin: top left;
+}

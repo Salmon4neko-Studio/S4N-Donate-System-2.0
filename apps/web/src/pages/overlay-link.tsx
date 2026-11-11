@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router";
+import { OverlayPreviewPanel } from "@/components/overlay-preview";
 import { Button } from "@/components/ui/button";
 import { api, type OverlayLink } from "@/lib/api";
 
@@ -124,17 +125,21 @@ export function OverlayLinkPage() {
         </section>
       ) : null}
 
+      {state.status !== "loading" ? (
+        <OverlayPreviewPanel pageUrl={link?.url ?? null} pluginId={link?.pluginId ?? "official.alerts"} />
+      ) : null}
+
       <ol className="flex list-decimal flex-col gap-2 pl-5 text-sm leading-6 text-ink-soft">
         <li>在外掛庫啟用「贊助提醒」。</li>
         <li>OBS 新增來源，選擇瀏覽器。</li>
-        <li>貼上上面的網址。寬度 1280、高度 720。</li>
-        <li>勾選透明背景。不要加上 preview 參數，那個棋盤只給這個瀏覽器預覽。</li>
+        <li>貼上上面的網址。寬度與高度跟預覽畫布相同，例如 1280×720。</li>
+        <li>勾選透明背景。OBS 不要加上 preview 參數。</li>
         <li>
-          回到
+          在下方預覽送出測試贊助，或回到
           <Link to="/" className="mx-1 text-indigo underline-offset-4 hover:underline">
             工作台
           </Link>
-          送出測試贊助，確認提醒出現。
+          送出，確認提醒出現。
         </li>
       </ol>
     </div>
