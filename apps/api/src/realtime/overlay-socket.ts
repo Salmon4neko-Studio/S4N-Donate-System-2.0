@@ -1,36 +1,101 @@
 import type { Hono } from "hono";
 import { upgradeWebSocket } from "@hono/node-server";
 import type { WSContext } from "hono/ws";
+import type { SessionEnv } from "../auth/session.js";
+import type { LoadedPlugin } from "../plugins/catalog.js";
+import { overlayPluginFor } from "./audience.js";
 import type { CoreBus } from "./bus.js";
 
-/**
- * Forwards core events to OBS browser-source sockets.
- * The socket sends a ready frame and then real events. It does not invent donations.
- */
-export function mountOverlaySocket(app: Hono, bus: CoreBus): void {
-  const sockets = new Set<WSContext>();
+interface Client {
+  ws: WSContext;
+  pluginId: string;
+}
 
-  bus.subscribe((event) => {
-    const message = JSON.stringify({ channel: "event", event });
-    for (const socket of sockets) {
-      try {
-        socket.send(message);
-      } catch {
-        sockets.delete(socket);
-      }
-    }
+export interface OverlaySocketDeps {
+  bus: CoreBus;
+  catalog: readonly LoadedPlugin[];
+  tokenValid: (token: string) => Promise<boolean>;
+  pluginEnabled: (pluginId: string) => Promise<boolean>;
+  readPublicSettings: (pluginId: string) => Promise<Record<string, string | number | boolean>>;
+}
+
+/**
+ * OBS browser-source socket. Authentication is the overlay token in the query
+ * string, not the dashboard session cookie. Events are forwarded only when the
+ * subscribed overlay plugin is enabled.
+ */
+export function mountOverlaySocket(app: Hono<SessionEnv>, deps: OverlaySocketDeps): void {
+  const clients = new Set<Client>();
+
+  deps.bus.subscribe((event) => {
+    const owner = overlayPluginFor(event);
+    if (owner === null) return;
+    void deps
+      .pluginEnabled(owner)
+      .then((enabled) => {
+        if (!enabled) return;
+        const message = JSON.stringify({ channel: "event", event });
+        for (const client of clients) {
+          if (client.pluginId !== owner) continue;
+          try {
+            client.ws.send(message);
+          } catch {
+            clients.delete(client);
+          }
+        }
+      })
+      .catch(() => {
+        // Drop the event when enablement cannot be read.
+      });
   });
 
   app.get(
     "/ws/overlay",
-    upgradeWebSocket(() => ({
-      onOpen(_event, ws) {
-        sockets.add(ws);
-        ws.send(JSON.stringify({ channel: "system", message: "overlay socket ready" }));
-      },
-      onClose(_event, ws) {
-        sockets.delete(ws);
-      },
-    })),
+    upgradeWebSocket((c) => {
+      const token = c.req.query("token") ?? "";
+      const pluginId = c.req.query("plugin") ?? "official.alerts";
+      let client: Client | undefined;
+      return {
+        async onOpen(_event, ws) {
+          const plugin = deps.catalog.find((item) => item.manifest.id === pluginId);
+          const isOverlay = plugin?.manifest.kind.includes("overlay") === true;
+          let valid = false;
+          try {
+            valid = isOverlay && token !== "" && (await deps.tokenValid(token));
+          } catch {
+            valid = false;
+          }
+          if (!valid) {
+            ws.close(4001, "unauthorized");
+            return;
+          }
+          client = { ws, pluginId };
+          clients.add(client);
+          let settings: Record<string, string | number | boolean> = {};
+          let enabled = false;
+          try {
+            [settings, enabled] = await Promise.all([
+              deps.readPublicSettings(pluginId),
+              deps.pluginEnabled(pluginId),
+            ]);
+          } catch {
+            settings = {};
+            enabled = false;
+          }
+          ws.send(
+            JSON.stringify({
+              channel: "system",
+              message: "overlay socket ready",
+              pluginId,
+              enabled,
+              settings,
+            }),
+          );
+        },
+        onClose() {
+          if (client !== undefined) clients.delete(client);
+        },
+      };
+    }),
   );
 }

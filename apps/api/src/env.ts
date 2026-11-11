@@ -5,6 +5,7 @@ export interface ApiEnv {
   databaseUrl: string;
   masterKey: string;
   dashboardOrigin: string;
+  overlayOrigin: string;
   port: number;
 }
 
@@ -22,13 +23,27 @@ export function loadEnv(source: NodeJS.ProcessEnv = process.env): ApiEnv {
     throw new Error("S4N_MASTER_KEY is required");
   }
 
-  const dashboardOrigin = source.S4N_DASHBOARD_ORIGIN ?? "http://localhost:5180";
+  const dashboardOrigin = parseOrigin(source.S4N_DASHBOARD_ORIGIN ?? "http://localhost:5180", "S4N_DASHBOARD_ORIGIN");
+  const overlayOrigin = parseOrigin(source.S4N_OVERLAY_ORIGIN ?? "http://localhost:5181", "S4N_OVERLAY_ORIGIN");
   const port = Number(source.PORT ?? 8787);
   if (!Number.isInteger(port) || port < 1 || port > 65535) {
     throw new Error("PORT is invalid");
   }
 
-  return { env, databaseUrl, masterKey, dashboardOrigin, port };
+  return { env, databaseUrl, masterKey, dashboardOrigin, overlayOrigin, port };
+}
+
+function parseOrigin(value: string, name: string): string {
+  let url: URL;
+  try {
+    url = new URL(value);
+  } catch {
+    throw new Error(`${name} is invalid`);
+  }
+  if (url.protocol !== "http:" && url.protocol !== "https:") {
+    throw new Error(`${name} is invalid`);
+  }
+  return url.origin;
 }
 
 function parseRuntime(value: string): RuntimeEnv {

@@ -1,9 +1,11 @@
 import { manifest } from "./manifest.js";
 
 export { manifest };
+export { alertDurationMs, readDonationAlert, visibleUntrusted } from "./alert.js";
+export type { DonationAlert } from "./alert.js";
 
-/** Declared overlay or worker slot. The shell does not load this module yet. */
+/** The overlay app imports readDonationAlert. Goals, ticker, and TTS stay stubs. */
 export const slot = {
   pluginId: manifest.id,
-  implemented: false as const,
+  implemented: true as const,
 };

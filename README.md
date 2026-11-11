@@ -1,6 +1,6 @@
 # S4N DONATE SYSTEM 2.0
 
-開源實況主贊助平台的骨架。這不是成品，也不是舊系統的遷移。
+開源實況主贊助平台。這不是舊系統的遷移，付款 API 也還沒接上。
 
 優先順序是安全、美感，然後才是開發容易。核心擁有帳本、付款介面、事件匯流排、疊層外殼、外掛密鑰與權限。功能以外掛掛上。文件與介面文字以繁體中文為主。
 
@@ -9,16 +9,16 @@
 - `@s4n/events`：`s4n.donation.created` / `succeeded` / `failed`、`s4n.chat.message`、`s4n.goal.updated`、`s4n.tts.request`、`s4n.media.now_playing`
 - `@s4n/plugin-sdk`：外掛規格 0.1、權限，以及不能寫帳的付款介面
 - 官方外掛清單：綠界 ECPay、歐付寶 O'Pay，加上提醒、目標、跑馬燈、語音的佔位
-- API：AES-256-GCM 密文設定、`/api/payments/:pluginId/callback`、WebSocket 佔位
-- 儀表板、贊助頁、外掛庫與 OBS 疊層的畫面外殼
+- API：Argon2id 登入、AES-256-GCM 密文設定、`/api/payments/:pluginId/callback`、帶權杖的疊層 WebSocket
+- 儀表板（初次設定、外掛開關、帳本、測試贊助）、贊助頁，以及贊助提醒疊層
 - Starlight 文件，以及 Docker Compose
 
 ## 這個骨架故意沒做
 
 - 綠界、歐付寶的真實 API
 - Twitch、YouTube 聊天
-- 外掛市集、提醒動畫、目標計算、跑馬燈、語音合成
-- 完整登入與正式環境加固
+- 外掛市集、目標計算、跑馬燈、語音合成
+- 多個 API 實例共用的事件匯流排與登入限流
 
 畫面若寫著尚未實作，那就是還沒有。不要把空狀態讀成「今天沒有贊助」。
 
@@ -49,7 +49,7 @@ openssl rand -base64 32
 | OBS 疊層 | http://127.0.0.1:5181 |
 | 文件 | http://127.0.0.1:4321 |
 
-資料庫不是 `pnpm dev` 的必要條件。要做遷移時：
+測試不需要資料庫。登入、外掛設定與疊層權杖需要 PostgreSQL：
 
 ```bash
 docker compose up -d postgres
@@ -74,16 +74,16 @@ docker compose up --build
 ## 目錄
 
 ```text
-apps/api          Hono、Prisma、PostgreSQL、WebSocket 佔位
+apps/api          Hono、Prisma、PostgreSQL、疊層 WebSocket
 apps/web          Vite、React 19、儀表板 / 贊助頁 / 外掛庫
-apps/overlay      OBS 瀏覽器來源
+apps/overlay      OBS 瀏覽器來源（贊助提醒）
 apps/docs         Starlight（繁體中文）
 packages/events   事件契約
 packages/plugin-sdk
 packages/design-tokens
 plugins/ecpay     綠界，含密文設定
 plugins/opay      歐付寶，含密文設定
-plugins/alerts    佔位
+plugins/alerts    贊助提醒
 plugins/goals     佔位
 plugins/ticker    佔位
 plugins/tts       佔位
@@ -101,12 +101,13 @@ plugins/tts       佔位
 - 密文欄位的標記是 JSON Schema 的 `x-s4n-secret: true`。加密的附加資料綁住外掛 id 與欄位名。
 - 官方外掛是明確允許清單，不是 `official.` 前綴。
 - TWD 的最小單位訂為 1 元，因為綠界與歐付寶收整數元。
-- 儀表板的跨站請求防護是來源允許清單，加上未來的 `SameSite=Lax` cookie。這次沒有同步權杖，也沒有接上 Argon2 原生模組；參數寫在 `apps/api/src/auth/constants.ts`。
-- 事件匯流排與限流都在單一程序的記憶體裡。
+- 儀表板的跨站請求防護是來源允許清單，加上 `SameSite=Lax` 的 `s4n_session`。密碼雜湊用 `hash-wasm` 的 Argon2id，參數在 `apps/api/src/auth/constants.ts`，沒有另裝原生模組。`Secure` 只在 `S4N_ENV=production` 打開。
+- 事件匯流排與登入限流都在單一程序的記憶體裡。重啟會忘掉尚未送出的事件與限流計數；帳號與工作階段在資料庫。
+- 測試贊助是 `s4n.donation.test`，不寫入帳本。疊層權杖以 SHA-256 查找，並用主金鑰密封，方便儀表板再次顯示網址。
 - 開發用主金鑰是 32 個零位元組。正式環境拒絕它。
 - 儀表板元件使用 shadcn/ui，顏色改成紙色與硃砂，不是預設的灰。
 - 視覺先做淺色。間距沿用 Tailwind 的 4px 刻度。
 
 ## English
 
-This is a greenfield skeleton for S4N DONATE SYSTEM 2.0, not a finished donation product. The core owns the ledger, payment-provider interface, event bus, overlay shell, plugin secret vault, and permissions. ECPay and O'Pay are official payment plugins with real manifests and encrypted settings, and with no live provider API. `pnpm install` then `pnpm dev` starts the API, dashboard, OBS overlay, and docs. `docker compose up --build` starts PostgreSQL and the same apps. See the Traditional Chinese sections above for ports, layout, and the decisions this skeleton had to make.
+Operators can sign in, enable plugins, and preview a test donation on the alerts overlay. ECPay and O'Pay still have no live provider API, and a test donation is not written to the ledger. Login needs PostgreSQL. The event bus and login rate limit are in-memory and single-process. See the Traditional Chinese sections above for ports, setup, and the decisions this tree had to make.

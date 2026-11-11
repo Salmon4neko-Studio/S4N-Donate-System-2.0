@@ -1,6 +1,6 @@
 import { asUntrustedText } from "@s4n/events";
 import { DonationStatus, type PrismaClient } from "../../generated/prisma/client.js";
-import type { Ledger, LedgerOrder } from "./ledger.js";
+import type { Ledger, LedgerOrder, ListedDonation } from "./ledger.js";
 
 export function createPrismaLedger(prisma: PrismaClient): Ledger {
   return {
@@ -16,6 +16,33 @@ export function createPrismaLedger(prisma: PrismaClient): Ledger {
       });
       return result.count === 1 ? "updated" : "lost_race";
     },
+    async listRecent(limit) {
+      const take = Math.min(100, Math.max(1, Math.floor(limit)));
+      const rows = await prisma.donation.findMany({
+        orderBy: { createdAt: "desc" },
+        take,
+      });
+      return rows.map(toListed);
+    },
+  };
+}
+
+function toListed(row: {
+  id: string;
+  providerId: string;
+  amountMinor: number;
+  currency: string;
+  status: "created" | "succeeded" | "failed";
+  providerRef: string | null;
+  donorName: string;
+  message: string;
+  createdAt: Date;
+}): ListedDonation {
+  return {
+    ...toOrder(row),
+    donorName: row.donorName,
+    message: row.message,
+    createdAt: row.createdAt.toISOString(),
   };
 }
 

@@ -1,12 +1,19 @@
-import { Link, NavLink, Outlet } from "react-router";
+import { Link, NavLink, Outlet, useNavigate } from "react-router";
+import { useAuth } from "@/lib/auth";
 
 const links = [
   { to: "/", label: "概況", end: true },
+  { to: "/donations", label: "帳本", end: false },
   { to: "/plugins", label: "外掛", end: false },
+  { to: "/overlay", label: "疊層", end: false },
   { to: "/donate", label: "贊助頁", end: false },
 ];
 
 export function Shell() {
+  const auth = useAuth();
+  const navigate = useNavigate();
+  const email = auth.snapshot.status === "ready" ? auth.snapshot.email : "";
+
   return (
     <div className="mx-auto grid min-h-svh max-w-6xl gap-8 px-5 py-6 md:grid-cols-[13.5rem_minmax(0,1fr)] md:px-8 md:py-10">
       <header className="flex flex-col gap-6 md:sticky md:top-8 md:self-start">
@@ -31,8 +38,20 @@ export function Shell() {
             </NavLink>
           ))}
         </nav>
+        <div className="flex flex-col items-start gap-2">
+          {email ? <p className="max-w-full truncate text-xs text-ink-soft">{email}</p> : null}
+          <button
+            type="button"
+            className="text-sm text-indigo underline-offset-4 hover:underline"
+            onClick={() => {
+              void auth.logout().then(() => navigate("/login"));
+            }}
+          >
+            登出
+          </button>
+        </div>
         <p className="max-w-xs text-xs leading-5 text-ink-soft md:max-w-none">
-          骨架。金流、聊天與提醒都還沒有接上。
+          金流尚未接上。贊助提醒可以先用測試事件預覽。
         </p>
       </header>
       <main className="s4n-rise min-w-0 pb-16">

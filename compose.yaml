@@ -24,6 +24,7 @@ services:
       S4N_MASTER_KEY: ${S4N_MASTER_KEY:-AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=}
       S4N_ENV: development
       S4N_DASHBOARD_ORIGIN: http://localhost:5180
+      S4N_OVERLAY_ORIGIN: http://localhost:5181
       PORT: "8787"
     ports:
       - "8787:8787"

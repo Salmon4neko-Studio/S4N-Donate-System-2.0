@@ -1,34 +1,47 @@
 import { useEffect, useState } from "react";
-import type { AnyS4nEvent } from "@s4n/events";
+import { alertDurationMs, readDonationAlert, type DonationAlert } from "@s4n/plugin-alerts";
+import { formatTwd } from "./money";
 
-type Connection = "connecting" | "open" | "reconnecting";
+type Connection = "connecting" | "open" | "reconnecting" | "denied";
 
-interface ShownEvent {
-  id: string;
-  label: string;
-}
-
-export function Overlay({ transparent }: { transparent: boolean }) {
-  const [connection, setConnection] = useState<Connection>("connecting");
-  const [events, setEvents] = useState<ShownEvent[]>([]);
+export function Overlay({
+  token,
+  pluginId,
+  transparent,
+  preview,
+}: {
+  token: string;
+  pluginId: string;
+  transparent: boolean;
+  preview: boolean;
+}) {
+  const [connection, setConnection] = useState<Connection>(token === "" ? "denied" : "connecting");
+  const [alert, setAlert] = useState<DonationAlert | null>(null);
+  const [durationMs, setDurationMs] = useState(12_000);
+  const showChrome = !transparent || preview;
 
   useEffect(() => {
+    if (token === "") return;
     let socket: WebSocket | null = null;
     let timer = 0;
     let closed = false;
 
     const connect = () => {
       setConnection((current) => (current === "connecting" ? "connecting" : "reconnecting"));
-      socket = new WebSocket(socketUrl());
+      socket = new WebSocket(socketUrl(token, pluginId));
       socket.addEventListener("open", () => setConnection("open"));
       socket.addEventListener("message", (message) => {
         if (typeof message.data !== "string") return;
-        const shown = readEvent(message.data);
-        if (shown === null) return;
-        setEvents((current) => [shown, ...current].slice(0, 4));
+        const next = readSocketMessage(message.data);
+        if (next.kind === "settings") setDurationMs(next.durationMs);
+        if (next.kind === "alert") setAlert(next.alert);
       });
-      socket.addEventListener("close", () => {
+      socket.addEventListener("close", (event) => {
         if (closed) return;
+        if (event.code === 4001) {
+          setConnection("denied");
+          return;
+        }
         setConnection("reconnecting");
         timer = window.setTimeout(connect, 3000);
       });
@@ -40,91 +53,94 @@ export function Overlay({ transparent }: { transparent: boolean }) {
       window.clearTimeout(timer);
       socket?.close();
     };
-  }, []);
+  }, [pluginId, token]);
+
+  useEffect(() => {
+    if (alert === null) return;
+    const timer = window.setTimeout(() => setAlert(null), durationMs);
+    return () => window.clearTimeout(timer);
+  }, [alert, durationMs]);
 
   const connectionLabel =
-    connection === "open" ? "已連線" : connection === "reconnecting" ? "重新連線中" : "連線中";
+    connection === "open" ? "已連線" : connection === "reconnecting" ? "重新連線中" : connection === "denied" ? "權杖無效" : "連線中";
 
   return (
-    <main className="flex min-h-svh items-end p-6 md:items-center md:justify-center md:p-10">
-      <section
-        className={[
-          "w-full max-w-md rounded-card border border-line p-6 shadow-soft",
-          transparent ? "bg-paper-raised/90" : "bg-paper-raised",
-        ].join(" ")}
-        aria-live="polite"
-      >
-        <p className="text-xs tracking-[0.18em] text-cinnabar">疊層</p>
-        <h1 className="mt-3 font-serif text-3xl leading-tight">等待事件</h1>
-        <p className="mt-3 text-sm leading-6 text-ink-soft">
-          OBS 瀏覽器來源。這個骨架只顯示事件種類，不把贊助人名稱或留言畫成提醒。
-          {transparent ? " 目前是透明底。" : " 加上 ?transparent=1 會改成透明底。"}
-        </p>
-        <p className="mt-5 text-sm text-indigo">{connectionLabel}</p>
-        {events.length === 0 ? (
-          <p className="mt-4 text-sm text-ink-soft">尚未收到事件。</p>
-        ) : (
-          <ul className="mt-4 flex flex-col gap-2">
-            {events.map((event) => (
-              <li key={event.id} className="font-mono text-xs text-ink">
-                {event.label}
-              </li>
-            ))}
-          </ul>
-        )}
-      </section>
+    <main className="flex min-h-svh flex-col justify-end p-6 md:p-10">
+      <p className="sr-only" role="status">
+        {connectionLabel}
+      </p>
+      {showChrome && alert === null ? (
+        <section className="mb-6 max-w-md text-sm leading-6 text-ink-soft">
+          <p className="text-xs tracking-[0.18em] text-cinnabar">贊助提醒</p>
+          <h1 className="mt-3 font-serif text-3xl text-ink">等待贊助</h1>
+          <p className="mt-3">
+            {connection === "denied"
+              ? "這個網址的權杖無效。請從工作台複製新的疊層網址。"
+              : `${connectionLabel}。啟用「贊助提醒」之後，測試贊助與入帳贊助會出現在這裡。`}
+          </p>
+          {preview ? <p className="mt-2">棋盤底只供預覽。OBS 請使用沒有 preview 的網址。</p> : null}
+          {pluginId !== "official.alerts" ? <p className="mt-2">這個外掛還沒有自己的疊層畫面。</p> : null}
+        </section>
+      ) : null}
+      {alert ? <AlertCard alert={alert} /> : null}
     </main>
   );
 }
 
-function socketUrl(): string {
-  const httpUrl = import.meta.env.VITE_API_URL ?? "http://127.0.0.1:8787";
+function AlertCard({ alert }: { alert: DonationAlert }) {
+  return (
+    <article
+      className="s4n-rise w-full max-w-md rounded-card border border-line border-l-4 border-l-cinnabar bg-paper-raised px-6 py-5 shadow-soft"
+      aria-live="polite"
+    >
+      <div className="flex items-start justify-between gap-4">
+        <p className="text-xs tracking-[0.22em] text-cinnabar">{alert.test ? "測試" : "贊助"}</p>
+        {alert.test ? (
+          <span className="inline-flex size-11 items-center justify-center rounded-full border border-cinnabar/70 font-serif text-xs tracking-widest text-cinnabar">
+            試
+          </span>
+        ) : null}
+      </div>
+      <h2 className="mt-3 font-serif text-4xl leading-tight text-ink">{alert.donorName}</h2>
+      <p className="mt-2 text-2xl text-cinnabar">{formatTwd(alert.amountMinor)}</p>
+      {alert.message ? <p className="mt-3 text-base leading-7 text-ink-soft">{alert.message}</p> : null}
+    </article>
+  );
+}
+
+function socketUrl(token: string, pluginId: string): string {
+  const httpUrl = import.meta.env.VITE_API_URL ?? "http://localhost:8787";
   const url = new URL(httpUrl);
   url.protocol = url.protocol === "https:" ? "wss:" : "ws:";
   url.pathname = "/ws/overlay";
   url.search = "";
   url.hash = "";
+  url.searchParams.set("token", token);
+  url.searchParams.set("plugin", pluginId);
   return url.toString();
 }
 
-function readEvent(raw: string): ShownEvent | null {
+function readSocketMessage(
+  raw: string,
+): { kind: "settings"; durationMs: number } | { kind: "alert"; alert: DonationAlert } | { kind: "ignore" } {
   let parsed: unknown;
   try {
     parsed = JSON.parse(raw) as unknown;
   } catch {
-    return null;
+    return { kind: "ignore" };
   }
-  if (!isRecord(parsed) || parsed.channel !== "event" || !isRecord(parsed.event)) return null;
+  if (!isRecord(parsed)) return { kind: "ignore" };
+  if (parsed.channel === "system") {
+    const settings = isRecord(parsed.settings) ? parsed.settings : {};
+    return { kind: "settings", durationMs: alertDurationMs(settings) };
+  }
+  if (parsed.channel !== "event" || !isRecord(parsed.event)) return { kind: "ignore" };
   const event = parsed.event;
-  if (typeof event.type !== "string" || typeof event.id !== "string") return null;
-  try {
-    return { id: event.id, label: describe(event as unknown as AnyS4nEvent) };
-  } catch {
-    return null;
+  if (typeof event.type !== "string" || typeof event.id !== "string" || !isRecord(event.payload)) {
+    return { kind: "ignore" };
   }
-}
-
-function describe(event: AnyS4nEvent): string {
-  switch (event.type) {
-    case "s4n.donation.created":
-      return `${event.type} · ${event.payload.amountMinor} ${event.payload.currency}`;
-    case "s4n.donation.succeeded":
-      return `${event.type} · ${event.payload.amountMinor} ${event.payload.currency}`;
-    case "s4n.donation.failed":
-      return `${event.type} · ${event.payload.reason}`;
-    case "s4n.chat.message":
-      return `${event.type} · ${event.payload.platform}`;
-    case "s4n.goal.updated":
-      return `${event.type} · ${event.payload.currentMinor}/${event.payload.targetMinor}`;
-    case "s4n.tts.request":
-      return event.type;
-    case "s4n.media.now_playing":
-      return `${event.type} · ${event.payload.title}`;
-    default: {
-      const unexpected: never = event;
-      throw new Error(`unexpected event ${JSON.stringify(unexpected)}`);
-    }
-  }
+  const alert = readDonationAlert(event as unknown as Parameters<typeof readDonationAlert>[0]);
+  return alert === null ? { kind: "ignore" } : { kind: "alert", alert };
 }
 
 function isRecord(value: unknown): value is Record<string, unknown> {

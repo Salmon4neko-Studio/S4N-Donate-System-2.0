@@ -15,11 +15,13 @@ const succeededEventsAreNotPluginEmittable: "s4n.donation.succeeded" extends Emi
 const failedEventsAreNotPluginEmittable: "s4n.donation.failed" extends EmitArgument
   ? never
   : true = true;
+const testEventsAreNotPluginEmittable: "s4n.donation.test" extends EmitArgument ? never : true = true;
 const chatIsPluginEmittable: "s4n.chat.message" extends EmitArgument ? true : never = true;
 
 export const pluginBusContract = {
   paymentEventsAreNotPluginEmittable,
   succeededEventsAreNotPluginEmittable,
   failedEventsAreNotPluginEmittable,
+  testEventsAreNotPluginEmittable,
   chatIsPluginEmittable,
 } as const;

@@ -26,6 +26,15 @@ const samples = {
     providerId: "official.ecpay",
     reason: "declined",
   },
+  "s4n.donation.test": {
+    donationId: "test_d",
+    providerId: "s4n.test",
+    amountMinor: 100,
+    currency: "TWD",
+    donorName: asUntrustedText("donor"),
+    message: asUntrustedText("message"),
+    test: true,
+  },
   "s4n.chat.message": {
     messageId: "m",
     platform: "twitch",

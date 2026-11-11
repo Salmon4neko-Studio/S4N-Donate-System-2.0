@@ -18,10 +18,24 @@ export type LedgerDecision =
   | { action: "provider_mismatch" }
   | { action: "already_failed" };
 
+export interface ListedDonation {
+  id: string;
+  providerId: string;
+  providerRef: string | null;
+  amountMinor: number;
+  currency: string;
+  status: LedgerOrder["status"];
+  donorName: string;
+  message: string;
+  createdAt: string;
+}
+
 export interface Ledger {
   getById(id: string): Promise<LedgerOrder | null>;
   /** Conditional write. `lost_race` means the row was no longer `created`. */
   markSucceeded(id: string, providerRef: string): Promise<"updated" | "lost_race">;
+  /** Newest first. Does not create rows. */
+  listRecent(limit: number): Promise<ListedDonation[]>;
 }
 
 /**

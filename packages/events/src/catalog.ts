@@ -5,6 +5,7 @@ export const S4N_EVENT_NAMES = [
   "s4n.donation.created",
   "s4n.donation.succeeded",
   "s4n.donation.failed",
+  "s4n.donation.test",
   "s4n.chat.message",
   "s4n.goal.updated",
   "s4n.tts.request",

@@ -66,7 +66,7 @@ export function DonatePage() {
       <p className="mt-10 text-xs tracking-[0.18em] text-cinnabar">贊助</p>
       <h1 className="mt-3 font-serif text-4xl leading-tight text-balance">送給這位創作者</h1>
       <p className="mt-4 text-base leading-7 text-ink-soft">
-        金額由這個頁面先交給核心。綠界與歐付寶都還沒有真的開單，所以送出不會建立交易。顯示名稱和留言會被當成不受信任的文字。
+        金額會先送到核心。綠界與歐付寶還沒有開單，所以現在送出不會建立交易，也不會入帳。顯示名稱和留言只會被當成文字。
       </p>
 
       <form onSubmit={onSubmit} className="s4n-rise mt-8 flex flex-col gap-6">

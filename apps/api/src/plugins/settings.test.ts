@@ -2,7 +2,7 @@ import assert from "node:assert/strict";
 import { test } from "node:test";
 import { openSecret, secretAad } from "../crypto/secret-box.js";
 import { redactSettings } from "./settings.js";
-import { createTestApp } from "../test/fixture.js";
+import { createTestApp, setupOperator, TEST_ORIGIN } from "../test/fixture.js";
 
 const sentinel = {
   merchantId: "sentinel-merchant-9f3a",
@@ -12,10 +12,12 @@ const sentinel = {
 
 test("saving plugin settings returns redacted fields and keeps secrets sealed", async () => {
   const { app, secrets, masterKey } = createTestApp();
+  const cookie = await setupOperator(app);
   const response = await app.request("/api/plugins/official.ecpay/settings", {
     method: "PUT",
     headers: {
-      origin: "http://localhost:5180",
+      origin: TEST_ORIGIN,
+      cookie,
       "content-type": "application/json",
     },
     body: JSON.stringify({
@@ -48,16 +50,44 @@ test("saving plugin settings returns redacted fields and keeps secrets sealed", 
     sentinel.hashKey,
   );
 
-  const read = await app.request("/api/plugins/official.ecpay/settings");
+  const read = await app.request("/api/plugins/official.ecpay/settings", { headers: { cookie } });
   const readBody = await read.json();
-  assert.equal(JSON.stringify(readBody).includes(sentinel.hashKey), false);
+  const readText = JSON.stringify(readBody);
+  assert.equal(readText.includes(sentinel.hashKey), false);
+  assert.equal(readText.includes("ciphertext"), false);
+  const sealedBytes = Buffer.from(stored.ciphertext).toString("base64");
+  assert.equal(readText.includes(sealedBytes), false);
+});
+
+test("secret settings never leak plaintext or ciphertext", async () => {
+  const { app } = createTestApp();
+  const cookie = await setupOperator(app);
+  const saved = await app.request("/api/plugins/official.ecpay/settings", {
+    method: "PUT",
+    headers: {
+      origin: TEST_ORIGIN,
+      cookie,
+      "content-type": "application/json",
+    },
+    body: JSON.stringify({ values: { ...sentinel, environment: "stage" } }),
+  });
+  const savedText = JSON.stringify(await saved.json());
+  const listed = await app.request("/api/plugins", { headers: { cookie } });
+  const listedText = JSON.stringify(await listed.json());
+  for (const value of Object.values(sentinel)) {
+    assert.equal(savedText.includes(value), false);
+    assert.equal(listedText.includes(value), false);
+  }
+  assert.equal(savedText.includes("ciphertext"), false);
+  assert.equal(listedText.includes("ciphertext"), false);
 });
 
 test("a missing or foreign origin cannot write settings", async () => {
   const { app } = createTestApp();
+  const cookie = await setupOperator(app);
   const missing = await app.request("/api/plugins/official.ecpay/settings", {
     method: "PUT",
-    headers: { "content-type": "application/json" },
+    headers: { cookie, "content-type": "application/json" },
     body: JSON.stringify({ values: {} }),
   });
   assert.equal(missing.status, 403);
@@ -66,11 +96,15 @@ test("a missing or foreign origin cannot write settings", async () => {
     method: "PUT",
     headers: {
       origin: "https://evil.example",
+      cookie,
       "content-type": "application/json",
     },
     body: JSON.stringify({ values: {} }),
   });
   assert.equal(foreign.status, 403);
+
+  const anonymous = await app.request("/api/plugins/official.ecpay/settings");
+  assert.equal(anonymous.status, 401);
 });
 
 test("redaction drops a secret even if it was placed in public settings", () => {

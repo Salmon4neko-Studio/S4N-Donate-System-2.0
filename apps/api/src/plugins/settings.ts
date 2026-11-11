@@ -4,10 +4,13 @@ import { sealSecret, secretAad, type SealedSecret } from "../crypto/secret-box.j
 export interface RedactedField {
   key: string;
   title: string | null;
+  description: string | null;
   type: SettingsField["type"];
   secret: boolean;
   required: boolean;
   configured: boolean;
+  enum: string[] | null;
+  minimum: number | null;
   /** Present only for non-secret fields that have a stored value. */
   value?: string | number | boolean;
 }
@@ -49,9 +52,12 @@ export function redactSettings(
     const base = {
       key,
       title: field.title ?? null,
+      description: field.description ?? null,
       type: field.type,
       secret,
       required: required.has(key),
+      enum: field.enum === undefined ? null : [...field.enum],
+      minimum: field.minimum ?? null,
     };
     if (secret) {
       return { ...base, configured: configured.has(key) };

@@ -22,7 +22,7 @@ export interface PluginBus {
   emit<T extends PluginEmittableEventName>(type: T, payload: S4nEventMap[T]): void;
 }
 
-const CORE_PAYMENT = new Set<string>(CORE_PAYMENT_EVENTS);
+const NOT_PLUGIN_EMITTABLE = new Set<string>([...CORE_PAYMENT_EVENTS, "s4n.donation.test"]);
 
 /**
  * Plugins subscribe and emit only through this object.
@@ -34,8 +34,8 @@ export function createPluginBus(sink: EventSink): PluginBus {
       return sink.subscribe(type, handler);
     },
     emit(type, payload) {
-      if (CORE_PAYMENT.has(type)) {
-        throw new Error(`plugins cannot emit core payment event ${type}`);
+      if (NOT_PLUGIN_EMITTABLE.has(type)) {
+        throw new Error(`plugins cannot emit reserved event ${type}`);
       }
       sink.publish(type, payload);
     },

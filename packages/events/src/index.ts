@@ -12,6 +12,7 @@ export type {
   DonationCreatedPayload,
   DonationFailedPayload,
   DonationSucceededPayload,
+  DonationTestPayload,
   GoalUpdatedPayload,
   MediaNowPlayingPayload,
   PluginEmittableEventName,

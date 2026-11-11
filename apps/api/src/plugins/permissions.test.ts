@@ -14,6 +14,19 @@ test("community plugins cannot request official-only permissions", () => {
   );
 });
 
+test("non-official plugins cannot request payments.provider, secrets, or network", () => {
+  for (const permission of ["payments.provider", "secrets", "network"] as const) {
+    assert.throws(
+      () => assertPermissionsAllowed("community.weather", [permission], OFFICIAL_PLUGIN_IDS),
+      new RegExp(permission),
+    );
+    assert.throws(
+      () => assertPermissionsAllowed("official.not-listed", [permission], OFFICIAL_PLUGIN_IDS),
+      new RegExp(permission),
+    );
+  }
+});
+
 test("the official allowlist is explicit, not a name prefix", () => {
   assert.throws(() =>
     assertPermissionsAllowed("official.impostor", ["secrets"], OFFICIAL_PLUGIN_IDS),
