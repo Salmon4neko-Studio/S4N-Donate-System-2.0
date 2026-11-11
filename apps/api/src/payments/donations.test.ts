@@ -7,11 +7,18 @@ test("donation creation stops at the unimplemented provider and does not write t
   let touched = false;
   const { app } = createTestApp({
     ledger: {
+      async create() {
+        touched = true;
+      },
       async getById() {
         touched = true;
         return null;
       },
       async markSucceeded() {
+        touched = true;
+        return "lost_race";
+      },
+      async markFailed() {
         touched = true;
         return "lost_race";
       },
@@ -49,8 +56,8 @@ test("donation creation stops at the unimplemented provider and does not write t
     }),
   });
   const body = (await response.json()) as { error?: string };
-  assert.equal(response.status, 501);
-  assert.equal(body.error, "payment_not_implemented");
+  assert.equal(response.status, 422);
+  assert.equal(body.error, "provider_unavailable");
   assert.equal(JSON.stringify(body).includes("這則留言不該被回聲"), false);
   assert.equal(touched, false);
 });
@@ -80,4 +87,25 @@ test("invalid donations are refused before a provider is planned", () => {
     assert.equal(planned.donorName, "小光");
     assert.equal(planned.status, "created");
   }
+
+  const belowMin = validateDonationRequest(
+    {
+      pluginId: "official.ecpay",
+      amountMinor: 10,
+      currency: "TWD",
+      donorName: "小光",
+      message: "",
+    },
+    { min: 30, max: 20_000 },
+  );
+  assert.equal(belowMin.ok, false);
+
+  const control = validateDonationRequest({
+    pluginId: "official.ecpay",
+    amountMinor: 100,
+    currency: "TWD",
+    donorName: "小\n光",
+    message: "嗨",
+  });
+  assert.equal(control.ok, false);
 });

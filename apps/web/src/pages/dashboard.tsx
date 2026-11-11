@@ -57,7 +57,7 @@ export function DashboardPage() {
         <p className="text-xs tracking-[0.18em] text-cinnabar">營運</p>
         <h1 className="mt-3 font-serif text-4xl leading-tight text-balance">工作台</h1>
         <p className="mt-4 text-base leading-7 text-ink-soft">
-          從這裡送出測試贊助、打開帳本，並把疊層網址貼進 OBS。測試事件不會寫進帳本。綠界與歐付寶還沒有開單。
+          從這裡送出測試贊助、打開帳本，並把疊層網址貼進 OBS。測試事件不會寫進帳本。真實贊助從贊助頁付款。
         </p>
       </div>
 
@@ -117,10 +117,10 @@ export function DashboardPage() {
         <Card className="rounded-card border-line bg-paper-raised shadow-soft">
           <CardHeader>
             <CardTitle className="font-serif text-2xl font-medium">帳本</CardTitle>
-            <CardDescription>只列出真正入帳的贊助。</CardDescription>
+            <CardDescription>待付款、已付款和未成功。</CardDescription>
           </CardHeader>
           <CardContent className="text-sm leading-6 text-ink-soft">
-            付款外掛還沒有寫入任何一筆。
+            測試贊助不會出現在帳本。
             <Link to="/donations" className="ml-1 text-indigo underline-offset-4 hover:underline">
               查看帳本
             </Link>

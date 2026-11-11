@@ -4,6 +4,19 @@ import type { Ledger, LedgerOrder, ListedDonation } from "./ledger.js";
 
 export function createPrismaLedger(prisma: PrismaClient): Ledger {
   return {
+    async create(order) {
+      await prisma.donation.create({
+        data: {
+          id: order.id,
+          providerId: order.providerId,
+          amountMinor: order.amountMinor,
+          currency: order.currency,
+          status: DonationStatus.created,
+          donorName: order.donorName,
+          message: order.message,
+        },
+      });
+    },
     async getById(id) {
       const row = await prisma.donation.findUnique({ where: { id } });
       if (row === null) return null;
@@ -13,6 +26,16 @@ export function createPrismaLedger(prisma: PrismaClient): Ledger {
       const result = await prisma.donation.updateMany({
         where: { id, status: DonationStatus.created },
         data: { status: DonationStatus.succeeded, providerRef },
+      });
+      return result.count === 1 ? "updated" : "lost_race";
+    },
+    async markFailed(id, providerRef) {
+      const result = await prisma.donation.updateMany({
+        where: { id, status: DonationStatus.created },
+        data: {
+          status: DonationStatus.failed,
+          ...(providerRef ? { providerRef } : {}),
+        },
       });
       return result.count === 1 ? "updated" : "lost_race";
     },

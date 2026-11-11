@@ -30,7 +30,7 @@ description: s4n-plugin.json、權限、密文欄位，以及外掛可以收發�
 | `payments.read` | 所有外掛 | 唯讀付款資料。這次沒有讀取 API |
 | `payments.provider` | 僅官方 | 註冊付款提供者、建立付款、驗證回呼。不能寫帳 |
 | `secrets` | 僅官方 | 設定裡可以有密文欄位 |
-| `network` | 僅官方 | 對外連線。這次的工人還沒有真的連出去 |
+| `network` | 僅官方 | 對外連線。綠界與歐付寶用它向廠商查單 |
 
 社群外掛的預設是疊層與儀表板設定：`events.subscribe`、`overlay.slot`、`dashboard.settings`。
 

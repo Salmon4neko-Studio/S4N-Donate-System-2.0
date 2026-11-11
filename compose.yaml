@@ -25,6 +25,9 @@ services:
       S4N_ENV: development
       S4N_DASHBOARD_ORIGIN: http://localhost:5180
       S4N_OVERLAY_ORIGIN: http://localhost:5181
+      S4N_PUBLIC_BASE_URL: ${S4N_PUBLIC_BASE_URL:-http://localhost:8787}
+      S4N_DONATION_MIN_TWD: ${S4N_DONATION_MIN_TWD:-30}
+      S4N_DONATION_MAX_TWD: ${S4N_DONATION_MAX_TWD:-20000}
       PORT: "8787"
     ports:
       - "8787:8787"

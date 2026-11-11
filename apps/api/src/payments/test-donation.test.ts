@@ -11,6 +11,10 @@ test("a test donation is marked as a test and does not touch the paid ledger", {
   let writes = 0;
   const { app, bus } = createTestApp({
     ledger: {
+      async create(order) {
+        writes += 1;
+        return inner.create(order);
+      },
       async getById(id) {
         reads += 1;
         return inner.getById(id);
@@ -18,6 +22,10 @@ test("a test donation is marked as a test and does not touch the paid ledger", {
       async markSucceeded(id, providerRef) {
         writes += 1;
         return inner.markSucceeded(id, providerRef);
+      },
+      async markFailed(id, providerRef) {
+        writes += 1;
+        return inner.markFailed(id, providerRef);
       },
       async listRecent(limit) {
         return inner.listRecent(limit);

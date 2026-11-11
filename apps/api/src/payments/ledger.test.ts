@@ -25,6 +25,7 @@ test("a verified callback records the server amount once", async () => {
       orderId: "order_1",
       providerId: "official.ecpay",
       providerRef: "ref_1",
+      amountMinor: 500,
     }),
     { action: "record", amountMinor: 500 },
   );
@@ -35,6 +36,7 @@ test("a verified callback records the server amount once", async () => {
       orderId: "order_1",
       providerId: "official.ecpay",
       providerRef: "ref_1",
+      amountMinor: 500,
     }).action,
     "duplicate",
   );
@@ -42,7 +44,7 @@ test("a verified callback records the server amount once", async () => {
 
 test("rejects missing, mismatched, and already failed orders", () => {
   assert.equal(
-    decideVerifiedPayment(null, { orderId: "missing", providerId: "official.ecpay", providerRef: "r" })
+    decideVerifiedPayment(null, { orderId: "missing", providerId: "official.ecpay", providerRef: "r", amountMinor: 500 })
       .action,
     "missing_order",
   );
@@ -51,6 +53,7 @@ test("rejects missing, mismatched, and already failed orders", () => {
       orderId: "order_1",
       providerId: "official.opay",
       providerRef: "r",
+      amountMinor: 500,
     }).action,
     "provider_mismatch",
   );
@@ -59,6 +62,7 @@ test("rejects missing, mismatched, and already failed orders", () => {
       orderId: "order_1",
       providerId: "official.ecpay",
       providerRef: "r",
+      amountMinor: 500,
     }).action,
     "already_failed",
   );
@@ -67,7 +71,17 @@ test("rejects missing, mismatched, and already failed orders", () => {
       orderId: "order_1",
       providerId: "official.ecpay",
       providerRef: "r",
+      amountMinor: 500,
     }).action,
     "provider_mismatch",
+  );
+  assert.equal(
+    decideVerifiedPayment(order(), {
+      orderId: "order_1",
+      providerId: "official.ecpay",
+      providerRef: "r",
+      amountMinor: 1,
+    }).action,
+    "amount_mismatch",
   );
 });

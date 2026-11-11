@@ -82,6 +82,11 @@ export function PluginCard({ plugin, settingsOpen }: { plugin: PluginSummary; se
             </Button>
           ) : null}
         </div>
+        {plugin.kind.includes("payment") ? (
+          <p className="text-sm leading-6 text-ink-soft">
+            啟用且必填欄位都設定之後，才會出現在贊助頁。密文只顯示已設定或尚未設定。
+          </p>
+        ) : null}
         {notice ? <p className="text-sm text-cinnabar">{notice}</p> : null}
       </CardHeader>
       {open ? (

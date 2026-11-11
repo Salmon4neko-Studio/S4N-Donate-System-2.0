@@ -9,6 +9,11 @@ export function createMemoryLedger(seed: readonly LedgerOrder[] = []): Ledger {
     clock += 1000;
   }
   return {
+    async create(order) {
+      if (rows.has(order.id)) throw new Error("duplicate_order");
+      rows.set(order.id, { ...order, status: "created", providerRef: null });
+      createdAt.set(order.id, new Date().toISOString());
+    },
     async getById(id) {
       const row = rows.get(id);
       return row === undefined ? null : { ...row };
@@ -18,6 +23,13 @@ export function createMemoryLedger(seed: readonly LedgerOrder[] = []): Ledger {
       if (row === undefined || row.status !== "created") return "lost_race";
       row.status = "succeeded";
       row.providerRef = providerRef;
+      return "updated";
+    },
+    async markFailed(id, providerRef) {
+      const row = rows.get(id);
+      if (row === undefined || row.status !== "created") return "lost_race";
+      row.status = "failed";
+      if (providerRef) row.providerRef = providerRef;
       return "updated";
     },
     async listRecent(limit) {

@@ -51,7 +51,7 @@ export function Shell() {
           </button>
         </div>
         <p className="max-w-xs text-xs leading-5 text-ink-soft md:max-w-none">
-          金流尚未接上。贊助提醒可以先用測試事件預覽。
+          已開放的付款方式會送到綠界或歐付寶。測試贊助只給疊層預覽。
         </p>
       </header>
       <main className="s4n-rise min-w-0 pb-16">

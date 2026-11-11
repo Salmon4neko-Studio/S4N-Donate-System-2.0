@@ -23,12 +23,15 @@ export type {
   SettingsSchema,
 } from "./manifest.js";
 
-export { PaymentNotImplemented } from "./payments.js";
+export { PaymentConfigError, PaymentNotImplemented } from "./payments.js";
 export type {
   CallbackVerification,
+  CheckoutForm,
   CreatePaymentInput,
   CreatePaymentResult,
   PaymentProvider,
+  ProviderMaterial,
+  QueryTradeResult,
   RawCallback,
 } from "./payments.js";
 

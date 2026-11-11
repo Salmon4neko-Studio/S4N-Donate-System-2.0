@@ -1,36 +1,58 @@
-import { useState, type FormEvent } from "react";
-import { Link } from "react-router";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
+import { useEffect, useState, type FormEvent } from "react";
+import { useNavigate } from "react-router";
+import { DonateForm, type DonateMethod } from "@/components/donate/donate-form";
 import { ApiError, api } from "@/lib/api";
+import { saveCheckout } from "@/lib/payment";
 
-const amounts = [50, 100, 300, 500, 1000];
-const providers = [
-  { id: "official.ecpay", label: "綠界 ECPay" },
-  { id: "official.opay", label: "歐付寶 O'Pay" },
-];
+interface DonateOptions {
+  currency: "TWD";
+  minAmount: number;
+  maxAmount: number;
+  methods: DonateMethod[];
+}
 
-type SubmitState =
-  | { status: "idle" }
-  | { status: "submitting" }
-  | { status: "not_implemented" }
-  | { status: "invalid"; issues: string[] }
-  | { status: "offline" };
+interface CheckoutResponse {
+  donationId: string;
+  amountMinor: number;
+  currency: string;
+  providerId: string;
+  checkout: { action: string; fields: Record<string, string> };
+}
 
 export function DonatePage() {
+  const navigate = useNavigate();
+  const [options, setOptions] = useState<DonateOptions | null>(null);
+  const [loadError, setLoadError] = useState(false);
   const [amount, setAmount] = useState(100);
-  const [pluginId, setPluginId] = useState(providers[0]?.id ?? "official.ecpay");
+  const [pluginId, setPluginId] = useState("");
   const [donorName, setDonorName] = useState("");
   const [message, setMessage] = useState("");
-  const [submit, setSubmit] = useState<SubmitState>({ status: "idle" });
+  const [pending, setPending] = useState(false);
+  const [note, setNote] = useState<string | null>(null);
+
+  useEffect(() => {
+    const controller = new AbortController();
+    api<DonateOptions>("/api/donate/options", { signal: controller.signal })
+      .then((body) => {
+        setLoadError(false);
+        setOptions(body);
+        setPluginId((current) => body.methods.find((method) => method.id === current)?.id ?? body.methods[0]?.id ?? "");
+        setAmount((current) => (current >= body.minAmount && current <= body.maxAmount ? current : body.minAmount));
+      })
+      .catch((error: unknown) => {
+        if (error instanceof DOMException && error.name === "AbortError") return;
+        setLoadError(true);
+      });
+    return () => controller.abort();
+  }, []);
 
   async function onSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    setSubmit({ status: "submitting" });
+    if (options === null || pluginId === "") return;
+    setPending(true);
+    setNote(null);
     try {
-      await api("/api/donations", {
+      const body = await api<CheckoutResponse>("/api/donations", {
         method: "POST",
         body: JSON.stringify({
           pluginId,
@@ -40,134 +62,57 @@ export function DonatePage() {
           message,
         }),
       });
-      setSubmit({ status: "idle" });
+      saveCheckout({
+        donationId: body.donationId,
+        amountMinor: body.amountMinor,
+        currency: body.currency,
+        providerId: body.providerId,
+        action: body.checkout.action,
+        fields: body.checkout.fields,
+      });
+      navigate("/donate/checkout");
     } catch (error) {
-      if (error instanceof ApiError && error.status === 0) {
-        setSubmit({ status: "offline" });
-        return;
-      }
-      if (error instanceof ApiError && error.status === 501) {
-        setSubmit({ status: "not_implemented" });
-        return;
-      }
-      if (error instanceof ApiError && error.status === 422 && isIssueBody(error.body)) {
-        setSubmit({ status: "invalid", issues: error.body.issues });
-        return;
-      }
-      setSubmit({ status: "offline" });
+      setNote(donateError(error));
+      setPending(false);
     }
   }
 
   return (
-    <div className="mx-auto flex min-h-svh max-w-xl flex-col px-5 py-10 md:py-16">
-      <Link to="/" className="text-sm text-indigo underline-offset-4 hover:underline">
-        回到概況
-      </Link>
-      <p className="mt-10 text-xs tracking-[0.18em] text-cinnabar">贊助</p>
+    <main className="mx-auto flex min-h-svh max-w-xl flex-col px-5 py-10 md:py-16">
+      <p className="text-xs tracking-[0.18em] text-cinnabar">贊助</p>
       <h1 className="mt-3 font-serif text-4xl leading-tight text-balance">送給這位創作者</h1>
       <p className="mt-4 text-base leading-7 text-ink-soft">
-        金額會先送到核心。綠界與歐付寶還沒有開單，所以現在送出不會建立交易，也不會入帳。顯示名稱和留言只會被當成文字。
+        選擇付款方式後，會先在伺服器建立訂單，再前往綠界或歐付寶的信用卡頁。顯示名稱和留言只當文字保存，不會送給金流。
       </p>
-
-      <form onSubmit={onSubmit} className="s4n-rise mt-8 flex flex-col gap-6">
-        <fieldset className="flex flex-col gap-3">
-          <legend className="text-sm text-ink">金額（新台幣）</legend>
-          <div className="flex flex-wrap gap-2">
-            {amounts.map((value) => (
-              <Button
-                key={value}
-                type="button"
-                className="h-10 px-4"
-                variant={value === amount ? "default" : "outline"}
-                aria-pressed={value === amount}
-                onClick={() => setAmount(value)}
-              >
-                {value}
-              </Button>
-            ))}
-          </div>
-          <Label htmlFor="amount">自訂金額</Label>
-          <Input
-            id="amount"
-            inputMode="numeric"
-            min={1}
-            step={1}
-            type="number"
-            value={amount}
-            onChange={(event) => setAmount(Number(event.target.value))}
-          />
-        </fieldset>
-
-        <fieldset className="flex flex-col gap-3">
-          <legend className="text-sm text-ink">付款外掛（尚未開通）</legend>
-          <div className="flex flex-wrap gap-2">
-            {providers.map((provider) => (
-              <Button
-                key={provider.id}
-                type="button"
-                className="h-10 px-4"
-                variant={provider.id === pluginId ? "default" : "outline"}
-                aria-pressed={provider.id === pluginId}
-                onClick={() => setPluginId(provider.id)}
-              >
-                {provider.label}
-              </Button>
-            ))}
-          </div>
-        </fieldset>
-
-        <div className="flex flex-col gap-2">
-          <Label htmlFor="donor-name">顯示名稱</Label>
-          <Input
-            id="donor-name"
-            maxLength={40}
-            value={donorName}
-            onChange={(event) => setDonorName(event.target.value)}
-            autoComplete="nickname"
-          />
-        </div>
-        <div className="flex flex-col gap-2">
-          <Label htmlFor="message">留言</Label>
-          <Textarea
-            id="message"
-            maxLength={200}
-            value={message}
-            onChange={(event) => setMessage(event.target.value)}
-          />
-        </div>
-
-        <Button type="submit" className="h-11 px-5" disabled={submit.status === "submitting"}>
-          {submit.status === "submitting" ? "送出中…" : "建立贊助"}
-        </Button>
-        <SubmitNote state={submit} />
-      </form>
-    </div>
+      {loadError ? <p className="mt-8 text-sm text-cinnabar">無法連上核心 API。</p> : null}
+      {options === null && !loadError ? <p className="mt-8 text-sm text-ink-soft">正在讀取付款方式…</p> : null}
+      {options !== null ? (
+        <DonateForm
+          min={options.minAmount}
+          max={options.maxAmount}
+          methods={options.methods}
+          amount={amount}
+          pluginId={pluginId}
+          donorName={donorName}
+          message={message}
+          pending={pending}
+          note={note}
+          onAmount={setAmount}
+          onPlugin={setPluginId}
+          onDonorName={setDonorName}
+          onMessage={setMessage}
+          onSubmit={onSubmit}
+        />
+      ) : null}
+    </main>
   );
 }
 
-function SubmitNote({ state }: { state: SubmitState }) {
-  if (state.status === "not_implemented") {
-    return (
-      <p className="text-sm leading-6 text-ink" role="status">
-        沒有建立交易。付款外掛尚未實作。
-      </p>
-    );
-  }
-  if (state.status === "offline") {
-    return (
-      <p className="text-sm leading-6 text-cinnabar" role="status">
-        無法連上核心 API。
-      </p>
-    );
-  }
-  if (state.status === "invalid") {
-    return (
-      <p className="text-sm leading-6 text-cinnabar" role="status">
-        這筆資料不完整：{state.issues.join("、")}
-      </p>
-    );
-  }
-  return null;
+function donateError(error: unknown): string {
+  if (!(error instanceof ApiError) || error.status === 0) return "無法連上核心 API。";
+  if (error.status === 422 && isIssueBody(error.body)) return `這筆資料不完整：${error.body.issues.join("、")}`;
+  if (error.status === 422) return "這個付款方式還沒有開放。";
+  return "訂單沒有建立。";
 }
 
 function isIssueBody(value: unknown): value is { issues: string[] } {

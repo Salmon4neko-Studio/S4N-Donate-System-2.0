@@ -30,5 +30,6 @@ Compose 的資料庫密碼是 `s4n_dev_password`。主金鑰若沒有從環境�
 1. 用 `openssl rand -base64 32` 產生 `S4N_MASTER_KEY`，並設 `S4N_ENV=production`
 2. 換掉資料庫密碼
 3. 把 `S4N_DASHBOARD_ORIGIN` 改成真正的儀表板來源
+4. 把 `S4N_PUBLIC_BASE_URL` 設成綠界與歐付寶打得到的 https 來源，不要帶路徑或自訂埠
 
 登入已經接上，細節見 [安全性](/guides/security/)。金鑰輪替、正式憑證，以及多個 API 實例共用的限流與事件匯流排，仍然沒有。
