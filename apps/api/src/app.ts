@@ -2,7 +2,6 @@ import { randomUUID } from "node:crypto";
 import { Hono } from "hono";
 import { cors } from "hono/cors";
 import { asUntrustedText } from "@s4n/events";
-import { PaymentNotImplemented } from "@s4n/plugin-sdk";
 import type { RuntimeEnv } from "./env.js";
 import { originAllowlist, originGuard } from "./auth/origin.js";
 import { rateLimit } from "./auth/rate-limit.js";
@@ -10,12 +9,15 @@ import { registerAuthRoutes } from "./auth/routes.js";
 import type { AuthService } from "./auth/service.js";
 import { requireSession, sessionCookieSecure, type SessionEnv } from "./auth/session.js";
 import { isRecord, readJson } from "./http.js";
-import { handlePaymentCallback } from "./payments/callback.js";
+import { handlePaymentCallback, settlePaymentNotification } from "./payments/callback.js";
+import { createDonationCheckout } from "./payments/checkout.js";
 import type { Ledger } from "./payments/ledger.js";
-import { planDonation, validateDonationRequest } from "./payments/plan.js";
+import { validateDonationRequest } from "./payments/plan.js";
+import { paymentMethodReady } from "./payments/readiness.js";
+import { reconcileDonation } from "./payments/reconcile.js";
+import { isTradeNo } from "./payments/trade-no.js";
 import type { LoadedPlugin, PaymentRegistry } from "./plugins/catalog.js";
 import type { InstallationStore } from "./plugins/installations.js";
-import { decryptPluginSecrets } from "./plugins/secrets.js";
 import {
   redactSettings,
   saveSettings,
@@ -29,6 +31,9 @@ export interface AppDeps {
   envName: RuntimeEnv;
   dashboardOrigin: string;
   overlayOrigin: string;
+  publicBaseUrl: string;
+  donationMin: number;
+  donationMax: number;
   masterKey: Buffer;
   catalog: readonly LoadedPlugin[];
   providers: PaymentRegistry;
@@ -210,6 +215,47 @@ export function createApp(deps: AppDeps): Hono<SessionEnv> {
     return c.json({ test: true, eventId: event.id });
   });
 
+  app.get("/api/donate/options", async (c) => {
+    c.header("cache-control", "no-store");
+    try {
+      const methods = [];
+      for (const plugin of deps.catalog) {
+        if (!plugin.manifest.kind.includes("payment")) continue;
+        if (!(await paymentMethodReady(plugin, deps.installations, deps.secrets))) continue;
+        methods.push({ id: plugin.manifest.id, name: plugin.manifest.name });
+      }
+      return c.json({
+        currency: "TWD",
+        minAmount: deps.donationMin,
+        maxAmount: deps.donationMax,
+        methods,
+      });
+    } catch {
+      return c.json({ error: "provider_unavailable" }, 503);
+    }
+  });
+
+  app.get(
+    "/api/donations/:id/status",
+    rateLimit({
+      windowMs: 60_000,
+      max: 60,
+      key: (c) => `status:${c.req.header("x-forwarded-for") ?? "local"}`,
+    }),
+    async (c) => {
+    c.header("cache-control", "no-store");
+    const id = c.req.param("id");
+    if (!isTradeNo(id)) return c.json({ error: "unknown_order" }, 404);
+    try {
+      const order = await deps.ledger.getById(id);
+      if (order === null) return c.json({ error: "unknown_order" }, 404);
+      return c.json({ status: order.status, amountMinor: order.amountMinor, currency: order.currency });
+    } catch {
+      return c.json({ error: "ledger_unavailable" }, 503);
+    }
+  },
+  );
+
   app.post(
     "/api/donations",
     guard,
@@ -219,44 +265,23 @@ export function createApp(deps: AppDeps): Hono<SessionEnv> {
       key: (c) => `donate:${c.req.header("x-forwarded-for") ?? "local"}`,
     }),
     async (c) => {
+      c.header("cache-control", "no-store");
       const body = await readJson(c.req.raw);
       if (!body.ok) return c.json({ error: "invalid_json" }, 422);
-      const parsed = validateDonationRequest(body.value);
-      if (!parsed.ok) return c.json({ error: "invalid_donation", issues: parsed.issues }, 422);
-
-      const provider = deps.providers.get(parsed.value.pluginId);
-      if (provider === undefined) return c.json({ error: "unknown_provider" }, 404);
-
-      const planned = planDonation(randomUUID(), parsed.value);
-      let secrets: Record<string, string> = {};
-      let secretsFailed = false;
-      try {
-        secrets = await decryptPluginSecrets(provider.pluginId, deps.secrets, deps.masterKey);
-      } catch {
-        secretsFailed = true;
-      }
-
-      try {
-        await provider.createPayment(
-          {
-            orderId: planned.id,
-            amountMinor: planned.amountMinor,
-            currency: planned.currency,
-            callbackUrl: callbackUrl(c.req.url, provider.pluginId),
-            returnUrl: `${deps.dashboardOrigin}/donate`,
-          },
-          secrets,
-        );
-      } catch (error) {
-        if (error instanceof PaymentNotImplemented) {
-          return c.json({ error: "payment_not_implemented", pluginId: provider.pluginId }, 501);
-        }
-        if (secretsFailed) return c.json({ error: "secrets_unavailable" }, 503);
-        return c.json({ error: "donation_failed" }, 500);
-      }
-
-      if (secretsFailed) return c.json({ error: "secrets_unavailable" }, 503);
-      return c.json({ error: "payment_not_implemented", pluginId: provider.pluginId }, 501);
+      const result = await createDonationCheckout({
+        body: body.value,
+        catalog: deps.catalog,
+        providers: deps.providers,
+        secrets: deps.secrets,
+        installations: deps.installations,
+        ledger: deps.ledger,
+        bus: deps.bus,
+        masterKey: deps.masterKey,
+        limits: { min: deps.donationMin, max: deps.donationMax },
+        publicBaseUrl: deps.publicBaseUrl,
+        dashboardOrigin: deps.dashboardOrigin,
+      });
+      return c.json(result.body, result.status as 201);
     },
   );
 
@@ -313,6 +338,67 @@ export function createApp(deps: AppDeps): Hono<SessionEnv> {
         bus: deps.bus,
         masterKey: deps.masterKey,
       });
+      return new Response(result.body, {
+        status: result.status,
+        headers: { "content-type": result.contentType },
+      });
+    },
+  );
+
+  app.post(
+    "/api/payments/:pluginId/return",
+    rateLimit({
+      windowMs: callbackLimit.windowMs,
+      max: callbackLimit.max,
+      key: (c) => `return:${c.req.param("pluginId")}:${c.req.header("x-forwarded-for") ?? "local"}`,
+    }),
+    async (c) => {
+      const headers: Record<string, string> = {};
+      c.req.raw.headers.forEach((value, key) => {
+        headers[key] = value;
+      });
+      const settled = await settlePaymentNotification({
+        pluginId: c.req.param("pluginId"),
+        rawBody: await c.req.text(),
+        headers,
+        catalog: deps.catalog,
+        providers: deps.providers,
+        secrets: deps.secrets,
+        ledger: deps.ledger,
+        bus: deps.bus,
+        masterKey: deps.masterKey,
+      });
+      const target = new URL("/donate/result", deps.dashboardOrigin);
+      if (settled.orderId !== null && isTradeNo(settled.orderId)) {
+        target.searchParams.set("order", settled.orderId);
+      }
+      return c.redirect(target.toString(), 303);
+    },
+  );
+
+  app.post(
+    "/api/payments/:pluginId/reconcile",
+    session,
+    guard,
+    rateLimit({
+      windowMs: 60_000,
+      max: 10,
+      key: (c) => `reconcile:${c.req.param("pluginId")}:${c.req.header("x-forwarded-for") ?? "local"}`,
+    }),
+    async (c) => {
+      const body = await readJson(c.req.raw);
+      if (!body.ok || !isRecord(body.value) || typeof body.value.orderId !== "string") {
+        return c.json({ error: "invalid_order" }, 422);
+      }
+      const result = await reconcileDonation({
+        pluginId: c.req.param("pluginId"),
+        orderId: body.value.orderId,
+        providers: deps.providers,
+        secrets: deps.secrets,
+        ledger: deps.ledger,
+        bus: deps.bus,
+        masterKey: deps.masterKey,
+      });
       return c.json(result.body, result.status as 200);
     },
   );
@@ -349,7 +435,3 @@ function findPlugin(catalog: readonly LoadedPlugin[], id: string): LoadedPlugin 
   return catalog.find((plugin) => plugin.manifest.id === id);
 }
 
-function callbackUrl(requestUrl: string, pluginId: string): string {
-  const url = new URL(requestUrl);
-  return `${url.origin}/api/payments/${pluginId}/callback`;
-}

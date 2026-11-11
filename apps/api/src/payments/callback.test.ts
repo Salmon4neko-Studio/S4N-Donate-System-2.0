@@ -10,11 +10,18 @@ test("unknown and non-payment callbacks never touch the ledger", async () => {
   let touched = false;
   const { app } = createTestApp({
     ledger: {
+      async create() {
+        touched = true;
+      },
       async getById() {
         touched = true;
         return null;
       },
       async markSucceeded() {
+        touched = true;
+        return "lost_race";
+      },
+      async markFailed() {
         touched = true;
         return "lost_race";
       },
@@ -32,7 +39,8 @@ test("unknown and non-payment callbacks never touch the ledger", async () => {
     method: "POST",
     body: JSON.stringify({ Amount: 1 }),
   });
-  assert.equal(stub.status, 501);
+  assert.equal(stub.status, 400);
+  assert.equal(await stub.text(), "0|Error");
   assert.equal(touched, false);
 });
 
@@ -55,9 +63,9 @@ test("a verified callback records the server order once and ignores the body amo
     async createPayment() {
       throw new Error("create should not run");
     },
-    async verifyCallback(_input, secrets) {
-      assert.equal(secrets.merchantId, "sentinel-merchant-9f3a");
-      return { ok: true, orderId: "order_1", providerRef: "ref_1" };
+    async verifyCallback(_input, material) {
+      assert.equal(material.secrets.merchantId, "sentinel-merchant-9f3a");
+      return { ok: true, orderId: "order_1", providerRef: "ref_1", amountMinor: 500, outcome: "paid" };
     },
   };
   providers.register(provider);

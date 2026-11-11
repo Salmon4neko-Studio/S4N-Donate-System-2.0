@@ -138,7 +138,8 @@ test("dashboard routes require a session and the public donate route does not", 
       message: "謝謝",
     }),
   });
-  assert.equal(donate.status, 501);
+  assert.equal(donate.status, 422);
+  assert.equal(((await donate.json()) as { error?: string }).error, "provider_unavailable");
 
   const enabled = await app.request("/api/plugins/community.weather/enabled", {
     method: "PUT",

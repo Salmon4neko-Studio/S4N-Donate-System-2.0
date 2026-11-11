@@ -33,6 +33,7 @@ export default defineConfig({
             { label: "簡介", slug: "index" },
             { label: "本機開發", slug: "guides/local-dev" },
             { label: "登入、外掛與疊層", slug: "guides/operator" },
+            { label: "綠界與歐付寶", slug: "guides/payments" },
             { label: "Docker Compose", slug: "guides/compose" },
             { label: "安全性", slug: "guides/security" },
           ],

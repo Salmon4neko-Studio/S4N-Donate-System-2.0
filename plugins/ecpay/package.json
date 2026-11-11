@@ -13,6 +13,7 @@
     "@s4n/plugin-sdk": "workspace:*"
   },
   "devDependencies": {
+    "@types/node": "^22.19.0",
     "typescript": "catalog:"
   }
 }

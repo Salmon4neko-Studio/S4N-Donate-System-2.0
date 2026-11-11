@@ -5,7 +5,7 @@ export const manifest = {
   "name": "綠界 ECPay",
   "version": "0.1.0",
   "api": "0.1",
-  "description": "官方付款外掛骨架。設定契約是真的，尚未呼叫綠界 API。",
+  "description": "官方綠界全方位金流。信用卡一次付清。商店代號與金鑰只以密文保存。",
   "kind": [
     "payment"
   ],
@@ -30,21 +30,25 @@ export const manifest = {
       "merchantId": {
         "type": "string",
         "title": "商店代號 MerchantID",
+        "description": "綠界商店代號。只會存成密文。",
         "x-s4n-secret": true
       },
       "hashKey": {
         "type": "string",
         "title": "HashKey",
+        "description": "綠界 HashKey。只會存成密文。",
         "x-s4n-secret": true
       },
       "hashIv": {
         "type": "string",
         "title": "HashIV",
+        "description": "綠界 HashIV。只會存成密文。",
         "x-s4n-secret": true
       },
       "environment": {
         "type": "string",
         "title": "環境",
+        "description": "測試站連到綠界沙盒，不會正式請款。正式站才會收款。",
         "enum": [
           "stage",
           "production"

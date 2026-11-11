@@ -6,6 +6,10 @@ export interface ApiEnv {
   masterKey: string;
   dashboardOrigin: string;
   overlayOrigin: string;
+  /** Origin ECPay/O'Pay can call, and donors return to. No path. */
+  publicBaseUrl: string;
+  donationMin: number;
+  donationMax: number;
   port: number;
 }
 
@@ -25,12 +29,49 @@ export function loadEnv(source: NodeJS.ProcessEnv = process.env): ApiEnv {
 
   const dashboardOrigin = parseOrigin(source.S4N_DASHBOARD_ORIGIN ?? "http://localhost:5180", "S4N_DASHBOARD_ORIGIN");
   const overlayOrigin = parseOrigin(source.S4N_OVERLAY_ORIGIN ?? "http://localhost:5181", "S4N_OVERLAY_ORIGIN");
+  const publicBaseUrl = parsePublicBase(
+    source.S4N_PUBLIC_BASE_URL ?? (env === "production" ? "" : "http://127.0.0.1:8787"),
+  );
+  const donationMin = parseBound(source.S4N_DONATION_MIN_TWD, 30, "S4N_DONATION_MIN_TWD");
+  const donationMax = parseBound(source.S4N_DONATION_MAX_TWD, 20_000, "S4N_DONATION_MAX_TWD");
+  if (donationMin > donationMax) throw new Error("S4N_DONATION_MIN_TWD is above S4N_DONATION_MAX_TWD");
   const port = Number(source.PORT ?? 8787);
   if (!Number.isInteger(port) || port < 1 || port > 65535) {
     throw new Error("PORT is invalid");
   }
 
-  return { env, databaseUrl, masterKey, dashboardOrigin, overlayOrigin, port };
+  return {
+    env,
+    databaseUrl,
+    masterKey,
+    dashboardOrigin,
+    overlayOrigin,
+    publicBaseUrl,
+    donationMin,
+    donationMax,
+    port,
+  };
+}
+
+function parsePublicBase(value: string): string {
+  if (value.trim() === "") throw new Error("S4N_PUBLIC_BASE_URL is required");
+  const origin = parseOrigin(value, "S4N_PUBLIC_BASE_URL");
+  const url = new URL(value);
+  if (url.username !== "" || url.password !== "" || (url.pathname !== "/" && url.pathname !== "")) {
+    throw new Error("S4N_PUBLIC_BASE_URL is invalid");
+  }
+  if (url.search !== "" || url.hash !== "") throw new Error("S4N_PUBLIC_BASE_URL is invalid");
+  return origin;
+}
+
+function parseBound(value: string | undefined, fallback: number, name: string): number {
+  if (value === undefined || value.trim() === "") return fallback;
+  if (!/^[1-9][0-9]*$/.test(value.trim())) throw new Error(`${name} is invalid`);
+  const parsed = Number(value);
+  if (!Number.isSafeInteger(parsed) || parsed < 1 || parsed > 10_000_000) {
+    throw new Error(`${name} is invalid`);
+  }
+  return parsed;
 }
 
 function parseOrigin(value: string, name: string): string {

@@ -3,6 +3,8 @@ import { Shell } from "@/components/shell";
 import { useAuth } from "@/lib/auth";
 import { DashboardPage } from "@/pages/dashboard";
 import { DonatePage } from "@/pages/donate";
+import { DonateCheckoutPage } from "@/pages/donate-checkout";
+import { DonateCancelledPage, DonateResultPage } from "@/pages/donate-result";
 import { DonationsPage } from "@/pages/donations";
 import { LoginPage } from "@/pages/login";
 import { OverlayLinkPage } from "@/pages/overlay-link";
@@ -15,6 +17,9 @@ export function App() {
       <Route path="setup" element={<SetupPage />} />
       <Route path="login" element={<LoginPage />} />
       <Route path="donate" element={<DonatePage />} />
+      <Route path="donate/checkout" element={<DonateCheckoutPage />} />
+      <Route path="donate/result" element={<DonateResultPage />} />
+      <Route path="donate/cancelled" element={<DonateCancelledPage />} />
       <Route element={<RequireAuth />}>
         <Route element={<Shell />}>
           <Route index element={<DashboardPage />} />
