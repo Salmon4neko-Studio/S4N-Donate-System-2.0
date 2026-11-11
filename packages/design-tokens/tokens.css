@@ -3,8 +3,8 @@
  * Spacing follows Tailwind's 4px scale. Named steps below are the ones
  * shells should prefer: 4, 8, 12, 16, 24, 32, 48, 72.
  *
- * Orange family is #e8761b / #ea6a1a. Filled controls use #b45309 so
- * white text stays at WCAG AA (5.02:1). Small text on paper uses #9a4a0c.
+ * Brand orange is #f28500. White text needs the darker #ad5f00 (4.76:1).
+ * Small text on paper uses #995400 (5.02:1 on #f3eee6).
  */
 :root {
   --s4n-color-paper: #f3eee6;
@@ -12,12 +12,11 @@
   --s4n-color-ink: #241c18;
   --s4n-color-ink-soft: #6b5e56;
   --s4n-color-line: #e3d8cb;
-  --s4n-color-orange: #e8761b;
-  --s4n-color-orange-hot: #ea6a1a;
-  --s4n-color-orange-fill: #b45309;
-  --s4n-color-orange-hover: #9a4a0c;
-  --s4n-color-orange-active: #7c3d0a;
-  --s4n-color-orange-soft: #fde8d4;
+  --s4n-color-orange: #f28500;
+  --s4n-color-orange-fill: #ad5f00;
+  --s4n-color-orange-hover: #995400;
+  --s4n-color-orange-active: #8f4e00;
+  --s4n-color-orange-soft: #fae8d1;
   --s4n-color-indigo: #2c3a55;
   --s4n-color-moss: #3d6a58;
   --s4n-color-warning: #8a5a2a;

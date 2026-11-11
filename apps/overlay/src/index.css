@@ -9,7 +9,8 @@
   --color-ink: var(--s4n-color-ink);
   --color-ink-soft: var(--s4n-color-ink-soft);
   --color-line: var(--s4n-color-line);
-  --color-orange: var(--s4n-color-orange-fill);
+  --color-orange: var(--s4n-color-orange);
+  --color-orange-ink: var(--s4n-color-orange-hover);
   --color-indigo: var(--s4n-color-indigo);
   --color-moss: var(--s4n-color-moss);
   --shadow-soft: var(--s4n-shadow-soft);

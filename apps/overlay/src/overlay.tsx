@@ -71,7 +71,7 @@ export function Overlay({
       </p>
       {showChrome && alert === null ? (
         <section className="mb-6 max-w-md text-sm leading-6 text-ink-soft">
-          <p className="text-xs tracking-[0.18em] text-orange">贊助提醒</p>
+          <p className="text-xs tracking-[0.18em] text-orange-ink">贊助提醒</p>
           <h1 className="mt-3 font-serif text-3xl text-ink">等待贊助</h1>
           <p className="mt-3">
             {connection === "denied"
@@ -94,15 +94,15 @@ function AlertCard({ alert }: { alert: DonationAlert }) {
       aria-live="polite"
     >
       <div className="flex items-start justify-between gap-4">
-        <p className="text-xs tracking-[0.22em] text-orange">{alert.test ? "測試" : "贊助"}</p>
+        <p className="text-xs tracking-[0.22em] text-orange-ink">{alert.test ? "測試" : "贊助"}</p>
         {alert.test ? (
-          <span className="inline-flex size-11 items-center justify-center rounded-full border border-orange/70 font-serif text-xs tracking-widest text-orange">
+          <span className="inline-flex size-11 items-center justify-center rounded-full border border-orange/70 font-serif text-xs tracking-widest text-orange-ink">
             試
           </span>
         ) : null}
       </div>
       <h2 className="mt-3 font-serif text-4xl leading-tight text-ink">{alert.donorName}</h2>
-      <p className="mt-2 text-2xl text-orange">{formatTwd(alert.amountMinor)}</p>
+      <p className="mt-2 text-2xl text-orange-ink">{formatTwd(alert.amountMinor)}</p>
       {alert.message ? <p className="mt-3 text-base leading-7 text-ink-soft">{alert.message}</p> : null}
     </article>
   );

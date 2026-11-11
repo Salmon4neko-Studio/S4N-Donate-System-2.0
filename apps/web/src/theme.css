@@ -7,11 +7,11 @@
 
 :root {
   --ts-primary-400: var(--s4n-color-orange);
-  --ts-primary-500: var(--s4n-color-orange-hot);
+  --ts-primary-500: var(--s4n-color-orange);
   --ts-primary-600: var(--s4n-color-orange-fill);
   --ts-primary-700: var(--s4n-color-orange-hover);
   --ts-primary-800: var(--s4n-color-orange-active);
-  --ts-primary-900: #5c2c08;
+  --ts-primary-900: #7a4200;
 
   --ts-positive-400: #7dbaa0;
   --ts-positive-500: var(--s4n-color-moss);
@@ -93,7 +93,7 @@ body.is-rounded {
 
   --ts-link-700: #c5d0e6;
 
-  --ts-tonal-primary-400: #8a4e22;
+  --ts-tonal-primary-400: #a35a00;
   --ts-tonal-primary-800: var(--s4n-color-orange-soft);
   --ts-tonal-positive-400: #2a4638;
   --ts-tonal-positive-800: #d7efe4;
@@ -159,15 +159,28 @@ h2.ts-header {
 .ts-app-sidebar .item:focus-visible,
 .ts-text.is-link:focus-visible,
 a.ts-button:focus-visible {
-  outline: 2px solid var(--ts-primary-600);
+  outline: 2px solid var(--s4n-color-orange-hover);
   outline-offset: 2px;
 }
 
 .ts-input:focus-within,
 .ts-select:focus-within {
-  outline: 2px solid var(--ts-primary-600);
+  outline: 2px solid var(--s4n-color-orange-hover);
   outline-offset: 2px;
   border-radius: var(--ts-border-radius-element);
+}
+
+.has-dark .ts-button:focus-visible,
+.has-dark .ts-app-sidebar .item:focus-visible,
+.has-dark .ts-text.is-link:focus-visible,
+.has-dark a.ts-button:focus-visible,
+.has-dark .ts-input:focus-within,
+.has-dark .ts-select:focus-within {
+  outline-color: var(--s4n-color-orange);
+}
+
+.ts-box.is-top-indicated:not(.is-positive):not(.is-negative):not(.is-warning) {
+  --indicator-color: var(--s4n-color-orange);
 }
 
 .ts-button.is-accent:hover {
@@ -286,7 +299,7 @@ p .ts-text.is-link,
   height: 2.5rem;
   flex: none;
   place-items: center;
-  border: 2px solid currentColor;
+  border: 2px solid var(--s4n-color-orange);
   border-radius: 0.45rem;
   background: var(--s4n-color-orange-soft);
   background: color-mix(in srgb, var(--ts-primary-500) 12%, var(--ts-gray-50));
@@ -330,7 +343,7 @@ p .ts-text.is-link,
 }
 
 .s4n-symbol {
-  color: var(--ts-primary-600);
+  color: var(--s4n-color-orange);
 }
 
 .s4n-split {
@@ -360,7 +373,7 @@ p .ts-text.is-link,
   min-height: 100svh;
   padding: 2.5rem 0 3.5rem;
   background:
-    radial-gradient(880px 380px at 8% -10%, rgba(232, 118, 27, 0.16), transparent 58%),
+    radial-gradient(880px 380px at 8% -10%, rgba(242, 133, 0, 0.18), transparent 58%),
     radial-gradient(640px 280px at 100% 0%, rgba(44, 58, 85, 0.08), transparent 50%),
     var(--ts-page-background-default);
 }

@@ -1,7 +1,7 @@
 :root {
   --sl-font: "Noto Sans TC", "PingFang TC", "Microsoft JhengHei", sans-serif;
-  --sl-color-accent-low: #fde8d4;
-  --sl-color-accent: #b45309;
-  --sl-color-accent-high: #7c3d0a;
-  --sl-color-text-accent: #9a4a0c;
+  --sl-color-accent-low: #fae8d1;
+  --sl-color-accent: #f28500;
+  --sl-color-accent-high: #8f4e00;
+  --sl-color-text-accent: #995400;
 }
