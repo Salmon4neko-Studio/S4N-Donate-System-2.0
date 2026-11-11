@@ -1,8 +1,5 @@
 import type { FormEvent } from "react";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
+import { buttonClass, choiceClass, Field, Note, TextArea, TextInput } from "@/components/fields";
 import { providerLabel } from "@/lib/payment";
 
 const presets = [50, 100, 300, 500, 1000];
@@ -46,68 +43,66 @@ export function DonateForm({
   const choices = presets.filter((value) => value >= min && value <= max);
 
   return (
-    <form onSubmit={onSubmit} className="mt-8 flex flex-col gap-6">
-      <fieldset className="flex flex-col gap-3">
-        <legend className="text-sm text-ink">金額（新台幣）</legend>
-        <p className="text-sm text-ink-soft">
+    <form onSubmit={onSubmit} className="s4n-fields">
+      <fieldset className="ts-fieldset s4n-fields">
+        <legend>金額（新台幣）</legend>
+        <p className="ts-text is-description">
           {min} 到 {max} 元
         </p>
         {choices.length > 0 ? (
-          <div className="flex flex-wrap gap-2">
+          <div className="s4n-choices">
             {choices.map((value) => (
-              <Button
+              <button
                 key={value}
                 type="button"
-                className="h-10 px-4"
-                variant={value === amount ? "default" : "outline"}
+                className={choiceClass(value === amount)}
                 aria-pressed={value === amount}
                 onClick={() => onAmount(value)}
               >
                 {value}
-              </Button>
+              </button>
             ))}
           </div>
         ) : null}
-        <Label htmlFor="amount">自訂金額</Label>
-        <Input
-          id="amount"
-          name="amount"
-          inputMode="numeric"
-          min={min}
-          max={max}
-          step={1}
-          type="number"
-          value={amount}
-          onChange={(event) => onAmount(Number(event.target.value))}
-          required
-        />
+        <Field id="amount" label="自訂金額">
+          <TextInput
+            id="amount"
+            name="amount"
+            inputMode="numeric"
+            min={min}
+            max={max}
+            step={1}
+            type="number"
+            value={amount}
+            onChange={(event) => onAmount(Number(event.target.value))}
+            required
+          />
+        </Field>
       </fieldset>
 
-      <fieldset className="flex flex-col gap-3" disabled={methods.length === 0}>
-        <legend className="text-sm text-ink">付款方式</legend>
+      <fieldset className="ts-fieldset s4n-fields" disabled={methods.length === 0}>
+        <legend>付款方式</legend>
         {methods.length === 0 ? (
-          <p className="text-sm leading-6 text-ink-soft">這位創作者還沒有開放付款。</p>
+          <p className="ts-text is-description">這位創作者還沒有開放付款。</p>
         ) : (
-          <div className="flex flex-wrap gap-2">
+          <div className="s4n-choices">
             {methods.map((method) => (
-              <Button
+              <button
                 key={method.id}
                 type="button"
-                className="h-10 px-4"
-                variant={method.id === pluginId ? "default" : "outline"}
+                className={choiceClass(method.id === pluginId)}
                 aria-pressed={method.id === pluginId}
                 onClick={() => onPlugin(method.id)}
               >
                 {providerLabel[method.id] ?? method.name}
-              </Button>
+              </button>
             ))}
           </div>
         )}
       </fieldset>
 
-      <div className="flex flex-col gap-2">
-        <Label htmlFor="donor-name">顯示名稱</Label>
-        <Input
+      <Field id="donor-name" label="顯示名稱">
+        <TextInput
           id="donor-name"
           name="donorName"
           maxLength={40}
@@ -116,26 +111,20 @@ export function DonateForm({
           autoComplete="nickname"
           required
         />
-      </div>
-      <div className="flex flex-col gap-2">
-        <Label htmlFor="message">留言</Label>
-        <Textarea
-          id="message"
-          name="message"
-          maxLength={200}
-          value={message}
-          onChange={(event) => onMessage(event.target.value)}
-        />
-      </div>
+      </Field>
+      <Field id="message" label="留言">
+        <TextArea id="message" name="message" maxLength={200} value={message} onChange={(event) => onMessage(event.target.value)} />
+      </Field>
 
-      <Button type="submit" className="h-11 px-5" disabled={pending || methods.length === 0}>
+      <button
+        type="submit"
+        className={buttonClass({ tone: "accent", size: "large", fluid: true, icon: "start", loading: pending })}
+        disabled={pending || methods.length === 0}
+      >
+        <span className="ts-icon is-credit-card-icon" aria-hidden="true" />
         {pending ? "建立訂單中…" : "前往付款"}
-      </Button>
-      {note ? (
-        <p className="text-sm leading-6 text-cinnabar" role="status">
-          {note}
-        </p>
-      ) : null}
+      </button>
+      {note ? <Note tone="danger">{note}</Note> : null}
     </form>
   );
 }

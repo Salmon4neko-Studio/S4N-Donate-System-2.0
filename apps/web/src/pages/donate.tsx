@@ -1,6 +1,8 @@
 import { useEffect, useState, type FormEvent } from "react";
 import { useNavigate } from "react-router";
 import { DonateForm, type DonateMethod } from "@/components/donate/donate-form";
+import { Note } from "@/components/fields";
+import { PublicPage } from "@/components/public-page";
 import { ApiError, api } from "@/lib/api";
 import { saveCheckout } from "@/lib/payment";
 
@@ -78,14 +80,13 @@ export function DonatePage() {
   }
 
   return (
-    <main className="mx-auto flex min-h-svh max-w-xl flex-col px-5 py-10 md:py-16">
-      <p className="text-xs tracking-[0.18em] text-cinnabar">贊助</p>
-      <h1 className="mt-3 font-serif text-4xl leading-tight text-balance">送給這位創作者</h1>
-      <p className="mt-4 text-base leading-7 text-ink-soft">
-        選擇付款方式後，會先在伺服器建立訂單，再前往綠界或歐付寶的信用卡頁。顯示名稱和留言只當文字保存，不會送給金流。
-      </p>
-      {loadError ? <p className="mt-8 text-sm text-cinnabar">無法連上核心 API。</p> : null}
-      {options === null && !loadError ? <p className="mt-8 text-sm text-ink-soft">正在讀取付款方式…</p> : null}
+    <PublicPage
+      kicker="贊助"
+      title="送給這位創作者"
+      lede="選擇付款方式後，會先在伺服器建立訂單，再前往綠界或歐付寶的信用卡頁。顯示名稱和留言只當文字保存，不會送給金流。"
+    >
+      {loadError ? <Note tone="danger">無法連上核心 API。</Note> : null}
+      {options === null && !loadError ? <p className="ts-text is-description">正在讀取付款方式…</p> : null}
       {options !== null ? (
         <DonateForm
           min={options.minAmount}
@@ -104,7 +105,7 @@ export function DonatePage() {
           onSubmit={onSubmit}
         />
       ) : null}
-    </main>
+    </PublicPage>
   );
 }
 

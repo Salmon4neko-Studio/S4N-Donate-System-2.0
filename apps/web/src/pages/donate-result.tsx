@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { useSearchParams } from "react-router";
 import { ResultPanel, type DonateResultState } from "@/components/donate/result-panel";
+import { PublicPage } from "@/components/public-page";
 import { api } from "@/lib/api";
 
 interface DonationStatus {
@@ -54,18 +55,16 @@ export function DonateResultPage() {
   }, [order]);
 
   return (
-    <main className="mx-auto flex min-h-svh max-w-xl flex-col px-5 py-10 md:py-16">
-      <p className="text-xs tracking-[0.18em] text-cinnabar">贊助</p>
+    <PublicPage kicker="贊助">
       <ResultPanel state={state} {...(amountMinor !== undefined ? { amountMinor } : {})} />
-    </main>
+    </PublicPage>
   );
 }
 
 export function DonateCancelledPage() {
   return (
-    <main className="mx-auto flex min-h-svh max-w-xl flex-col px-5 py-10 md:py-16">
-      <p className="text-xs tracking-[0.18em] text-cinnabar">贊助</p>
+    <PublicPage kicker="贊助">
       <ResultPanel state="cancelled" />
-    </main>
+    </PublicPage>
   );
 }

@@ -1,0 +1,503 @@
+/*
+ * Map S4N tokens onto Tocas UI custom properties.
+ * Light is the default on :root. Dashboard dark mode redefines the same
+ * variables on .has-dark, which is Tocas's subtree color-scheme hook.
+ * The OBS overlay app does not load this file.
+ */
+
+:root {
+  --ts-primary-400: #c9857a;
+  --ts-primary-500: var(--s4n-color-cinnabar-fill);
+  --ts-primary-600: var(--s4n-color-cinnabar);
+  --ts-primary-700: #6e2e28;
+  --ts-primary-800: #542420;
+  --ts-primary-900: #3c1916;
+
+  --ts-positive-400: #7dbaa0;
+  --ts-positive-500: var(--s4n-color-moss);
+  --ts-positive-600: #315846;
+  --ts-positive-700: #244538;
+  --ts-positive-800: #173028;
+  --ts-positive-900: #0e1c16;
+
+  --ts-warning-400: #e2b56a;
+  --ts-warning-500: #c48a3a;
+  --ts-warning-600: var(--s4n-color-warning);
+  --ts-warning-700: #6e4620;
+  --ts-warning-800: #4e3116;
+  --ts-warning-900: #321f0d;
+
+  --ts-negative-400: #e56b73;
+  --ts-negative-500: #c43842;
+  --ts-negative-600: #a12832;
+  --ts-negative-700: #7e1e26;
+  --ts-negative-800: #5c151b;
+  --ts-negative-900: #3d0d11;
+
+  --ts-accent-color: var(--ts-primary-600);
+  --ts-accent-foreground-color: var(--s4n-color-paper-raised);
+
+  --ts-gray-50: var(--s4n-color-paper-raised);
+  --ts-gray-75: #f6f0e7;
+  --ts-gray-100: #efe7dc;
+  --ts-gray-200: #e7ddd0;
+  --ts-gray-300: var(--s4n-color-line);
+  --ts-gray-400: #d4c6b6;
+  --ts-gray-500: var(--s4n-color-ink-soft);
+  --ts-gray-600: #5a4e46;
+  --ts-gray-700: #3f342e;
+  --ts-gray-800: var(--s4n-color-ink);
+  --ts-gray-900: #1a1411;
+
+  --ts-link-700: var(--s4n-color-indigo);
+
+  --ts-tonal-primary-400: var(--s4n-color-cinnabar-soft);
+  --ts-tonal-primary-800: #6e2e28;
+  --ts-tonal-positive-400: #e5f2eb;
+  --ts-tonal-positive-800: #244538;
+  --ts-tonal-warning-400: #f6ead7;
+  --ts-tonal-warning-800: #6b4518;
+  --ts-tonal-negative-400: #f8d8d8;
+  --ts-tonal-negative-800: #7e1e26;
+
+  --ts-page-background-default: var(--s4n-color-paper);
+  --ts-page-background-secondary: #ebe3d6;
+  --ts-page-background-tertiary: #e4d9cc;
+
+  --ts-elevated-shadow:
+    0 1px 0 rgba(255, 250, 244, 0.85) inset,
+    0 18px 40px -24px rgba(70, 42, 28, 0.55),
+    0 2px 8px -3px rgba(70, 42, 28, 0.18);
+  --ts-elevated-shadow-modal: var(--ts-elevated-shadow);
+  --ts-elevated-shadow-drawer: var(--ts-elevated-shadow);
+}
+
+body.is-rounded {
+  --ts-border-radius-container: var(--s4n-radius-card);
+  --ts-border-radius-element: 0.8rem;
+  --ts-border-radius-secondary: 0.45rem;
+}
+
+.has-dark {
+  --ts-accent-color: var(--ts-primary-500);
+  --ts-accent-foreground-color: #fffaf4;
+
+  --ts-gray-50: #2c251f;
+  --ts-gray-75: #342c26;
+  --ts-gray-100: #3d342c;
+  --ts-gray-200: #4a4037;
+  --ts-gray-300: #5e5348;
+  --ts-gray-400: #7d6f63;
+  --ts-gray-500: #cbbbae;
+  --ts-gray-600: #ddd0c4;
+  --ts-gray-700: #efe4d8;
+  --ts-gray-800: #f6efe6;
+  --ts-gray-900: #fffaf4;
+
+  --ts-link-700: #c5d0e6;
+
+  --ts-tonal-primary-400: #5a3a34;
+  --ts-tonal-primary-800: #f4e4de;
+  --ts-tonal-positive-400: #2a4638;
+  --ts-tonal-positive-800: #d7efe4;
+  --ts-tonal-warning-400: #4a3820;
+  --ts-tonal-warning-800: #f6ead7;
+  --ts-tonal-negative-400: #5a2a2e;
+  --ts-tonal-negative-800: #f8d8d8;
+
+  --ts-page-background-default: #1a1512;
+  --ts-page-background-secondary: #221c18;
+  --ts-page-background-tertiary: #14110f;
+
+  --ts-elevated-shadow:
+    0 1px 0 rgba(255, 244, 230, 0.05) inset,
+    0 18px 40px -22px rgba(0, 0, 0, 0.72),
+    0 2px 8px -3px rgba(0, 0, 0, 0.5);
+}
+
+/*
+ * Tocas badges name negative, not positive or warning.
+ * These two set the accent variables Tocas already reads.
+ */
+.ts-badge.is-positive {
+  --accent-color: var(--ts-positive-600);
+  --accent-foreground-color: #fbf8f3;
+}
+
+.ts-badge.is-warning {
+  --accent-color: var(--ts-warning-600);
+  --accent-foreground-color: #fbf8f3;
+}
+
+.ts-icon.is-positive {
+  color: var(--ts-positive-600);
+}
+
+html {
+  background: var(--ts-page-background-default);
+}
+
+body {
+  font-family: var(--s4n-font-sans);
+  text-rendering: optimizeLegibility;
+}
+
+h1.ts-header,
+h2.ts-header,
+.ts-header.s4n-serif,
+.ts-blankslate .header,
+.s4n-seal {
+  font-family: var(--s4n-font-serif);
+  font-weight: 600;
+  letter-spacing: 0.01em;
+}
+
+h1.ts-header,
+h2.ts-header {
+  display: block;
+  line-height: 1.25;
+}
+
+.ts-button:focus-visible,
+.ts-app-sidebar .item:focus-visible,
+.ts-text.is-link:focus-visible,
+a.ts-button:focus-visible {
+  outline: 2px solid var(--ts-primary-600);
+  outline-offset: 2px;
+}
+
+.ts-input:focus-within,
+.ts-select:focus-within {
+  outline: 2px solid var(--ts-primary-600);
+  outline-offset: 2px;
+  border-radius: var(--ts-border-radius-element);
+}
+
+.s4n-kicker {
+  margin: 0;
+  color: var(--ts-primary-600);
+  font-size: var(--ts-font-size-12px);
+  font-weight: 500;
+  letter-spacing: 0.18em;
+}
+
+.s4n-stack {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.s4n-stack.is-loose {
+  gap: 1.75rem;
+}
+
+.s4n-field,
+.s4n-fields {
+  display: flex;
+  flex-direction: column;
+}
+
+.s4n-fields {
+  gap: 1.15rem;
+}
+
+.s4n-field {
+  gap: 0.45rem;
+}
+
+.s4n-field-label {
+  --gap: 0.45rem;
+}
+
+.s4n-choices {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.s4n-field > p,
+.s4n-fields > p,
+.s4n-stack > p,
+.s4n-intro > p,
+.s4n-sheet p {
+  margin: 0;
+}
+
+.s4n-intro {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  max-width: 42rem;
+}
+
+.s4n-lede {
+  line-height: 1.75;
+}
+
+p .ts-text.is-link,
+.item .ts-text.is-link {
+  margin-inline: 0.3rem;
+}
+
+.s4n-dashboard {
+  min-height: 100svh;
+  background: var(--ts-page-background-default);
+  color: var(--ts-gray-800);
+}
+
+.s4n-side {
+  width: 16rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+  padding: 1.5rem 0 1.25rem;
+  background: var(--ts-page-background-secondary);
+  background:
+    linear-gradient(180deg, color-mix(in srgb, var(--ts-primary-500) 8%, transparent), transparent 9rem),
+    var(--ts-page-background-secondary);
+}
+
+.s4n-brand {
+  display: flex;
+  align-items: center;
+  gap: 0.8rem;
+  margin: 0 1.15rem 0.25rem;
+  padding: 0.35rem 0.35rem 0.35rem 0.35rem;
+  color: inherit;
+  text-decoration: none;
+}
+
+.s4n-brand .ts-header {
+  display: block;
+  line-height: 1;
+}
+
+.s4n-seal {
+  display: grid;
+  width: 2.5rem;
+  height: 2.5rem;
+  flex: none;
+  place-items: center;
+  border: 2px solid var(--ts-primary-600);
+  border-radius: 0.45rem;
+  background: var(--s4n-color-cinnabar-soft);
+  background: color-mix(in srgb, var(--ts-primary-500) 10%, var(--ts-gray-50));
+  box-shadow: inset 0 0 0 3px color-mix(in srgb, var(--ts-primary-500) 18%, transparent);
+  color: var(--ts-primary-700);
+  font-size: 1.15rem;
+  line-height: 1;
+}
+
+.has-dark .s4n-seal {
+  color: var(--ts-primary-400);
+  border-color: var(--ts-primary-400);
+}
+
+.s4n-side .ts-app-sidebar {
+  margin-right: 0;
+}
+
+.s4n-side-foot {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.35rem;
+  margin-top: auto;
+  padding: 0.5rem 1.15rem 0;
+}
+
+.s4n-side-foot .ts-text.is-truncated {
+  max-width: 100%;
+}
+
+.s4n-main {
+  min-width: 0;
+  padding: 2rem 0 4.5rem;
+}
+
+.s4n-cards {
+  --gap: 1rem;
+}
+
+.s4n-symbol {
+  color: var(--ts-primary-600);
+}
+
+.s4n-split {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 0.75rem 1.25rem;
+}
+
+.s4n-dimensions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+}
+
+.s4n-dimension {
+  width: 8.5rem;
+}
+
+.s4n-mono input {
+  font-family: ui-monospace, "SFMono-Regular", "Noto Sans TC", monospace;
+  font-size: 0.75rem;
+}
+
+.s4n-public {
+  min-height: 100svh;
+  padding: 2.5rem 0 3.5rem;
+  background:
+    radial-gradient(880px 380px at 8% -10%, rgba(168, 75, 64, 0.14), transparent 58%),
+    radial-gradient(640px 280px at 100% 0%, rgba(44, 58, 85, 0.08), transparent 50%),
+    var(--ts-page-background-default);
+}
+
+.s4n-public-link {
+  display: inline-flex;
+  margin-bottom: 1rem;
+}
+
+.s4n-sheet .ts-content {
+  display: flex;
+  flex-direction: column;
+  gap: 0.85rem;
+}
+
+.s4n-sheet-body {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  margin-top: 0.85rem;
+}
+
+.s4n-result-icon {
+  display: block;
+  margin-bottom: 0.35rem;
+}
+
+.s4n-amount {
+  margin: 0;
+  color: var(--ts-primary-600);
+  font-family: var(--s4n-font-serif);
+  font-size: var(--ts-font-size-30px);
+  font-weight: 600;
+  line-height: 1.2;
+}
+
+.s4n-visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+@media (max-width: 1100px) {
+  .s4n-cards.ts-grid.is-3-columns > .column {
+    flex: 1 1 100%;
+    max-width: 100%;
+  }
+}
+
+@media (max-width: 767.98px) {
+  .s4n-dashboard.ts-app-layout.is-horizontal {
+    flex-direction: column;
+  }
+
+  .s4n-dashboard.ts-app-layout.is-horizontal > .cell:not(:last-child) {
+    border-right: 0;
+    border-bottom: 1px solid var(--ts-gray-300);
+  }
+
+  .s4n-side {
+    width: 100%;
+    padding-bottom: 0.75rem;
+  }
+
+  .s4n-side .ts-app-sidebar {
+    display: flex;
+    overflow-x: auto;
+  }
+
+  .s4n-side .ts-app-sidebar .item {
+    white-space: nowrap;
+  }
+
+  .s4n-side .ts-app-sidebar .item.is-active {
+    border-radius: 100rem;
+  }
+
+  .s4n-side-foot {
+    flex-direction: row;
+    flex-wrap: wrap;
+    align-items: center;
+    padding-top: 0;
+  }
+
+  .s4n-side-note {
+    flex-basis: 100%;
+  }
+
+  .s4n-main {
+    padding: 1.25rem 0 3rem;
+  }
+
+  .s4n-main .ts-container.is-padded {
+    --gap: 1rem;
+  }
+
+  .s4n-cards.ts-grid.is-3-columns > .column,
+  .s4n-form-grid.ts-grid > .column {
+    flex: 1 1 100%;
+    max-width: 100%;
+  }
+
+  .s4n-public {
+    padding: 1.25rem 0 2.5rem;
+  }
+
+  .s4n-sheet .ts-content.is-padded {
+    padding: 1.15rem;
+  }
+}
+
+@media (min-width: 768px) {
+  .s4n-side {
+    position: sticky;
+    top: 0;
+    align-self: flex-start;
+    min-height: 100svh;
+  }
+
+  .s4n-form-grid.ts-grid.is-2-columns > .column.is-wide {
+    flex: 1 1 100%;
+    max-width: 100%;
+  }
+}
+
+@keyframes s4n-rise {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .s4n-rise {
+    animation: s4n-rise var(--s4n-motion-calm) var(--s4n-ease-out);
+  }
+}

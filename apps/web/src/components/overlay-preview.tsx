@@ -1,8 +1,5 @@
 import { useEffect, useRef, useState, type ChangeEvent, type CSSProperties, type FormEvent } from "react";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
+import { buttonClass, choiceClass, Field, Note, TextArea, TextInput } from "@/components/fields";
 import { api, type PluginSummary } from "@/lib/api";
 import {
   ALERTS_PLUGIN_ID,
@@ -171,214 +168,190 @@ export function OverlayPreviewPanel({ pageUrl, pluginId }: { pageUrl: string | n
   } as CSSProperties;
 
   return (
-    <section className="flex flex-col gap-4 rounded-card border border-line bg-paper-raised p-6 shadow-soft" aria-labelledby="overlay-preview-title">
-      <div>
-        <h2 id="overlay-preview-title" className="text-base font-medium">
-          OBS 預覽
-        </h2>
-        <p className="mt-1 text-sm leading-6 text-ink-soft">
-          載入 OBS 會開啟的同一個疊層，並依畫布比例縮小。透明的地方會露出你選的背景。
-        </p>
-      </div>
-
-      <div className="flex flex-col gap-2">
-        <p className="text-sm font-medium">畫布</p>
-        <div className="flex flex-wrap gap-2">
-          {CANVAS_PRESETS.map((preset) => (
-            <Button
-              key={preset.id}
-              type="button"
-              size="sm"
-              variant={width === preset.width && height === preset.height ? "default" : "outline"}
-              aria-pressed={width === preset.width && height === preset.height}
-              onClick={() => applyCanvas(preset.width, preset.height)}
-            >
-              {preset.label}
-            </Button>
-          ))}
+    <section className="ts-box is-raised" aria-labelledby="overlay-preview-title">
+      <div className="ts-content is-padded s4n-stack">
+        <div>
+          <h2 id="overlay-preview-title" className="ts-header is-start-icon">
+            <span className="ts-icon is-eye-icon" aria-hidden="true" />
+            OBS 預覽
+          </h2>
+          <p className="ts-text is-description">載入 OBS 會開啟的同一個疊層，並依畫布比例縮小。透明的地方會露出你選的背景。</p>
         </div>
-        <div className="flex flex-wrap items-end gap-3">
-          <div className="flex flex-col gap-1">
-            <Label htmlFor="preview-width">寬度</Label>
-            <Input
-              id="preview-width"
-              inputMode="numeric"
-              value={widthText}
-              className="w-28"
-              onChange={(event) => onDimension("width", event.target.value)}
-            />
+
+        <div className="s4n-stack">
+          <p className="ts-text is-label">畫布</p>
+          <div className="s4n-choices">
+            {CANVAS_PRESETS.map((preset) => {
+              const selected = width === preset.width && height === preset.height;
+              return (
+                <button
+                  key={preset.id}
+                  type="button"
+                  className={choiceClass(selected, "small")}
+                  aria-pressed={selected}
+                  onClick={() => applyCanvas(preset.width, preset.height)}
+                >
+                  {preset.label}
+                </button>
+              );
+            })}
           </div>
-          <div className="flex flex-col gap-1">
-            <Label htmlFor="preview-height">高度</Label>
-            <Input
-              id="preview-height"
-              inputMode="numeric"
-              value={heightText}
-              className="w-28"
-              onChange={(event) => onDimension("height", event.target.value)}
-            />
+          <div className="s4n-dimensions">
+            <div className="s4n-dimension">
+              <Field id="preview-width" label="寬度">
+                <TextInput
+                  id="preview-width"
+                  inputMode="numeric"
+                  value={widthText}
+                  onChange={(event) => onDimension("width", event.target.value)}
+                />
+              </Field>
+            </div>
+            <div className="s4n-dimension">
+              <Field id="preview-height" label="高度">
+                <TextInput
+                  id="preview-height"
+                  inputMode="numeric"
+                  value={heightText}
+                  onChange={(event) => onDimension("height", event.target.value)}
+                />
+              </Field>
+            </div>
           </div>
+          {canvasError ? <Note tone="danger">{canvasError}</Note> : <p className="ts-text is-description">畫布 {width}×{height}，縮小後放進這個面板。</p>}
         </div>
-        {canvasError ? (
-          <p className="text-sm text-cinnabar" role="status">
-            {canvasError}
-          </p>
-        ) : (
-          <p className="text-sm text-ink-soft">
-            畫布 {width}×{height}，縮小後放進這個面板。
-          </p>
-        )}
-      </div>
 
-      <div className="flex flex-col gap-2">
-        <p className="text-sm font-medium">背景</p>
-        <div className="flex flex-wrap gap-2">
-          {BACKGROUNDS.map((item) => (
-            <Button
-              key={item.id}
-              type="button"
-              size="sm"
-              variant={mode === item.id ? "default" : "outline"}
-              aria-pressed={mode === item.id}
-              onClick={() => setMode(item.id)}
-            >
-              {item.label}
-            </Button>
-          ))}
-          <Button
-            type="button"
-            size="sm"
-            variant={mode === "upload" ? "default" : "outline"}
-            aria-pressed={mode === "upload"}
-            onClick={() => fileRef.current?.click()}
-          >
-            上傳圖片
-          </Button>
-          <input
-            ref={fileRef}
-            className="sr-only"
-            type="file"
-            tabIndex={-1}
-            accept="image/png,image/jpeg,image/webp,image/gif"
-            onChange={onFile}
-          />
-          {upload !== null ? (
-            <Button
-              type="button"
-              size="sm"
-              variant="outline"
-              onClick={() => {
-                replaceUpload(null);
-                setFileLabel("");
-                if (mode === "upload") setMode("dark");
-              }}
-            >
-              清除
-            </Button>
-          ) : null}
-        </div>
-        <p className="text-sm text-ink-soft">範例與上傳的圖片只留在這個瀏覽器，不會送到伺服器。</p>
-        {mode === "upload" && fileLabel !== "" ? <p className="truncate text-sm text-ink-soft">{fileLabel}</p> : null}
-        {imageError ? (
-          <p className="text-sm text-cinnabar" role="status">
-            {imageError}
-          </p>
-        ) : null}
-      </div>
-
-      {choices.length > 1 ? (
-        <div className="flex flex-col gap-2">
-          <p className="text-sm font-medium">疊層外掛</p>
-          <div className="flex flex-wrap gap-2">
-            {choices.map((choice) => (
-              <Button
-                key={choice.id}
+        <div className="s4n-stack">
+          <p className="ts-text is-label">背景</p>
+          <div className="s4n-choices">
+            {BACKGROUNDS.map((item) => (
+              <button
+                key={item.id}
                 type="button"
-                size="sm"
-                variant={choice.id === activeId ? "default" : "outline"}
-                aria-pressed={choice.id === activeId}
-                onClick={() => setChoiceId(choice.id)}
+                className={choiceClass(mode === item.id, "small")}
+                aria-pressed={mode === item.id}
+                onClick={() => setMode(item.id)}
               >
-                {choice.label}
-              </Button>
+                {item.label}
+              </button>
             ))}
+            <button
+              type="button"
+              className={choiceClass(mode === "upload", "small")}
+              aria-pressed={mode === "upload"}
+              onClick={() => fileRef.current?.click()}
+            >
+              上傳圖片
+            </button>
+            <input
+              ref={fileRef}
+              className="s4n-visually-hidden"
+              type="file"
+              tabIndex={-1}
+              accept="image/png,image/jpeg,image/webp,image/gif"
+              onChange={onFile}
+            />
+            {upload !== null ? (
+              <button
+                type="button"
+                className={buttonClass({ variant: "outlined", size: "small" })}
+                onClick={() => {
+                  replaceUpload(null);
+                  setFileLabel("");
+                  if (mode === "upload") setMode("dark");
+                }}
+              >
+                清除
+              </button>
+            ) : null}
           </div>
-          <p className="text-sm text-ink-soft">一次看一個，或全部疊加，接近 OBS 把多個瀏覽器來源放在同一塊畫布。</p>
+          <p className="ts-text is-description">範例與上傳的圖片只留在這個瀏覽器，不會送到伺服器。</p>
+          {mode === "upload" && fileLabel !== "" ? <p className="ts-text is-description is-truncated">{fileLabel}</p> : null}
+          {imageError ? <Note tone="danger">{imageError}</Note> : null}
         </div>
-      ) : null}
-      {pluginsFailed ? <p className="text-sm text-ink-soft">讀不到外掛清單，先顯示這條網址。</p> : null}
 
-      {pageUrl === null ? (
-        <p className="text-sm text-ink-soft">先產生疊層網址，這裡才會載入 OBS 用的同一個疊層。</p>
-      ) : null}
-      {choiceNeedsSceneNote(active) ? (
-        <p className="text-sm text-ink-soft">這個外掛還沒有自己的疊層畫面。預覽跟 OBS 一樣，目前是透明的。</p>
-      ) : null}
+        {choices.length > 1 ? (
+          <div className="s4n-stack">
+            <p className="ts-text is-label">疊層外掛</p>
+            <div className="s4n-choices">
+              {choices.map((choice) => (
+                <button
+                  key={choice.id}
+                  type="button"
+                  className={choiceClass(choice.id === activeId, "small")}
+                  aria-pressed={choice.id === activeId}
+                  onClick={() => setChoiceId(choice.id)}
+                >
+                  {choice.label}
+                </button>
+              ))}
+            </div>
+            <p className="ts-text is-description">一次看一個，或全部疊加，接近 OBS 把多個瀏覽器來源放在同一塊畫布。</p>
+          </div>
+        ) : null}
+        {pluginsFailed ? <p className="ts-text is-description">讀不到外掛清單，先顯示這條網址。</p> : null}
 
-      <div ref={stageRef} className="overlay-preview-stage" data-bg={paint.bg} style={stageStyle}>
-        {frames.map((frame) => (
-          <iframe
-            key={frame.id}
-            title={frameTitle(frame.id, choices)}
-            src={frame.src}
-            sandbox={OVERLAY_PREVIEW_IFRAME.sandbox}
-            referrerPolicy={OVERLAY_PREVIEW_IFRAME.referrerPolicy}
-            tabIndex={-1}
-            style={{ width, height, transform: `scale(${scale})` }}
-          />
-        ))}
+        {pageUrl === null ? <p className="ts-text is-description">先產生疊層網址，這裡才會載入 OBS 用的同一個疊層。</p> : null}
+        {choiceNeedsSceneNote(active) ? (
+          <p className="ts-text is-description">這個外掛還沒有自己的疊層畫面。預覽跟 OBS 一樣，目前是透明的。</p>
+        ) : null}
+
+        <div ref={stageRef} className="overlay-preview-stage" data-bg={paint.bg} style={stageStyle}>
+          {frames.map((frame) => (
+            <iframe
+              key={frame.id}
+              title={frameTitle(frame.id, choices)}
+              src={frame.src}
+              sandbox={OVERLAY_PREVIEW_IFRAME.sandbox}
+              referrerPolicy={OVERLAY_PREVIEW_IFRAME.referrerPolicy}
+              tabIndex={-1}
+              style={{ width, height, transform: `scale(${scale})` }}
+            />
+          ))}
+        </div>
+
+        <form onSubmit={onTest} className="ts-grid is-2-columns s4n-form-grid">
+          <div className="column is-wide">
+            <p className="ts-text is-label">測試贊助</p>
+            <p className="ts-text is-description">跟工作台同一條測試路徑，不會寫進帳本。</p>
+          </div>
+          <div className="column">
+            <Field id="preview-donor-name" label="顯示名稱">
+              <TextInput
+                id="preview-donor-name"
+                maxLength={40}
+                value={donorName}
+                onChange={(event) => setDonorName(event.target.value)}
+              />
+            </Field>
+          </div>
+          <div className="column">
+            <Field id="preview-amount" label="金額（新台幣）">
+              <TextInput
+                id="preview-amount"
+                type="number"
+                min={1}
+                step={1}
+                value={amount}
+                onChange={(event) => setAmount(Number(event.target.value))}
+              />
+            </Field>
+          </div>
+          <div className="column is-wide">
+            <Field id="preview-message" label="留言">
+              <TextArea id="preview-message" maxLength={200} value={message} onChange={(event) => setMessage(event.target.value)} />
+            </Field>
+          </div>
+          <div className="column is-wide s4n-fields">
+            <button type="submit" className={buttonClass({ tone: "accent", size: "small", icon: "start", loading: testState.status === "sending" })} disabled={testState.status === "sending"}>
+              <span className="ts-icon is-paper-plane-icon" aria-hidden="true" />
+              {testState.status === "sending" ? "送出中…" : "送出測試贊助"}
+            </button>
+            {testState.status === "sent" ? <Note>{sentMessage(alertsEnabled)}</Note> : null}
+            {testState.status === "error" ? <Note tone="danger">{testState.message}</Note> : null}
+          </div>
+        </form>
       </div>
-
-      <form onSubmit={onTest} className="grid gap-3 md:grid-cols-2">
-        <div className="flex flex-col gap-2 md:col-span-2">
-          <p className="text-sm font-medium">測試贊助</p>
-          <p className="text-sm text-ink-soft">跟工作台同一條測試路徑，不會寫進帳本。</p>
-        </div>
-        <div className="flex flex-col gap-1">
-          <Label htmlFor="preview-donor-name">顯示名稱</Label>
-          <Input
-            id="preview-donor-name"
-            maxLength={40}
-            value={donorName}
-            onChange={(event) => setDonorName(event.target.value)}
-          />
-        </div>
-        <div className="flex flex-col gap-1">
-          <Label htmlFor="preview-amount">金額（新台幣）</Label>
-          <Input
-            id="preview-amount"
-            type="number"
-            min={1}
-            step={1}
-            value={amount}
-            onChange={(event) => setAmount(Number(event.target.value))}
-          />
-        </div>
-        <div className="flex flex-col gap-1 md:col-span-2">
-          <Label htmlFor="preview-message">留言</Label>
-          <Textarea
-            id="preview-message"
-            maxLength={200}
-            value={message}
-            onChange={(event) => setMessage(event.target.value)}
-          />
-        </div>
-        <div className="flex flex-col items-start gap-2 md:col-span-2">
-          <Button type="submit" size="sm" disabled={testState.status === "sending"}>
-            {testState.status === "sending" ? "送出中…" : "送出測試贊助"}
-          </Button>
-          {testState.status === "sent" ? (
-            <p className="text-sm text-ink" role="status">
-              {sentMessage(alertsEnabled)}
-            </p>
-          ) : null}
-          {testState.status === "error" ? (
-            <p className="text-sm text-cinnabar" role="status">
-              {testState.message}
-            </p>
-          ) : null}
-        </div>
-      </form>
     </section>
   );
 }

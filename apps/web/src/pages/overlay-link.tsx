@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router";
+import { buttonClass, Note, TextInput } from "@/components/fields";
 import { OverlayPreviewPanel } from "@/components/overlay-preview";
-import { Button } from "@/components/ui/button";
 import { api, type OverlayLink } from "@/lib/api";
 
 type LoadState =
@@ -54,74 +54,72 @@ export function OverlayLinkPage() {
   const preview = link?.url ? withPreview(link.url) : null;
 
   return (
-    <div className="flex max-w-3xl flex-col gap-8">
-      <div>
-        <p className="text-xs tracking-[0.18em] text-cinnabar">疊層</p>
-        <h1 className="mt-3 font-serif text-4xl leading-tight text-balance">OBS 瀏覽器來源</h1>
-        <p className="mt-4 text-base leading-7 text-ink-soft">
+    <div className="s4n-stack is-loose">
+      <header className="s4n-intro">
+        <p className="s4n-kicker">疊層</p>
+        <h1 className="ts-header is-huge">OBS 瀏覽器來源</h1>
+        <p className="ts-text is-description s4n-lede">
           這段網址就是通行權杖。請把它貼進 OBS，不要貼到公開的地方。重新產生會使舊網址失效。疊層不使用登入 Cookie。
         </p>
-      </div>
+      </header>
 
-      {state.status === "loading" ? <p className="text-sm text-ink-soft">正在讀取疊層網址…</p> : null}
-      {state.status === "error" ? (
-        <p className="text-sm text-cinnabar" role="status">
-          讀不到疊層網址。
-        </p>
-      ) : null}
+      {state.status === "loading" ? <p className="ts-text is-description">正在讀取疊層網址…</p> : null}
+      {state.status === "error" ? <Note tone="danger">讀不到疊層網址。</Note> : null}
 
       {link ? (
-        <section className="rounded-card border border-line bg-paper-raised p-6 shadow-soft">
-          {link.url ? (
-            <div className="flex flex-col gap-4">
-              <label className="text-sm text-ink" htmlFor="overlay-url">
-                貼進 OBS 的網址
-              </label>
-              <input
-                id="overlay-url"
-                readOnly
-                value={link.url}
-                className="h-11 w-full rounded-lg border border-input bg-paper px-3 font-mono text-xs text-ink"
-                onFocus={(event) => event.currentTarget.select()}
-              />
-              <div className="flex flex-wrap gap-2">
-                <Button type="button" className="h-10 px-4" onClick={() => void copy(link.url ?? "")}>
-                  複製網址
-                </Button>
-                {confirming ? (
-                  <Button type="button" variant="outline" className="h-10 px-4" disabled={pending} onClick={() => void regenerate()}>
-                    {pending ? "產生中…" : "確定讓舊網址失效"}
-                  </Button>
-                ) : (
-                  <Button type="button" variant="outline" className="h-10 px-4" onClick={() => setConfirming(true)}>
-                    重新產生
-                  </Button>
-                )}
-                {preview ? (
-                  <a
-                    href={preview}
-                    target="_blank"
-                    rel="noreferrer"
-                    className="inline-flex h-10 items-center rounded-lg px-3 text-sm text-indigo underline-offset-4 hover:underline"
-                  >
-                    在這個瀏覽器預覽
-                  </a>
-                ) : null}
+        <section className="ts-box is-raised">
+          <div className="ts-content is-padded s4n-stack">
+            {link.url ? (
+              <>
+                <label className="ts-text is-label" htmlFor="overlay-url">
+                  貼進 OBS 的網址
+                </label>
+                <div className="ts-input s4n-mono">
+                  <input id="overlay-url" readOnly value={link.url} onFocus={(event) => event.currentTarget.select()} />
+                </div>
+                <div className="s4n-choices">
+                  <button type="button" className={buttonClass({ tone: "accent", icon: "start" })} onClick={() => void copy(link.url ?? "")}>
+                    <span className="ts-icon is-copy-icon" aria-hidden="true" />
+                    複製網址
+                  </button>
+                  {confirming ? (
+                    <button
+                      type="button"
+                      className={`${buttonClass({ variant: "outlined", loading: pending })} is-negative`}
+                      disabled={pending}
+                      onClick={() => void regenerate()}
+                    >
+                      {pending ? "產生中…" : "確定讓舊網址失效"}
+                    </button>
+                  ) : (
+                    <button type="button" className={buttonClass({ variant: "outlined" })} onClick={() => setConfirming(true)}>
+                      重新產生
+                    </button>
+                  )}
+                  {preview ? (
+                    <a className={buttonClass({ variant: "outlined", icon: "start" })} href={preview} target="_blank" rel="noreferrer">
+                      <span className="ts-icon is-eye-icon" aria-hidden="true" />
+                      在這個瀏覽器預覽
+                    </a>
+                  ) : null}
+                </div>
+              </>
+            ) : (
+              <div className="s4n-fields">
+                <p className="ts-text is-description">還沒有疊層網址。</p>
+                <button
+                  type="button"
+                  className={buttonClass({ tone: "accent", icon: "start", loading: pending })}
+                  disabled={pending}
+                  onClick={() => void regenerate()}
+                >
+                  <span className="ts-icon is-link-icon" aria-hidden="true" />
+                  {pending ? "產生中…" : "產生疊層網址"}
+                </button>
               </div>
-            </div>
-          ) : (
-            <div className="flex flex-col items-start gap-4">
-              <p className="text-sm leading-6 text-ink-soft">還沒有疊層網址。</p>
-              <Button type="button" className="h-10 px-4" disabled={pending} onClick={() => void regenerate()}>
-                {pending ? "產生中…" : "產生疊層網址"}
-              </Button>
-            </div>
-          )}
-          {notice ? (
-            <p className="mt-4 text-sm text-ink" role="status">
-              {notice}
-            </p>
-          ) : null}
+            )}
+            {notice ? <Note>{notice}</Note> : null}
+          </div>
         </section>
       ) : null}
 
@@ -129,14 +127,14 @@ export function OverlayLinkPage() {
         <OverlayPreviewPanel pageUrl={link?.url ?? null} pluginId={link?.pluginId ?? "official.alerts"} />
       ) : null}
 
-      <ol className="flex list-decimal flex-col gap-2 pl-5 text-sm leading-6 text-ink-soft">
-        <li>在外掛庫啟用「贊助提醒」。</li>
-        <li>OBS 新增來源，選擇瀏覽器。</li>
-        <li>貼上上面的網址。寬度與高度跟預覽畫布相同，例如 1280×720。</li>
-        <li>勾選透明背景。OBS 不要加上 preview 參數。</li>
-        <li>
+      <ol className="ts-list is-ordered">
+        <li className="item">在外掛庫啟用「贊助提醒」。</li>
+        <li className="item">OBS 新增來源，選擇瀏覽器。</li>
+        <li className="item">貼上上面的網址。寬度與高度跟預覽畫布相同，例如 1280×720。</li>
+        <li className="item">勾選透明背景。OBS 不要加上 preview 參數。</li>
+        <li className="item">
           在下方預覽送出測試贊助，或回到
-          <Link to="/" className="mx-1 text-indigo underline-offset-4 hover:underline">
+          <Link to="/" className="ts-text is-link">
             工作台
           </Link>
           送出，確認提醒出現。

@@ -1,4 +1,6 @@
 import { Navigate, Outlet, Route, Routes } from "react-router";
+import { Note } from "@/components/fields";
+import { PendingLine } from "@/components/public-page";
 import { Shell } from "@/components/shell";
 import { useAuth } from "@/lib/auth";
 import { DashboardPage } from "@/pages/dashboard";
@@ -36,13 +38,13 @@ export function App() {
 function RequireAuth() {
   const auth = useAuth();
   if (auth.snapshot.status === "loading") {
-    return <p className="px-5 py-10 text-sm text-ink-soft">正在確認工作階段…</p>;
+    return <PendingLine>正在確認工作階段…</PendingLine>;
   }
   if (auth.snapshot.status === "unavailable") {
     return (
-      <p className="px-5 py-10 text-sm text-cinnabar">
-        核心 API 沒有回應。請確認資料庫已啟動，並且 `pnpm dev` 正在跑。
-      </p>
+      <PendingLine>
+        <Note tone="danger">核心 API 沒有回應。請確認資料庫已啟動，並且 `pnpm dev` 正在跑。</Note>
+      </PendingLine>
     );
   }
   if (auth.snapshot.status === "anonymous") {
