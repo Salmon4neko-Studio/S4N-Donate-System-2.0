@@ -1,7 +1,10 @@
 /*
- * S4N 的視覺基礎。溫暖紙色、硃砂印、靛藍字，留白比線條多。
+ * S4N 的視覺基礎。溫暖紙色、橘色印、靛藍字，留白比線條多。
  * Spacing follows Tailwind's 4px scale. Named steps below are the ones
  * shells should prefer: 4, 8, 12, 16, 24, 32, 48, 72.
+ *
+ * Orange family is #e8761b / #ea6a1a. Filled controls use #b45309 so
+ * white text stays at WCAG AA (5.02:1). Small text on paper uses #9a4a0c.
  */
 :root {
   --s4n-color-paper: #f3eee6;
@@ -9,9 +12,12 @@
   --s4n-color-ink: #241c18;
   --s4n-color-ink-soft: #6b5e56;
   --s4n-color-line: #e3d8cb;
-  --s4n-color-cinnabar: #8f3d34;
-  --s4n-color-cinnabar-fill: #a84b40;
-  --s4n-color-cinnabar-soft: #f4e4de;
+  --s4n-color-orange: #e8761b;
+  --s4n-color-orange-hot: #ea6a1a;
+  --s4n-color-orange-fill: #b45309;
+  --s4n-color-orange-hover: #9a4a0c;
+  --s4n-color-orange-active: #7c3d0a;
+  --s4n-color-orange-soft: #fde8d4;
   --s4n-color-indigo: #2c3a55;
   --s4n-color-moss: #3d6a58;
   --s4n-color-warning: #8a5a2a;

@@ -6,12 +6,12 @@
  */
 
 :root {
-  --ts-primary-400: #c9857a;
-  --ts-primary-500: var(--s4n-color-cinnabar-fill);
-  --ts-primary-600: var(--s4n-color-cinnabar);
-  --ts-primary-700: #6e2e28;
-  --ts-primary-800: #542420;
-  --ts-primary-900: #3c1916;
+  --ts-primary-400: var(--s4n-color-orange);
+  --ts-primary-500: var(--s4n-color-orange-hot);
+  --ts-primary-600: var(--s4n-color-orange-fill);
+  --ts-primary-700: var(--s4n-color-orange-hover);
+  --ts-primary-800: var(--s4n-color-orange-active);
+  --ts-primary-900: #5c2c08;
 
   --ts-positive-400: #7dbaa0;
   --ts-positive-500: var(--s4n-color-moss);
@@ -35,7 +35,7 @@
   --ts-negative-900: #3d0d11;
 
   --ts-accent-color: var(--ts-primary-600);
-  --ts-accent-foreground-color: var(--s4n-color-paper-raised);
+  --ts-accent-foreground-color: #ffffff;
 
   --ts-gray-50: var(--s4n-color-paper-raised);
   --ts-gray-75: #f6f0e7;
@@ -51,8 +51,8 @@
 
   --ts-link-700: var(--s4n-color-indigo);
 
-  --ts-tonal-primary-400: var(--s4n-color-cinnabar-soft);
-  --ts-tonal-primary-800: #6e2e28;
+  --ts-tonal-primary-400: var(--s4n-color-orange-soft);
+  --ts-tonal-primary-800: var(--s4n-color-orange-hover);
   --ts-tonal-positive-400: #e5f2eb;
   --ts-tonal-positive-800: #244538;
   --ts-tonal-warning-400: #f6ead7;
@@ -79,9 +79,6 @@ body.is-rounded {
 }
 
 .has-dark {
-  --ts-accent-color: var(--ts-primary-500);
-  --ts-accent-foreground-color: #fffaf4;
-
   --ts-gray-50: #2c251f;
   --ts-gray-75: #342c26;
   --ts-gray-100: #3d342c;
@@ -96,8 +93,8 @@ body.is-rounded {
 
   --ts-link-700: #c5d0e6;
 
-  --ts-tonal-primary-400: #5a3a34;
-  --ts-tonal-primary-800: #f4e4de;
+  --ts-tonal-primary-400: #8a4e22;
+  --ts-tonal-primary-800: var(--s4n-color-orange-soft);
   --ts-tonal-positive-400: #2a4638;
   --ts-tonal-positive-800: #d7efe4;
   --ts-tonal-warning-400: #4a3820;
@@ -173,9 +170,17 @@ a.ts-button:focus-visible {
   border-radius: var(--ts-border-radius-element);
 }
 
+.ts-button.is-accent:hover {
+  --accent-color: var(--ts-primary-700);
+}
+
+.ts-button.is-accent:active {
+  --accent-color: var(--ts-primary-800);
+}
+
 .s4n-kicker {
   margin: 0;
-  color: var(--ts-primary-600);
+  color: var(--ts-primary-700);
   font-size: var(--ts-font-size-12px);
   font-weight: 500;
   letter-spacing: 0.18em;
@@ -281,17 +286,19 @@ p .ts-text.is-link,
   height: 2.5rem;
   flex: none;
   place-items: center;
-  border: 2px solid var(--ts-primary-600);
+  border: 2px solid currentColor;
   border-radius: 0.45rem;
-  background: var(--s4n-color-cinnabar-soft);
-  background: color-mix(in srgb, var(--ts-primary-500) 10%, var(--ts-gray-50));
+  background: var(--s4n-color-orange-soft);
+  background: color-mix(in srgb, var(--ts-primary-500) 12%, var(--ts-gray-50));
   box-shadow: inset 0 0 0 3px color-mix(in srgb, var(--ts-primary-500) 18%, transparent);
   color: var(--ts-primary-700);
   font-size: 1.15rem;
   line-height: 1;
 }
 
-.has-dark .s4n-seal {
+.has-dark .s4n-seal,
+.has-dark .s4n-kicker,
+.has-dark .s4n-amount {
   color: var(--ts-primary-400);
   border-color: var(--ts-primary-400);
 }
@@ -353,7 +360,7 @@ p .ts-text.is-link,
   min-height: 100svh;
   padding: 2.5rem 0 3.5rem;
   background:
-    radial-gradient(880px 380px at 8% -10%, rgba(168, 75, 64, 0.14), transparent 58%),
+    radial-gradient(880px 380px at 8% -10%, rgba(232, 118, 27, 0.16), transparent 58%),
     radial-gradient(640px 280px at 100% 0%, rgba(44, 58, 85, 0.08), transparent 50%),
     var(--ts-page-background-default);
 }
@@ -383,7 +390,7 @@ p .ts-text.is-link,
 
 .s4n-amount {
   margin: 0;
-  color: var(--ts-primary-600);
+  color: var(--ts-primary-700);
   font-family: var(--s4n-font-serif);
   font-size: var(--ts-font-size-30px);
   font-weight: 600;
