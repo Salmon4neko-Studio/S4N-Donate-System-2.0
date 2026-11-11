@@ -6,7 +6,9 @@
     "strict": true,
     "noEmit": true,
     "types": ["node"],
-    "skipLibCheck": true
+    "skipLibCheck": true,
+    "allowImportingTsExtensions": true,
+    "verbatimModuleSyntax": true
   },
-  "include": ["vite.config.ts"]
+  "include": ["vite.config.ts", "src/lib/overlay-preview.test.ts"]
 }
