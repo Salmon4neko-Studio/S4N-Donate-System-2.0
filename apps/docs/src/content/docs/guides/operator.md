@@ -31,7 +31,7 @@ pnpm dev
 
 外掛庫列出已安裝外掛的 `s4n-plugin.json`。每個外掛可以啟用或停用。預設是停用。
 
-設定表單依 manifest 的 `settingsSchema` 產生。標了 `x-s4n-secret: true` 的欄位只會顯示「已設定」或「尚未設定」。儲存之後，API 不會回明文，也不會回密文。留空表示不改掉已經存好的密文。
+設定表單依 manifest 的 `settingsSchema` 產生。標了 `x-s4n-secret: true` 的欄位只會顯示「已設定」或「未設定」。儲存之後，API 不會回明文，也不會回密文。留空表示不改掉已經存好的密文。
 
 `payments.provider`、`secrets`、`network` 只給明確列在官方允許清單上的外掛。名字以 `official.` 開頭並不夠。
 

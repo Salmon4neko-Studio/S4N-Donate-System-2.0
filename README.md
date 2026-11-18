@@ -89,6 +89,7 @@ plugins/chat-overlay 聊天疊層（與平台無關）
 plugins/goals     佔位
 plugins/ticker    佔位
 plugins/tts       佔位
+plugins/example-thanks  可編譯的社群疊層範例（未進官方目錄）
 ```
 
 外掛規格寫在文件站的「外掛規格 0.1」。授權是 MIT。

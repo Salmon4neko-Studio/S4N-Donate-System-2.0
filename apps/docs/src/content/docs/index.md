@@ -16,7 +16,7 @@ English. These docs are written in Traditional Chinese. A short English summary 
 ## 現在可以用的
 
 - 第一位營運者的初次設定、登入、登出與伺服器端工作階段
-- 外掛庫：依 manifest 列出、啟用或停用、填寫設定。密文欄位只回報已設定或尚未設定
+- 外掛庫：依 manifest 列出、啟用或停用、填寫設定。密文欄位只回報已設定或未設定
 - 測試贊助：送到疊層，不寫入帳本
 - 帳本：待付款、已付款、未成功
 - 贊助頁：綠界與歐付寶信用卡一次付清

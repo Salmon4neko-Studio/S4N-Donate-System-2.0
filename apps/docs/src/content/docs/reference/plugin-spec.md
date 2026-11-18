@@ -3,7 +3,7 @@ title: 外掛規格 0.1
 description: s4n-plugin.json、權限、密文欄位，以及外掛可以收發的事件。
 ---
 
-每個外掛有一份 `s4n-plugin.json`。`api` 目前只接受 `0.1`。
+每個外掛有一份 `s4n-plugin.json`。`api` 目前只接受 `0.1`。怎麼寫、怎麼測，見 [外掛開發](/guides/plugin-dev/) 與 [外掛 SDK](/reference/plugin-sdk/)。可編譯的範例是 `plugins/example-thanks`。
 
 | 欄位 | 說明 |
 | --- | --- |

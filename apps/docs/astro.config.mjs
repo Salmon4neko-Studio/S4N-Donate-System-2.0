@@ -24,12 +24,14 @@ export default defineConfig({
             { label: "綠界與歐付寶", slug: "guides/payments" },
             { label: "Docker Compose", slug: "guides/compose" },
             { label: "安全性", slug: "guides/security" },
+            { label: "外掛開發", slug: "guides/plugin-dev" },
           ],
         },
         {
           label: "規格",
           items: [
             { label: "外掛規格 0.1", slug: "reference/plugin-spec" },
+            { label: "外掛 SDK", slug: "reference/plugin-sdk" },
             { label: "範例外掛", slug: "reference/example" },
           ],
         },
