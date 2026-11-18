@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { useSearchParams } from "react-router";
 import { PluginCard } from "@/components/plugin-card";
 import { Note } from "@/components/fields";
 import { api, type PluginSummary } from "@/lib/api";
@@ -9,6 +10,8 @@ type LoadState =
   | { status: "error" };
 
 export function PluginsPage() {
+  const [params] = useSearchParams();
+  const openId = params.get("settings");
   const [state, setState] = useState<LoadState>({ status: "loading" });
 
   useEffect(() => {
@@ -28,7 +31,7 @@ export function PluginsPage() {
         <p className="s4n-kicker">外掛庫</p>
         <h1 className="ts-header is-huge">已安裝的外掛</h1>
         <p className="ts-text is-description s4n-lede">
-          清單來自每份 s4n-plugin.json。可以啟用或停用。標成密文的欄位只會告訴你已設定或尚未設定，不會把明文或密文送回瀏覽器。
+          清單來自每份 s4n-plugin.json。可以啟用或停用。標成密文的欄位只會告訴你已設定或未設定，不會把明文或密文送回瀏覽器。
         </p>
       </header>
 
@@ -45,8 +48,8 @@ export function PluginsPage() {
       {state.status === "ready" ? (
         <ul className="s4n-stack">
           {state.plugins.map((plugin) => (
-            <li key={plugin.id}>
-              <PluginCard plugin={plugin} />
+            <li key={plugin.id} id={`plugin-${plugin.id}`}>
+              <PluginCard plugin={plugin} settingsOpen={openId === plugin.id} />
             </li>
           ))}
         </ul>

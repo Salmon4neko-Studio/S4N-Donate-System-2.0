@@ -8,6 +8,9 @@
  */
 
 export const ALERTS_PLUGIN_ID = "official.alerts";
+export const CHAT_OVERLAY_PLUGIN_ID = "official.chat-overlay";
+
+const SCENE_PLUGIN_IDS = new Set([ALERTS_PLUGIN_ID, CHAT_OVERLAY_PLUGIN_ID]);
 export const COMBINED_PREVIEW_ID = "combined";
 export const SAMPLE_STAGE_PATH = "/preview/game-stage.svg";
 export const CANVAS_MIN = 160;
@@ -125,7 +128,7 @@ export function defaultPreviewChoiceId(choices: readonly PreviewChoice[], urlPlu
 
 export function choiceNeedsSceneNote(choice: PreviewChoice | null): boolean {
   if (choice === null || choice.pluginIds.length === 0) return false;
-  return choice.pluginIds.every((id) => id !== ALERTS_PLUGIN_ID);
+  return choice.pluginIds.every((id) => !SCENE_PLUGIN_IDS.has(id));
 }
 
 export function parseCanvasDimension(raw: string): number | null {

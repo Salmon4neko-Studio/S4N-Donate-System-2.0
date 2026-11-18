@@ -1,4 +1,5 @@
 export const ALERTS_PLUGIN_ID = "official.alerts";
+export const CHAT_OVERLAY_PLUGIN_ID = "official.chat-overlay";
 
 export function overlayPageUrl(origin: string, token: string, pluginId = ALERTS_PLUGIN_ID): string {
   const url = new URL(origin);

@@ -13,6 +13,9 @@ export function overlayPluginFor(event: AnyS4nEvent): string | null {
     case "s4n.tts.request":
       return "official.tts";
     case "s4n.chat.message":
+    case "s4n.chat.delete":
+    case "s4n.chat.clear":
+      return "official.chat-overlay";
     case "s4n.media.now_playing":
       return null;
     default: {

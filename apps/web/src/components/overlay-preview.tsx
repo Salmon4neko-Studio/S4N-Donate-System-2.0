@@ -3,6 +3,7 @@ import { buttonClass, choiceClass, Field, Note, TextArea, TextInput } from "@/co
 import { api, type PluginSummary } from "@/lib/api";
 import {
   ALERTS_PLUGIN_ID,
+  CHAT_OVERLAY_PLUGIN_ID,
   CANVAS_PRESETS,
   choiceNeedsSceneNote,
   containScale,
@@ -17,6 +18,7 @@ import {
   type PreviewChoice,
   type StageBackground,
 } from "@/lib/overlay-preview";
+import { sendTestChat, testChatErrorMessage } from "@/lib/test-chat";
 import { sendTestDonation, testDonationErrorMessage } from "@/lib/test-donation";
 import "./overlay-preview.css";
 
@@ -50,6 +52,9 @@ export function OverlayPreviewPanel({ pageUrl, pluginId }: { pageUrl: string | n
   const [amount, setAmount] = useState(520);
   const [message, setMessage] = useState("從預覽送出");
   const [testState, setTestState] = useState<TestState>({ status: "idle" });
+  const [chatName, setChatName] = useState("測試觀眾");
+  const [chatText, setChatText] = useState("大家好");
+  const [chatState, setChatState] = useState<TestState>({ status: "idle" });
 
   useEffect(() => {
     const controller = new AbortController();
@@ -100,6 +105,7 @@ export function OverlayPreviewPanel({ pageUrl, pluginId }: { pageUrl: string | n
           return src === null ? [] : [{ id, src }];
         });
   const alertsEnabled = plugins === null ? null : plugins.some((plugin) => plugin.id === ALERTS_PLUGIN_ID && plugin.enabled);
+  const chatEnabled = plugins === null ? null : plugins.some((plugin) => plugin.id === CHAT_OVERLAY_PLUGIN_ID && plugin.enabled);
 
   function applyCanvas(nextWidth: number, nextHeight: number) {
     setWidth(nextWidth);
@@ -148,6 +154,19 @@ export function OverlayPreviewPanel({ pageUrl, pluginId }: { pageUrl: string | n
     setFileLabel(visibleFileLabel(file.name));
     setMode("upload");
     setImageError(null);
+  }
+
+  async function onTestChat(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    const chatChoice = choices.find((choice) => choice.id === CHAT_OVERLAY_PLUGIN_ID);
+    if (chatChoice) setChoiceId(chatChoice.id);
+    setChatState({ status: "sending" });
+    try {
+      await sendTestChat({ displayName: chatName, text: chatText });
+      setChatState({ status: "sent" });
+    } catch (error) {
+      setChatState({ status: "error", message: testChatErrorMessage(error) });
+    }
   }
 
   async function onTest(event: FormEvent<HTMLFormElement>) {
@@ -351,6 +370,37 @@ export function OverlayPreviewPanel({ pageUrl, pluginId }: { pageUrl: string | n
             {testState.status === "error" ? <Note tone="danger">{testState.message}</Note> : null}
           </div>
         </form>
+
+        <form onSubmit={onTestChat} className="ts-grid is-2-columns s4n-form-grid">
+          <div className="column is-wide">
+            <p className="ts-text is-label">測試聊天訊息</p>
+            <p className="ts-text is-description">
+              不連到 Twitch，也不寫進帳本。訊息會帶實況主與管理員徽章，以及 Kappa 表情，方便確認畫面。
+            </p>
+          </div>
+          <div className="column">
+            <Field id="preview-chat-name" label="顯示名稱">
+              <TextInput id="preview-chat-name" maxLength={40} value={chatName} onChange={(event) => setChatName(event.target.value)} />
+            </Field>
+          </div>
+          <div className="column">
+            <Field id="preview-chat-text" label="訊息">
+              <TextInput id="preview-chat-text" maxLength={180} value={chatText} onChange={(event) => setChatText(event.target.value)} />
+            </Field>
+          </div>
+          <div className="column is-wide s4n-fields">
+            <button
+              type="submit"
+              className={buttonClass({ tone: "accent", size: "small", icon: "start", loading: chatState.status === "sending" })}
+              disabled={chatState.status === "sending"}
+            >
+              <span className="ts-icon is-comment-icon" aria-hidden="true" />
+              {chatState.status === "sending" ? "送出中…" : "送出測試聊天訊息"}
+            </button>
+            {chatState.status === "sent" ? <Note>{chatSentMessage(chatEnabled)}</Note> : null}
+            {chatState.status === "error" ? <Note tone="danger">{chatState.message}</Note> : null}
+          </div>
+        </form>
       </div>
     </section>
   );
@@ -359,6 +409,14 @@ export function OverlayPreviewPanel({ pageUrl, pluginId }: { pageUrl: string | n
 function frameTitle(pluginId: string, choices: readonly PreviewChoice[]): string {
   const label = choices.find((choice) => choice.id === pluginId)?.label ?? "疊層";
   return `疊層預覽，${label}`;
+}
+
+function chatSentMessage(chatEnabled: boolean | null): string {
+  if (chatEnabled === false) {
+    return "已送出測試聊天。這筆不會進入帳本。「聊天疊層」目前停用，所以預覽不會出現。";
+  }
+  if (chatEnabled === true) return "已送出測試聊天。這筆不會進入帳本。訊息會出現在聊天疊層。";
+  return "已送出測試聊天。這筆不會進入帳本。";
 }
 
 function sentMessage(alertsEnabled: boolean | null): string {

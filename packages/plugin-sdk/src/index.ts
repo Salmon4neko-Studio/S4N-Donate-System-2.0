@@ -38,4 +38,6 @@ export type {
 export { createPluginBus } from "./bus.js";
 export type { EventSink, PluginBus } from "./bus.js";
 
+export type { ChatSource, ChatSourceHost, ChatSourceSettings } from "./chat.js";
+
 export { pluginBusContract } from "./guard.js";

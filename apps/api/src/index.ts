@@ -13,6 +13,7 @@ import { createPrismaLedger } from "./payments/prisma-ledger.js";
 import { createOfficialCatalog, createPaymentRegistry } from "./plugins/catalog.js";
 import { createPrismaInstallations } from "./plugins/prisma-installations.js";
 import { createPrismaSecretStore } from "./plugins/prisma-store.js";
+import { createChatHost } from "./chat/host.js";
 import { createCoreBus } from "./realtime/bus.js";
 import { mountOverlaySocket } from "./realtime/overlay-socket.js";
 
@@ -36,6 +37,8 @@ const auth = createAuthService({ store: createPrismaAuthStore(prisma), masterKey
 const installations = createPrismaInstallations(prisma);
 const secrets = createPrismaSecretStore(prisma);
 
+const chatHost = createChatHost({ catalog, installations, secrets, masterKey, bus });
+
 const app = createApp({
   envName: env.env,
   dashboardOrigin: env.dashboardOrigin,
@@ -51,6 +54,9 @@ const app = createApp({
   ledger: createPrismaLedger(prisma),
   bus,
   auth,
+  onPluginsChanged: () => {
+    void chatHost.sync();
+  },
   pingDatabase: async () => {
     try {
       await prisma.$queryRaw`SELECT 1`;
@@ -60,6 +66,12 @@ const app = createApp({
     }
   },
 });
+
+void chatHost.sync();
+const chatSync = setInterval(() => {
+  void chatHost.sync();
+}, 3_000);
+chatSync.unref();
 
 mountOverlaySocket(app, {
   bus,

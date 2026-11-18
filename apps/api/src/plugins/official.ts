@@ -2,6 +2,8 @@ export const OFFICIAL_PLUGIN_IDS = [
   "official.ecpay",
   "official.opay",
   "official.alerts",
+  "official.chat-overlay",
+  "official.twitch-chat",
   "official.goals",
   "official.ticker",
   "official.tts",

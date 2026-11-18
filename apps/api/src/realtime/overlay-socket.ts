@@ -26,6 +26,48 @@ export interface OverlaySocketDeps {
  */
 export function mountOverlaySocket(app: Hono<SessionEnv>, deps: OverlaySocketDeps): void {
   const clients = new Set<Client>();
+  const lastSnapshot = new Map<Client, string>();
+
+  const refresh = setInterval(() => {
+    void pushSettings();
+  }, 2_000);
+  refresh.unref?.();
+
+  async function pushSettings(): Promise<void> {
+    const ids = new Set([...clients].map((client) => client.pluginId));
+    const snapshots = new Map<string, string>();
+    for (const id of ids) {
+      try {
+        const [settings, enabled] = await Promise.all([
+          deps.readPublicSettings(id),
+          deps.pluginEnabled(id),
+        ]);
+        snapshots.set(id, JSON.stringify({ enabled, settings }));
+      } catch {
+        snapshots.set(id, "");
+      }
+    }
+    for (const client of clients) {
+      const next = snapshots.get(client.pluginId);
+      if (next === undefined || next === "" || next === lastSnapshot.get(client)) continue;
+      lastSnapshot.set(client, next);
+      const parsed = JSON.parse(next) as { enabled: boolean; settings: Record<string, string | number | boolean> };
+      try {
+        client.ws.send(
+          JSON.stringify({
+            channel: "system",
+            message: "overlay settings",
+            pluginId: client.pluginId,
+            enabled: parsed.enabled,
+            settings: parsed.settings,
+          }),
+        );
+      } catch {
+        clients.delete(client);
+        lastSnapshot.delete(client);
+      }
+    }
+  }
 
   deps.bus.subscribe((event) => {
     const owner = overlayPluginFor(event);
@@ -82,6 +124,7 @@ export function mountOverlaySocket(app: Hono<SessionEnv>, deps: OverlaySocketDep
             settings = {};
             enabled = false;
           }
+          lastSnapshot.set(client, JSON.stringify({ enabled, settings }));
           ws.send(
             JSON.stringify({
               channel: "system",
@@ -93,7 +136,10 @@ export function mountOverlaySocket(app: Hono<SessionEnv>, deps: OverlaySocketDep
           );
         },
         onClose() {
-          if (client !== undefined) clients.delete(client);
+          if (client !== undefined) {
+            clients.delete(client);
+            lastSnapshot.delete(client);
+          }
         },
       };
     }),

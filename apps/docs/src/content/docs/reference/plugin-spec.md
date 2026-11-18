@@ -18,6 +18,21 @@ description: s4n-plugin.json、權限、密文欄位，以及外掛可以收發�
 
 `kind` 含 `payment` 時，必須請求 `payments.provider`，並且提供 `entry.worker`。有密文欄位就必須請求 `secrets`。
 
+字串欄位可以加 `x-s4n-multiline: true`，儀表板會用多行輸入。欄位可以有 `default`，但密文欄位不行，否則預設值會被送回瀏覽器。`default` 只在尚未儲存時使用。
+
+## 聊天來源與聊天疊層
+
+v1 把聊天拆成兩種外掛：
+
+| 角色 | 這次的 id | `kind` | 做什麼 |
+| --- | --- | --- | --- |
+| 來源 | `official.twitch-chat` | `connector` | 連到平台，送出正規化事件 |
+| 顯示 | `official.chat-overlay` | `overlay` | 訂閱那些事件並畫在 OBS |
+
+來源實作 `@s4n/plugin-sdk` 的 `ChatSource`：`start`、`stop`、`applySettings`，並透過 `ChatSourceHost` 發送 `s4n.chat.message`、`s4n.chat.delete`、`s4n.chat.clear`。顯示外掛不匯入任何來源。下一個版本的 YouTube 來源只要實作同一個 `ChatSource` 並註冊進官方目錄，聊天疊層不用改。
+
+Twitch 來源需要 `events.emit`、`secrets` 與 `network`。頻道名稱是一般設定。Client ID 與 Client Secret 是密文，選填。顯示外掛只要 `events.subscribe`、`overlay.slot`、`dashboard.settings`，自己不連外網。
+
 ## 權限
 
 | 權限 | 誰能用 | 做什麼 |
@@ -48,9 +63,13 @@ description: s4n-plugin.json、權限、密文欄位，以及外掛可以收發�
 其餘事件：
 
 - `s4n.chat.message`
+- `s4n.chat.delete`
+- `s4n.chat.clear`
 - `s4n.goal.updated`
 - `s4n.tts.request`
 - `s4n.media.now_playing`
+
+`s4n.chat.message` 是與平台無關的一則訊息：`platform`（`twitch`、`youtube`，或核心混入的 `s4n`）、`channel`、`userId`、`login`、`displayName`、`color`、`badges`、`fragments`（`text` 或 `emote`）、`text`、`timestamp`、`messageId`，以及 `flags`（`isMod`、`isBroadcaster`、`isSubscriber`、`isVip`）。混入的贊助才帶 `donation`。`s4n.chat.delete` 拿掉一則（Twitch 的 CLEARMSG）。`s4n.chat.clear` 是封鎖、超時或清空頻道（CLEARCHAT）；有 `userId` 時只拿掉那個人，有 `durationSeconds` 時是超時。
 
 贊助人名稱、留言、聊天內容、語音文字與點播者名稱都是不受信任文字。金額以最小貨幣單位的整數表示。這個骨架把 TWD 的 1 單位訂為新台幣 1 元，因為綠界與歐付寶的金額是整數元。
 

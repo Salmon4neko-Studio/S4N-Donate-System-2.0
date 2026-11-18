@@ -6,9 +6,9 @@
 
 ## 這個骨架有什麼
 
-- `@s4n/events`：`s4n.donation.created` / `succeeded` / `failed`、`s4n.chat.message`、`s4n.goal.updated`、`s4n.tts.request`、`s4n.media.now_playing`
+- `@s4n/events`：`s4n.donation.created` / `succeeded` / `failed`、`s4n.chat.message` / `delete` / `clear`、`s4n.goal.updated`、`s4n.tts.request`、`s4n.media.now_playing`
 - `@s4n/plugin-sdk`：外掛規格 0.1、權限，以及不能寫帳的付款介面
-- 官方外掛清單：綠界 ECPay、歐付寶 O'Pay 的信用卡結帳，加上提醒，以及目標、跑馬燈、語音的佔位
+- 官方外掛清單：綠界 ECPay、歐付寶 O'Pay 的信用卡結帳，加上提醒、Twitch 聊天來源、聊天疊層，以及目標、跑馬燈、語音的佔位
 - API：Argon2id 登入、AES-256-GCM 密文設定、`/api/payments/:pluginId/callback`、帶權杖的疊層 WebSocket
 - 儀表板（初次設定、外掛開關、帳本、測試贊助）、贊助頁，以及贊助提醒疊層
 - Starlight 文件，以及 Docker Compose
@@ -16,7 +16,7 @@
 ## 這個骨架故意沒做
 
 - ATM、超商代碼，以及其他付款方式
-- Twitch、YouTube 聊天
+- YouTube 聊天（Twitch 聊天疊層已有。下一個來源沿用同一份事件）
 - 外掛市集、目標計算、跑馬燈、語音合成
 - 多個 API 實例共用的事件匯流排與登入限流
 
@@ -76,7 +76,7 @@ docker compose up --build
 ```text
 apps/api          Hono、Prisma、PostgreSQL、疊層 WebSocket
 apps/web          Vite、React 19、儀表板 / 贊助頁 / 外掛庫
-apps/overlay      OBS 瀏覽器來源（贊助提醒）
+apps/overlay      OBS 瀏覽器來源（贊助提醒、聊天疊層）
 apps/docs         Starlight（繁體中文）
 packages/events   事件契約
 packages/plugin-sdk
@@ -84,6 +84,8 @@ packages/design-tokens
 plugins/ecpay     綠界，含密文設定
 plugins/opay      歐付寶，含密文設定
 plugins/alerts    贊助提醒
+plugins/twitch-chat  Twitch IRC 來源
+plugins/chat-overlay 聊天疊層（與平台無關）
 plugins/goals     佔位
 plugins/ticker    佔位
 plugins/tts       佔位
@@ -109,7 +111,8 @@ plugins/tts       佔位
 - 開發用主金鑰是 32 個零位元組。正式環境拒絕它。
 - 儀表板與公開贊助頁以 Tocas UI 5 為主，紙色、橘色、靛藍對到它的 CSS 變數。實心按鈕底色是 `#f28500`，字是 `#1a1512`（對比 7.01:1）。淺底小字用 `#995400`。Tocas 沒有的版面（側欄在手機上的橫向導覽、OBS 預覽畫布）用自訂元件補上。OBS 疊層的提醒卡維持紙色，左邊線用 `#f28500`。
 - 儀表板預設淺色，側欄可以切換 Tocas 暗色。公開贊助頁維持淺色。字體是本機自託管的 jf open 粉圓 2.1（justfont，SIL OFL 1.1，https://github.com/justfont/open-huninn-font/releases/tag/v2.1）。官方 `jf-openhuninn-2.1.ttf` 轉成 WOFF2，放在 `packages/design-tokens/fonts/`，旁邊是 `OFL.txt`。12,260 個字形都保留，沒有再裁切。內文與標題同一個家族，`font-display: swap`，不連 Google Fonts 或其他字型 CDN。
+- Twitch 聊天由來源外掛 `official.twitch-chat` 連到 `wss://irc-ws.chat.twitch.tv`，用匿名 `justinfan`。選填的 Client ID / Client Secret 走既有的 AES-256-GCM 密文欄位，不放進 OBS 網址。顯示外掛 `official.chat-overlay` 只訂閱正規化事件，之後的 YouTube 來源不必改它。測試贊助可以混進聊天，但仍然不寫帳本。
 
 ## English
 
-The dashboard and public donate pages use Tocas UI, themed with the paper, orange, and indigo tokens. Body and headings share self-hosted jf open 粉圓 2.1 (justfont, SIL OFL 1.1; https://github.com/justfont/open-huninn-font/releases/tag/v2.1). The OBS overlay stays on its own styles and the same family. Operators can sign in, enable plugins, and preview a test donation on the alerts overlay. ECPay and O'Pay can open a credit-card checkout; the ledger amount is the server order, and a test donation is still not written to the ledger. Set `S4N_PUBLIC_BASE_URL` so provider callbacks are not built from an internal host. Login needs PostgreSQL. The event bus and login rate limit are in-memory and single-process. See the Traditional Chinese sections above for ports, setup, and the decisions this tree had to make.
+The dashboard and public donate pages use Tocas UI, themed with the paper, orange, and indigo tokens. Body and headings share self-hosted jf open 粉圓 2.1 (justfont, SIL OFL 1.1; https://github.com/justfont/open-huninn-font/releases/tag/v2.1). The OBS overlay stays on its own styles and the same family. Operators can sign in, enable plugins, and preview a test donation on the alerts overlay. Twitch chat is read anonymously on the server and shown by a separate chat overlay; optional Twitch credentials stay encrypted and never go on the OBS URL. YouTube chat is not in this version. ECPay and O'Pay can open a credit-card checkout; the ledger amount is the server order, and a test donation is still not written to the ledger. Set `S4N_PUBLIC_BASE_URL` so provider callbacks are not built from an internal host. Login needs PostgreSQL. The event bus and login rate limit are in-memory and single-process. See the Traditional Chinese sections above for ports, setup, and the decisions this tree had to make.

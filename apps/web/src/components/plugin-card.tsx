@@ -1,5 +1,5 @@
 import { useEffect, useState, type FormEvent } from "react";
-import { buttonClass, Field, Hint, Note, TextInput } from "@/components/fields";
+import { buttonClass, Field, Hint, Note, TextArea, TextInput } from "@/components/fields";
 import { ApiError, api, type PluginSummary, type SettingsFieldState } from "@/lib/api";
 
 const kindLabel: Record<string, string> = {
@@ -137,7 +137,7 @@ function SettingsForm({ pluginId }: { pluginId: string }) {
         const next: Record<string, string> = {};
         for (const field of body.fields) {
           if (field.secret) continue;
-          next[field.key] = field.value === undefined ? "" : String(field.value);
+          next[field.key] = draftValue(field);
         }
         setDrafts(next);
       })
@@ -205,7 +205,7 @@ function SettingsForm({ pluginId }: { pluginId: string }) {
           label={field.title ?? field.key}
           extra={
             <>
-              {field.secret ? <span className="ts-badge is-outlined">{field.configured ? "已設定" : "尚未設定"}</span> : null}
+              {field.secret ? <span className="ts-badge is-outlined">{field.configured ? "已設定" : "未設定"}</span> : null}
               {field.required ? <span className="ts-text is-description is-small">必填</span> : null}
             </>
           }
@@ -231,6 +231,25 @@ function SettingsForm({ pluginId }: { pluginId: string }) {
                 ))}
               </select>
             </div>
+          ) : field.type === "boolean" ? (
+            <div className="ts-switch">
+              <input
+                id={`${pluginId}-${field.key}`}
+                type="checkbox"
+                checked={(drafts[field.key] ?? "false") === "true"}
+                onChange={(event) =>
+                  setDrafts((current) => ({ ...current, [field.key]: event.target.checked ? "true" : "false" }))
+                }
+              />
+              <label htmlFor={`${pluginId}-${field.key}`}>{(drafts[field.key] ?? "false") === "true" ? "開啟" : "關閉"}</label>
+            </div>
+          ) : field.multiline ? (
+            <TextArea
+              id={`${pluginId}-${field.key}`}
+              rows={5}
+              value={drafts[field.key] ?? ""}
+              onChange={(event) => setDrafts((current) => ({ ...current, [field.key]: event.target.value }))}
+            />
           ) : (
             <TextInput
               id={`${pluginId}-${field.key}`}
@@ -238,7 +257,7 @@ function SettingsForm({ pluginId }: { pluginId: string }) {
               min={field.minimum ?? undefined}
               step={field.type === "integer" ? 1 : undefined}
               autoComplete={field.secret ? "off" : undefined}
-              placeholder={field.secret ? (field.configured ? "已設定，留空表示不變更" : "尚未設定") : undefined}
+              placeholder={field.secret ? (field.configured ? "已設定，留空表示不變更" : "未設定") : undefined}
               value={drafts[field.key] ?? ""}
               onChange={(event) => setDrafts((current) => ({ ...current, [field.key]: event.target.value }))}
             />
@@ -255,6 +274,13 @@ function SettingsForm({ pluginId }: { pluginId: string }) {
       </div>
     </form>
   );
+}
+
+function draftValue(field: SettingsFieldState): string {
+  if (field.value !== undefined) return String(field.value);
+  if (field.default !== undefined && field.default !== null) return String(field.default);
+  if (field.type === "boolean") return "false";
+  return "";
 }
 
 function settingsError(error: unknown): string {

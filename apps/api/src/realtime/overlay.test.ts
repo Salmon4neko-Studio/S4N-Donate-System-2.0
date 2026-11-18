@@ -53,18 +53,50 @@ test("overlay forwarding follows the enabled plugin, not every event", () => {
         id: "e3",
         occurredAt: "2026-01-01T00:00:00.000Z",
         payload: {
-          messageId: "m",
           platform: "twitch",
-          channelId: "c",
-          authorName: asUntrustedText("a"),
+          channel: "c",
+          userId: "1",
+          login: "a",
+          displayName: asUntrustedText("a"),
+          color: null,
+          badges: [],
+          fragments: [{ type: "text", text: asUntrustedText("t") }],
           text: asUntrustedText("t"),
-          sentAt: "2026-01-01T00:00:00.000Z",
+          timestamp: "2026-01-01T00:00:00.000Z",
+          messageId: "m",
+          flags: { isMod: false, isBroadcaster: false, isSubscriber: false, isVip: false },
         },
       },
       "official.alerts",
       enabled,
     ),
     false,
+  );
+  assert.equal(
+    shouldForwardToOverlay(
+      {
+        type: "s4n.chat.message",
+        id: "e3",
+        occurredAt: "2026-01-01T00:00:00.000Z",
+        payload: {
+          platform: "twitch",
+          channel: "c",
+          userId: "1",
+          login: "a",
+          displayName: asUntrustedText("a"),
+          color: null,
+          badges: [],
+          fragments: [{ type: "text", text: asUntrustedText("t") }],
+          text: asUntrustedText("t"),
+          timestamp: "2026-01-01T00:00:00.000Z",
+          messageId: "m",
+          flags: { isMod: false, isBroadcaster: false, isSubscriber: false, isVip: false },
+        },
+      },
+      "official.chat-overlay",
+      new Set(["official.chat-overlay"]),
+    ),
+    true,
   );
 });
 
@@ -95,8 +127,15 @@ test("overlay tokens can be regenerated and the previous token is revoked", { ti
     assert.equal(await fixture.auth.overlayTokenValid(second), true);
 
     const current = await fixture.app.request("/api/overlay", { headers: { cookie } });
-    const currentBody = (await current.json()) as { url?: string };
+    const currentBody = (await current.json()) as { url?: string; chatUrl?: string };
     assert.equal(new URL(currentBody.url ?? "").searchParams.get("token"), second);
+    assert.equal(new URL(currentBody.url ?? "").searchParams.get("plugin"), "official.alerts");
+    const chatUrl = new URL(currentBody.chatUrl ?? "");
+    assert.equal(chatUrl.searchParams.get("token"), second);
+    assert.equal(chatUrl.searchParams.get("plugin"), "official.chat-overlay");
+    assert.equal(chatUrl.searchParams.get("transparent"), "1");
+    assert.equal(chatUrl.searchParams.has("clientId"), false);
+    assert.equal(chatUrl.searchParams.has("clientSecret"), false);
 
     assert.equal(await closeCode(`ws://127.0.0.1:${port}/ws/overlay`), 4001);
     assert.equal(

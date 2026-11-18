@@ -1,0 +1,35 @@
+{
+  "id": "official.twitch-chat",
+  "name": "Twitch 聊天",
+  "version": "0.1.0",
+  "api": "0.1",
+  "description": "以匿名 justinfan 讀取 Twitch 聊天室，轉成與平台無關的聊天事件。選填的 Client ID 與 Client Secret 只以密文保存，用來快取表情與徽章，不會放進 OBS 網址。",
+  "kind": ["connector"],
+  "permissions": ["events.emit", "dashboard.settings", "secrets", "network"],
+  "entry": {
+    "worker": "./src/index.ts"
+  },
+  "settingsSchema": {
+    "type": "object",
+    "additionalProperties": false,
+    "properties": {
+      "channel": {
+        "type": "string",
+        "title": "頻道名稱",
+        "description": "Twitch 登入名稱，不含 #。只含英數與底線，最長 25。沒有這欄就不會連線。"
+      },
+      "clientId": {
+        "type": "string",
+        "title": "Twitch Client ID",
+        "description": "選填。和 Client Secret 一起用來向 Helix 抓全域與頻道徽章。只會存成密文。",
+        "x-s4n-secret": true
+      },
+      "clientSecret": {
+        "type": "string",
+        "title": "Twitch Client Secret",
+        "description": "選填。只會存成密文。畫面只顯示已設定或未設定，不會送進 OBS 網址或聊天連線。",
+        "x-s4n-secret": true
+      }
+    }
+  }
+}

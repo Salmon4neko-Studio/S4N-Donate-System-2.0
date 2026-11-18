@@ -1,6 +1,5 @@
 import { useEffect, useState } from "react";
-import { Link } from "react-router";
-import { buttonClass, Note, TextInput } from "@/components/fields";
+import { buttonClass, Note } from "@/components/fields";
 import { OverlayPreviewPanel } from "@/components/overlay-preview";
 import { api, type OverlayLink } from "@/lib/api";
 
@@ -52,6 +51,7 @@ export function OverlayLinkPage() {
 
   const link = state.status === "ready" ? state.link : null;
   const preview = link?.url ? withPreview(link.url) : null;
+  const chatPreview = link?.chatUrl ? withPreview(link.chatUrl) : null;
 
   return (
     <div className="s4n-stack is-loose">
@@ -71,17 +71,19 @@ export function OverlayLinkPage() {
           <div className="ts-content is-padded s4n-stack">
             {link.url ? (
               <>
-                <label className="ts-text is-label" htmlFor="overlay-url">
-                  貼進 OBS 的網址
-                </label>
-                <div className="ts-input s4n-mono">
-                  <input id="overlay-url" readOnly value={link.url} onFocus={(event) => event.currentTarget.select()} />
+                <div className="ts-grid is-2-columns s4n-form-grid">
+                  <UrlField id="overlay-url" label="贊助提醒網址" value={link.url} onCopy={() => void copy(link.url ?? "")} />
+                  <UrlField
+                    id="chat-overlay-url"
+                    label="聊天疊層網址"
+                    value={link.chatUrl ?? ""}
+                    onCopy={() => void copy(link.chatUrl ?? "")}
+                  />
                 </div>
+                <p className="ts-text is-description">
+                  兩條網址共用同一組疊層權杖，差別只在 plugin。Twitch 的 Client ID 與 Client Secret 不會出現在這裡。
+                </p>
                 <div className="s4n-choices">
-                  <button type="button" className={buttonClass({ tone: "accent", icon: "start" })} onClick={() => void copy(link.url ?? "")}>
-                    <span className="ts-icon is-copy-icon" aria-hidden="true" />
-                    複製網址
-                  </button>
                   {confirming ? (
                     <button
                       type="button"
@@ -99,7 +101,13 @@ export function OverlayLinkPage() {
                   {preview ? (
                     <a className={buttonClass({ variant: "outlined", icon: "start" })} href={preview} target="_blank" rel="noreferrer">
                       <span className="ts-icon is-eye-icon" aria-hidden="true" />
-                      在這個瀏覽器預覽
+                      預覽贊助提醒
+                    </a>
+                  ) : null}
+                  {chatPreview ? (
+                    <a className={buttonClass({ variant: "outlined", icon: "start" })} href={chatPreview} target="_blank" rel="noreferrer">
+                      <span className="ts-icon is-eye-icon" aria-hidden="true" />
+                      預覽聊天疊層
                     </a>
                   ) : null}
                 </div>
@@ -128,18 +136,31 @@ export function OverlayLinkPage() {
       ) : null}
 
       <ol className="ts-list is-ordered">
-        <li className="item">在外掛庫啟用「贊助提醒」。</li>
-        <li className="item">OBS 新增來源，選擇瀏覽器。</li>
-        <li className="item">貼上上面的網址。寬度與高度跟預覽畫布相同，例如 1280×720。</li>
-        <li className="item">勾選透明背景。OBS 不要加上 preview 參數。</li>
+        <li className="item">在外掛庫啟用「贊助提醒」。聊天另啟用「Twitch 聊天」與「聊天疊層」。</li>
+        <li className="item">Twitch 聊天填頻道名稱。不填 Client ID 也能用匿名 justinfan 讀取。密文只顯示已設定或未設定。</li>
+        <li className="item">OBS 新增來源，選擇瀏覽器。贊助提醒與聊天疊層各放一條網址。</li>
+        <li className="item">寬度與高度跟預覽畫布相同，例如 1280×720，並勾選透明背景。OBS 不要加上 preview 參數。</li>
         <li className="item">
-          在下方預覽送出測試贊助，或回到
-          <Link to="/" className="ts-text is-link">
-            工作台
-          </Link>
-          送出，確認提醒出現。
+          在下方預覽送出測試贊助或測試聊天訊息。測試贊助不寫進帳本；要混進聊天時，先在聊天疊層打開「把贊助混進聊天」。
         </li>
       </ol>
+    </div>
+  );
+}
+
+function UrlField({ id, label, value, onCopy }: { id: string; label: string; value: string; onCopy: () => void }) {
+  return (
+    <div className="column s4n-stack">
+      <label className="ts-text is-label" htmlFor={id}>
+        {label}
+      </label>
+      <div className="ts-input s4n-mono">
+        <input id={id} readOnly value={value} onFocus={(event) => event.currentTarget.select()} />
+      </div>
+      <button type="button" className={buttonClass({ tone: "accent", size: "small", icon: "start" })} onClick={onCopy}>
+        <span className="ts-icon is-copy-icon" aria-hidden="true" />
+        複製網址
+      </button>
     </div>
   );
 }

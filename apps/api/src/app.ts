@@ -25,7 +25,8 @@ import {
   type SecretStore,
 } from "./plugins/settings.js";
 import type { CoreBus } from "./realtime/bus.js";
-import { ALERTS_PLUGIN_ID, overlayPageUrl } from "./realtime/overlay-url.js";
+import { CHAT_OVERLAY_PLUGIN_ID, ALERTS_PLUGIN_ID, overlayPageUrl } from "./realtime/overlay-url.js";
+import { previewChatMessage } from "@s4n/plugin-chat-overlay";
 
 export interface AppDeps {
   envName: RuntimeEnv;
@@ -45,6 +46,8 @@ export interface AppDeps {
   pingDatabase: () => Promise<"up" | "down" | "unconfigured">;
   callbackRateLimit?: { windowMs: number; max: number };
   loginRateLimit?: { windowMs: number; max: number };
+  /** Fired after a plugin is enabled or its settings are saved. */
+  onPluginsChanged?: () => void;
 }
 
 export function createApp(deps: AppDeps): Hono<SessionEnv> {
@@ -127,6 +130,7 @@ export function createApp(deps: AppDeps): Hono<SessionEnv> {
     } catch {
       return c.json({ error: "plugins_unavailable" }, 503);
     }
+    deps.onPluginsChanged?.();
     return c.json({ pluginId: plugin.manifest.id, enabled: body.value.enabled });
   });
 
@@ -179,6 +183,7 @@ export function createApp(deps: AppDeps): Hono<SessionEnv> {
           masterKey: deps.masterKey,
           values: body.value.values,
         });
+        deps.onPluginsChanged?.();
         return c.json({ pluginId: plugin.manifest.id, fields });
       } catch (error) {
         if (error instanceof SettingsValidationError) {
@@ -288,14 +293,7 @@ export function createApp(deps: AppDeps): Hono<SessionEnv> {
   app.get("/api/overlay", session, async (c) => {
     try {
       const token = await deps.auth.readOverlayToken(c.get("operatorId"));
-      if (token === null) {
-        return c.json({ configured: false, url: null, pluginId: ALERTS_PLUGIN_ID });
-      }
-      return c.json({
-        configured: true,
-        url: overlayPageUrl(deps.overlayOrigin, token),
-        pluginId: ALERTS_PLUGIN_ID,
-      });
+      return c.json(overlayLinks(deps.overlayOrigin, token));
     } catch {
       return c.json({ error: "overlay_unavailable" }, 503);
     }
@@ -304,14 +302,27 @@ export function createApp(deps: AppDeps): Hono<SessionEnv> {
   app.post("/api/overlay/token", session, guard, async (c) => {
     try {
       const token = await deps.auth.issueOverlayToken(c.get("operatorId"));
-      return c.json({
-        configured: true,
-        url: overlayPageUrl(deps.overlayOrigin, token),
-        pluginId: ALERTS_PLUGIN_ID,
-      });
+      return c.json(overlayLinks(deps.overlayOrigin, token));
     } catch {
       return c.json({ error: "overlay_unavailable" }, 503);
     }
+  });
+
+  app.post("/api/chat/test", session, guard, async (c) => {
+    const body = await readJson(c.req.raw);
+    if (!body.ok) return c.json({ error: "invalid_json" }, 422);
+    const parsed = readTestChat(body.value);
+    if (parsed === null) return c.json({ error: "invalid_chat" }, 422);
+    const event = deps.bus.publish(
+      "s4n.chat.message",
+      previewChatMessage({
+        displayName: parsed.displayName,
+        text: parsed.text,
+        now: new Date().toISOString(),
+        messageId: `preview-${randomUUID()}`,
+      }),
+    );
+    return c.json({ test: true, eventId: event.id });
   });
 
   app.post(
@@ -417,6 +428,34 @@ function testDonationBody(value: unknown): unknown {
   };
 }
 
+function overlayLinks(origin: string, token: string | null) {
+  if (token === null) {
+    return {
+      configured: false,
+      url: null,
+      pluginId: ALERTS_PLUGIN_ID,
+      chatUrl: null,
+      chatPluginId: CHAT_OVERLAY_PLUGIN_ID,
+    };
+  }
+  return {
+    configured: true,
+    url: overlayPageUrl(origin, token, ALERTS_PLUGIN_ID),
+    pluginId: ALERTS_PLUGIN_ID,
+    chatUrl: overlayPageUrl(origin, token, CHAT_OVERLAY_PLUGIN_ID),
+    chatPluginId: CHAT_OVERLAY_PLUGIN_ID,
+  };
+}
+
+function readTestChat(value: unknown): { displayName: string; text: string } | null {
+  if (!isRecord(value)) return null;
+  const displayName = value.displayName;
+  const text = value.text;
+  if (typeof displayName !== "string" || typeof text !== "string") return null;
+  if (displayName.length > 40 || text.length > 180) return null;
+  return { displayName, text };
+}
+
 function describeFields(plugin: LoadedPlugin) {
   const required = new Set(plugin.manifest.settingsSchema.required ?? []);
   return Object.entries(plugin.manifest.settingsSchema.properties).map(([key, field]) => ({
@@ -428,6 +467,8 @@ function describeFields(plugin: LoadedPlugin) {
     required: required.has(key),
     enum: field.enum ?? null,
     minimum: field.minimum ?? null,
+    multiline: field["x-s4n-multiline"] === true,
+    default: field.default ?? null,
   }));
 }
 

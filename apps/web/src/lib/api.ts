@@ -56,6 +56,8 @@ export interface PluginField {
   required: boolean;
   enum: string[] | null;
   minimum: number | null;
+  multiline: boolean;
+  default: string | number | boolean | null;
 }
 
 export interface PluginSummary {
@@ -91,4 +93,6 @@ export interface OverlayLink {
   configured: boolean;
   url: string | null;
   pluginId: string;
+  chatUrl: string | null;
+  chatPluginId: string;
 }
