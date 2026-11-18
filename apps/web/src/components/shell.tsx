@@ -6,6 +6,7 @@ import { useAuth } from "@/lib/auth";
 const links = [
   { to: "/", label: "概況", end: true, icon: "house" },
   { to: "/donations", label: "帳本", end: false, icon: "receipt" },
+  { to: "/marketplace", label: "市集", end: false, icon: "store" },
   { to: "/plugins", label: "外掛", end: false, icon: "puzzle-piece" },
   { to: "/overlay", label: "疊層", end: false, icon: "display" },
   { to: "/donate", label: "贊助頁", end: false, icon: "heart" },

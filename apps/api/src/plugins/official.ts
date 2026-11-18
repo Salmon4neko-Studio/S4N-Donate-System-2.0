@@ -19,3 +19,9 @@ export function isOfficialPluginId(id: string): id is OfficialPluginId {
 
 /** The only plugins allowed to implement payment in this skeleton. */
 export const PAYMENT_PLUGIN_IDS = ["official.ecpay", "official.opay"] as const;
+
+const PAYMENT = new Set<string>(PAYMENT_PLUGIN_IDS);
+
+export function isPaymentPluginId(id: string): boolean {
+  return PAYMENT.has(id);
+}

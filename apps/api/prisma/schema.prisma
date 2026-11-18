@@ -41,6 +41,13 @@ model PluginInstallation {
   secrets        EncryptedPluginSetting[]
   createdAt      DateTime                 @default(now())
   updatedAt      DateTime                 @updatedAt
+  installed      Boolean                  @default(true)
+  pinned         Boolean                  @default(false)
+  source         String                   @default("official")
+  sha256         String                   @default("")
+  previousVersion String?
+  previousSha256  String?
+  permissions    Json                     @default("[]")
 }
 
 /// Plugin secrets sealed with AES-256-GCM under S4N_MASTER_KEY.

@@ -56,6 +56,15 @@ export function createPrismaSecretStore(prisma: PrismaClient): SecretStore {
         }
       });
     },
+    async discard(pluginId) {
+      await prisma.$transaction([
+        prisma.encryptedPluginSetting.deleteMany({ where: { pluginId } }),
+        prisma.pluginInstallation.updateMany({
+          where: { id: pluginId },
+          data: { publicSettings: {} },
+        }),
+      ]);
+    },
   };
 }
 

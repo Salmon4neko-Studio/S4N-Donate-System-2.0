@@ -9,6 +9,8 @@ import { DonateCheckoutPage } from "@/pages/donate-checkout";
 import { DonateCancelledPage, DonateResultPage } from "@/pages/donate-result";
 import { DonationsPage } from "@/pages/donations";
 import { LoginPage } from "@/pages/login";
+import { MarketplaceDetailPage } from "@/pages/marketplace-detail";
+import { MarketplacePage } from "@/pages/marketplace";
 import { OverlayLinkPage } from "@/pages/overlay-link";
 import { PluginsPage } from "@/pages/plugins";
 import { SetupPage } from "@/pages/setup";
@@ -27,6 +29,8 @@ export function App() {
           <Route index element={<DashboardPage />} />
           <Route path="donations" element={<DonationsPage />} />
           <Route path="plugins" element={<PluginsPage />} />
+          <Route path="marketplace" element={<MarketplacePage />} />
+          <Route path="marketplace/:pluginId" element={<MarketplaceDetailPage />} />
           <Route path="overlay" element={<OverlayLinkPage />} />
         </Route>
       </Route>

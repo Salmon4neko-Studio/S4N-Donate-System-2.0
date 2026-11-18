@@ -9,6 +9,7 @@ import type { Ledger } from "../payments/ledger.js";
 import { createOfficialCatalog, createPaymentRegistry, type PaymentRegistry } from "../plugins/catalog.js";
 import { createMemoryInstallations, type InstallationStore } from "../plugins/installations.js";
 import { createMemorySecretStore } from "../plugins/memory-store.js";
+import { createBundledMarketplace, type MarketplaceService } from "../plugins/marketplace/service.js";
 import { createMemoryAuthStore } from "../auth/store.js";
 import type { SecretStore } from "../plugins/settings.js";
 
@@ -32,15 +33,28 @@ export function createTestApp(overrides: TestOverrides = {}): {
   providers: PaymentRegistry;
   auth: AuthService;
   installations: InstallationStore;
+  marketplace: MarketplaceService;
 } {
-  const { sessionTtlMs, rotateAfterMs, auth: authOverride, ...rest } = overrides;
+  const {
+    sessionTtlMs,
+    rotateAfterMs,
+    auth: authOverride,
+    marketplace: marketplaceOverride,
+    installations: installationsOverride,
+    secrets: secretsOverride,
+    bus: busOverride,
+    catalog: catalogOverride,
+    ...rest
+  } = overrides;
   const masterKey = rest.masterKey ?? Buffer.alloc(32, 7);
-  const catalog = rest.catalog ?? createOfficialCatalog();
-  const secrets = rest.secrets ?? createMemorySecretStore();
+  const catalog = catalogOverride ?? createOfficialCatalog();
+  const secrets = secretsOverride ?? createMemorySecretStore();
   const ledger = rest.ledger ?? createMemoryLedger();
-  const bus = rest.bus ?? createCoreBus();
+  const bus = busOverride ?? createCoreBus();
   const providers = rest.providers ?? createPaymentRegistry(catalog);
-  const installations = rest.installations ?? createMemoryInstallations();
+  const installations = installationsOverride ?? createMemoryInstallations();
+  const marketplace =
+    marketplaceOverride ?? createBundledMarketplace({ installations, secrets, bus });
   const auth =
     authOverride ??
     createAuthService({
@@ -61,13 +75,14 @@ export function createTestApp(overrides: TestOverrides = {}): {
     providers,
     secrets,
     installations,
+    marketplace,
     ledger,
     bus,
     auth,
     pingDatabase: async () => "unconfigured",
     ...rest,
   });
-  return { app, masterKey, secrets, ledger, bus, providers, auth, installations };
+  return { app, masterKey, secrets, ledger, bus, providers, auth, installations, marketplace };
 }
 
 export function sessionCookie(response: Response): string {

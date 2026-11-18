@@ -5,7 +5,7 @@ export type { UntrustedText } from "./untrusted.js";
 
 export { S4N_EVENT_NAMES, eventCatalogIsExhaustive } from "./catalog.js";
 
-export { CORE_PAYMENT_EVENTS } from "./events.js";
+export { CORE_PAYMENT_EVENTS, PLUGIN_CHANGE_ACTIONS } from "./events.js";
 
 export type {
   AnyS4nEvent,
@@ -27,6 +27,8 @@ export type {
   DonationTestPayload,
   GoalUpdatedPayload,
   MediaNowPlayingPayload,
+  PluginChangeAction,
+  PluginChangedPayload,
   PluginEmittableEventName,
   S4nEvent,
   S4nEventMap,

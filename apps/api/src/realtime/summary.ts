@@ -43,10 +43,46 @@ export function summarizeEvent(event: DeliveredEvent): string {
       return clip(`語音 · ${plain(event.payload.text, 80)}`);
     case "s4n.media.now_playing":
       return clip(`正在播放 · ${plain(event.payload.title, 60)}`);
+    case "s4n.plugin.changed":
+      return clip(pluginChangeSummary(event.payload));
     default: {
       const unexpected: never = event;
       return clip(String(unexpected));
     }
+  }
+}
+
+function pluginChangeSummary(payload: {
+  action: string;
+  pluginId: string;
+  version: string;
+  addedPermissions: readonly string[];
+}): string {
+  const action = pluginActionLabel(payload.action);
+  const added = payload.addedPermissions.length > 0 ? ` · 新增權限 ${payload.addedPermissions.join("、")}` : "";
+  return `${action} · ${plain(payload.pluginId, 48)} · ${plain(payload.version, 16)}${added}`;
+}
+
+function pluginActionLabel(action: string): string {
+  switch (action) {
+    case "install":
+      return "安裝外掛";
+    case "update":
+      return "更新外掛";
+    case "uninstall":
+      return "移除外掛";
+    case "enable":
+      return "啟用外掛";
+    case "disable":
+      return "停用外掛";
+    case "rollback":
+      return "外掛回到上一版";
+    case "pin":
+      return "釘選外掛版本";
+    case "unpin":
+      return "取消釘選外掛";
+    default:
+      return "變更外掛";
   }
 }
 

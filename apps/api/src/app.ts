@@ -18,6 +18,8 @@ import { reconcileDonation } from "./payments/reconcile.js";
 import { isTradeNo } from "./payments/trade-no.js";
 import type { LoadedPlugin, PaymentRegistry } from "./plugins/catalog.js";
 import type { InstallationStore } from "./plugins/installations.js";
+import { MarketplaceError, type MarketplaceService } from "./plugins/marketplace/service.js";
+import { registerMarketplaceRoutes } from "./plugins/marketplace/routes.js";
 import {
   redactSettings,
   saveSettings,
@@ -41,6 +43,7 @@ export interface AppDeps {
   providers: PaymentRegistry;
   secrets: SecretStore;
   installations: InstallationStore;
+  marketplace: MarketplaceService;
   ledger: Ledger;
   bus: CoreBus;
   auth: AuthService;
@@ -121,41 +124,80 @@ export function createApp(deps: AppDeps): Hono<SessionEnv> {
   });
 
   app.get("/api/plugins", session, async (c) => {
-    let enabled = new Set<string>();
+    await deps.marketplace.ready();
+    if (!deps.marketplace.isTrusted()) {
+      let enabled = new Set<string>();
+      try {
+        enabled = new Set(await deps.installations.enabledIds());
+      } catch {
+        return c.json({ error: "plugins_unavailable" }, 503);
+      }
+      return c.json({
+        plugins: deps.catalog.map((plugin) => ({
+          id: plugin.manifest.id,
+          name: plugin.manifest.name,
+          version: plugin.manifest.version,
+          description: plugin.manifest.description ?? null,
+          kind: plugin.manifest.kind,
+          permissions: plugin.manifest.permissions,
+          official: true,
+          enabled: enabled.has(plugin.manifest.id),
+          settingsFields: describeFields(plugin),
+          category: null,
+          author: null,
+          latestVersion: plugin.manifest.version,
+          updateAvailable: false,
+          pinned: false,
+          addedPermissions: [],
+          previousVersion: null,
+          source: "official",
+        })),
+      });
+    }
+    let listings;
     try {
-      enabled = new Set(await deps.installations.enabledIds());
+      listings = await deps.marketplace.listings();
     } catch {
       return c.json({ error: "plugins_unavailable" }, 503);
     }
-    return c.json({
-      plugins: deps.catalog.map((plugin) => ({
-        id: plugin.manifest.id,
-        name: plugin.manifest.name,
-        version: plugin.manifest.version,
-        description: plugin.manifest.description ?? null,
-        kind: plugin.manifest.kind,
-        permissions: plugin.manifest.permissions,
-        official: true,
-        enabled: enabled.has(plugin.manifest.id),
-        settingsFields: describeFields(plugin),
-      })),
+    const installed = new Map(listings.filter((item) => item.installed).map((item) => [item.id, item]));
+    const fromCatalog = deps.catalog.flatMap((plugin) => {
+      const listing = installed.get(plugin.manifest.id);
+      if (listing === undefined) return [];
+      return [pluginSummary(plugin, listing)];
     });
+    const catalogIds = new Set(deps.catalog.map((plugin) => plugin.manifest.id));
+    const extras = listings
+      .filter((listing) => listing.installed && !catalogIds.has(listing.id))
+      .map((listing) => ({
+        id: listing.id,
+        name: listing.name,
+        version: listing.installedVersion ?? listing.version,
+        description: listing.description,
+        kind: listing.kind,
+        permissions: listing.permissions,
+        official: listing.official,
+        enabled: listing.enabled,
+        settingsFields: [],
+        category: listing.category,
+        author: listing.author,
+        latestVersion: listing.version,
+        updateAvailable: listing.updateAvailable,
+        pinned: listing.pinned,
+        addedPermissions: listing.addedPermissions,
+        previousVersion: listing.previousVersion,
+        source: listing.source,
+      }));
+    return c.json({ plugins: [...fromCatalog, ...extras] });
   });
 
-  app.put("/api/plugins/:id/enabled", session, guard, async (c) => {
-    const plugin = findPlugin(deps.catalog, c.req.param("id"));
-    if (plugin === undefined) return c.json({ error: "unknown_plugin" }, 404);
-    const body = await readJson(c.req.raw);
-    if (!body.ok || !isRecord(body.value) || typeof body.value.enabled !== "boolean") {
-      return c.json({ error: "invalid_enabled" }, 422);
-    }
-    try {
-      await deps.installations.setEnabled(plugin.manifest.id, body.value.enabled, plugin.manifest.version);
-    } catch {
-      return c.json({ error: "plugins_unavailable" }, 503);
-    }
-    deps.onPluginsChanged?.();
-    return c.json({ pluginId: plugin.manifest.id, enabled: body.value.enabled });
+  registerMarketplaceRoutes(app, {
+    marketplace: deps.marketplace,
+    session,
+    guard,
+    catalog: deps.catalog,
+    installations: deps.installations,
+    ...(deps.onPluginsChanged !== undefined ? { onPluginsChanged: deps.onPluginsChanged } : {}),
   });
 
   app.get("/api/plugins/:id/settings", session, async (c) => {
@@ -195,6 +237,19 @@ export function createApp(deps: AppDeps): Hono<SessionEnv> {
     async (c) => {
       const plugin = findPlugin(deps.catalog, c.req.param("id"));
       if (plugin === undefined) return c.json({ error: "unknown_plugin" }, 404);
+      await deps.marketplace.ready();
+      if (deps.marketplace.isTrusted()) {
+        try {
+          const listing = await deps.marketplace.listing(plugin.manifest.id);
+          if (!listing.installed) return c.json({ error: "not_installed" }, 409);
+        } catch (error) {
+          if (error instanceof MarketplaceError && error.code === "unknown_plugin") {
+            return c.json({ error: "unknown_plugin" }, 404);
+          }
+          if (error instanceof MarketplaceError) return c.json({ error: error.code }, 409);
+          return c.json({ error: "plugins_unavailable" }, 503);
+        }
+      }
       const body = await readJson(c.req.raw);
       if (!body.ok) return c.json({ error: "invalid_json" }, 422);
       if (!isRecord(body.value) || !isRecord(body.value.values)) {
@@ -494,6 +549,43 @@ function readTestChat(value: unknown): { displayName: string; text: string } | n
   if (typeof displayName !== "string" || typeof text !== "string") return null;
   if (displayName.length > 40 || text.length > 180) return null;
   return { displayName, text };
+}
+
+function pluginSummary(
+  plugin: LoadedPlugin,
+  listing: {
+    installedVersion: string | null;
+    version: string;
+    official: boolean;
+    enabled: boolean;
+    category: string;
+    author: string;
+    updateAvailable: boolean;
+    pinned: boolean;
+    addedPermissions: string[];
+    previousVersion: string | null;
+    source: string;
+  },
+) {
+  return {
+    id: plugin.manifest.id,
+    name: plugin.manifest.name,
+    version: listing.installedVersion ?? plugin.manifest.version,
+    description: plugin.manifest.description ?? null,
+    kind: plugin.manifest.kind,
+    permissions: plugin.manifest.permissions,
+    official: listing.official,
+    enabled: listing.enabled,
+    settingsFields: describeFields(plugin),
+    category: listing.category,
+    author: listing.author,
+    latestVersion: listing.version,
+    updateAvailable: listing.updateAvailable,
+    pinned: listing.pinned,
+    addedPermissions: listing.addedPermissions,
+    previousVersion: listing.previousVersion,
+    source: listing.source,
+  };
 }
 
 function describeFields(plugin: LoadedPlugin) {

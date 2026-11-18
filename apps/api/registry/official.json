@@ -1,0 +1,273 @@
+{
+  "index": {
+    "format": "s4n-registry-index",
+    "version": 1,
+    "issuedAt": "2026-11-18T07:00:00.000Z",
+    "plugins": [
+      {
+        "id": "official.alerts",
+        "name": "贊助提醒",
+        "version": "0.1.0",
+        "api": "0.1",
+        "category": "overlay",
+        "author": "S4N",
+        "official": true,
+        "description": "在疊層顯示贊助人、金額與留言。沒有動畫序列。",
+        "icon": "bell",
+        "permissions": [
+          "events.subscribe",
+          "overlay.slot"
+        ],
+        "kind": [
+          "overlay"
+        ],
+        "changelog": "0.1.0 把贊助提醒放進官方市集。畫面、權限與設定和上一版相同。",
+        "compatibility": {
+          "core": "0.1",
+          "pluginSpec": "0.1"
+        },
+        "sha256": "085aa12b00b7726d55d413ac7e9c9c0330b73054fdeeb491ce496720199e10fa",
+        "featured": true,
+        "screenshots": [
+          {
+            "alt": "紙色提醒卡，左邊是橘色細線",
+            "caption": "疊層上的贊助提醒",
+            "frame": "overlay"
+          }
+        ]
+      },
+      {
+        "id": "official.chat-overlay",
+        "name": "聊天疊層",
+        "version": "0.1.0",
+        "api": "0.1",
+        "category": "overlay",
+        "author": "S4N",
+        "official": true,
+        "description": "在 OBS 顯示已正規化的聊天。過濾、遮罩、停留時間與贊助混入都在這份設定。它不連到 Twitch 或 YouTube，所以下一個平台來源不必改這個外掛。",
+        "icon": "display",
+        "permissions": [
+          "events.subscribe",
+          "overlay.slot",
+          "dashboard.settings"
+        ],
+        "kind": [
+          "overlay"
+        ],
+        "changelog": "0.1.0 顯示已經正規化的聊天。它不連到任何平台。",
+        "compatibility": {
+          "core": "0.1",
+          "pluginSpec": "0.1"
+        },
+        "sha256": "b84428a944eb0004d3e21473936f96ea97ec77df6f5d3eee8ac6b0731148d05b",
+        "featured": true,
+        "screenshots": [
+          {
+            "alt": "聊天列與徽章",
+            "caption": "OBS 裡的聊天疊層",
+            "frame": "chat"
+          }
+        ]
+      },
+      {
+        "id": "official.ecpay",
+        "name": "綠界 ECPay",
+        "version": "0.1.0",
+        "api": "0.1",
+        "category": "payment",
+        "author": "S4N",
+        "official": true,
+        "description": "官方綠界全方位金流。信用卡一次付清。商店代號與金鑰只以密文保存。",
+        "icon": "credit-card",
+        "permissions": [
+          "payments.provider",
+          "secrets",
+          "network"
+        ],
+        "kind": [
+          "payment"
+        ],
+        "changelog": "0.1.0 綠界信用卡一次付清。商店代號與金鑰只以密文保存。",
+        "compatibility": {
+          "core": "0.1",
+          "pluginSpec": "0.1"
+        },
+        "sha256": "dc16b28aadf6eb70f218efc39b93c4ee24b06c498ed1f4be5d46667396a55dc6",
+        "featured": true,
+        "screenshots": [
+          {
+            "alt": "贊助頁上的綠界結帳",
+            "caption": "信用卡結帳",
+            "frame": "checkout"
+          }
+        ]
+      },
+      {
+        "id": "official.goals",
+        "name": "目標進度",
+        "version": "0.0.0",
+        "api": "0.1",
+        "category": "tool",
+        "author": "S4N",
+        "official": true,
+        "description": "目標條的佔位。尚未計算進度。",
+        "icon": "bullseye",
+        "permissions": [
+          "events.subscribe",
+          "overlay.slot",
+          "dashboard.settings"
+        ],
+        "kind": [
+          "overlay",
+          "dashboard"
+        ],
+        "changelog": "0.0.0 目標條的佔位。還沒有計算進度。",
+        "compatibility": {
+          "core": "0.1",
+          "pluginSpec": "0.1"
+        },
+        "sha256": "6c723fc1dd841098719b8066a571eb64e72dfc7e1349d58b479002df5d07c9be",
+        "featured": false,
+        "screenshots": [
+          {
+            "alt": "目標進度的佔位",
+            "caption": "尚未計算進度",
+            "frame": "tool"
+          }
+        ]
+      },
+      {
+        "id": "official.opay",
+        "name": "歐付寶 O'Pay",
+        "version": "0.1.0",
+        "api": "0.1",
+        "category": "payment",
+        "author": "S4N",
+        "official": true,
+        "description": "官方歐付寶全方位金流。信用卡一次付清。商店代號與金鑰只以密文保存。",
+        "icon": "credit-card",
+        "permissions": [
+          "payments.provider",
+          "secrets",
+          "network"
+        ],
+        "kind": [
+          "payment"
+        ],
+        "changelog": "0.1.0 歐付寶信用卡一次付清。商店代號與金鑰只以密文保存。",
+        "compatibility": {
+          "core": "0.1",
+          "pluginSpec": "0.1"
+        },
+        "sha256": "1f5365b07d2386fe00b66df6de48f4d27a7777485426d53968264fd391d3106e",
+        "featured": false,
+        "screenshots": [
+          {
+            "alt": "贊助頁上的歐付寶結帳",
+            "caption": "信用卡結帳",
+            "frame": "checkout"
+          }
+        ]
+      },
+      {
+        "id": "official.ticker",
+        "name": "跑馬燈",
+        "version": "0.0.0",
+        "api": "0.1",
+        "category": "tool",
+        "author": "S4N",
+        "official": true,
+        "description": "跑馬燈的佔位。尚未捲動文字。",
+        "icon": "scroll",
+        "permissions": [
+          "events.subscribe",
+          "overlay.slot"
+        ],
+        "kind": [
+          "overlay"
+        ],
+        "changelog": "0.0.0 跑馬燈的佔位。還沒有捲動文字。",
+        "compatibility": {
+          "core": "0.1",
+          "pluginSpec": "0.1"
+        },
+        "sha256": "578ad458705189fe666ea006a3c8c87fa96333488575d27c8c7aa408992d064e",
+        "featured": false,
+        "screenshots": [
+          {
+            "alt": "跑馬燈的佔位",
+            "caption": "尚未捲動",
+            "frame": "tool"
+          }
+        ]
+      },
+      {
+        "id": "official.tts",
+        "name": "文字轉語音",
+        "version": "0.0.0",
+        "api": "0.1",
+        "category": "tool",
+        "author": "S4N",
+        "official": true,
+        "description": "語音的佔位。尚未合成，也不會朗讀不受信任的文字。",
+        "icon": "microphone",
+        "permissions": [
+          "events.subscribe",
+          "tts.speak"
+        ],
+        "kind": [
+          "processor"
+        ],
+        "changelog": "0.0.0 語音的佔位。不會朗讀不受信任的文字。",
+        "compatibility": {
+          "core": "0.1",
+          "pluginSpec": "0.1"
+        },
+        "sha256": "61fac0e8ae105c3642184ece699deb03cf62ef4bc78e2d26ee632e8201ff28ad",
+        "featured": false,
+        "screenshots": [
+          {
+            "alt": "語音的佔位",
+            "caption": "尚未合成",
+            "frame": "tool"
+          }
+        ]
+      },
+      {
+        "id": "official.twitch-chat",
+        "name": "Twitch 聊天",
+        "version": "0.1.0",
+        "api": "0.1",
+        "category": "chat-source",
+        "author": "S4N",
+        "official": true,
+        "description": "以匿名 justinfan 讀取 Twitch 聊天室，轉成與平台無關的聊天事件。選填的 Client ID 與 Client Secret 只以密文保存，用來快取表情與徽章，不會放進 OBS 網址。",
+        "icon": "comments",
+        "permissions": [
+          "events.emit",
+          "dashboard.settings",
+          "secrets",
+          "network"
+        ],
+        "kind": [
+          "connector"
+        ],
+        "changelog": "0.1.0 以匿名 justinfan 讀取 Twitch 聊天室。選填的 Client ID 與 Client Secret 只以密文保存。",
+        "compatibility": {
+          "core": "0.1",
+          "pluginSpec": "0.1"
+        },
+        "sha256": "ea40b90f4f8fbc4d3749a9e2a0917da9674fe3cfae8451accc74fc5867fda31e",
+        "featured": true,
+        "screenshots": [
+          {
+            "alt": "來自 Twitch 的聊天列",
+            "caption": "聊天室來源",
+            "frame": "chat"
+          }
+        ]
+      }
+    ]
+  },
+  "signature": "6V0XKuZtX7SGWAdH9cUk5z3P9Uk/BHffIPm9JEv8B20l9l3Pd/fXvmSIePEw3FEj9TvU6Ywu5SynazoZbtTECQ=="
+}

@@ -163,6 +163,36 @@ export interface MediaNowPlayingPayload {
   requestedBy: UntrustedText;
 }
 
+export const PLUGIN_CHANGE_ACTIONS = [
+  "install",
+  "update",
+  "uninstall",
+  "enable",
+  "disable",
+  "rollback",
+  "pin",
+  "unpin",
+] as const;
+
+export type PluginChangeAction = (typeof PLUGIN_CHANGE_ACTIONS)[number];
+
+/**
+ * Operator audit for the marketplace. Permission names only.
+ * Setting values, ciphertext, and signing keys never belong here.
+ */
+export interface PluginChangedPayload {
+  action: PluginChangeAction;
+  pluginId: string;
+  version: string;
+  previousVersion: string | null;
+  permissions: string[];
+  addedPermissions: string[];
+  removedPermissions: string[];
+  source: "official" | "community";
+  /** Set on uninstall. True keeps settings and sealed secrets. */
+  dataKept: boolean | null;
+}
+
 export interface S4nEventMap {
   "s4n.donation.created": DonationCreatedPayload;
   "s4n.donation.succeeded": DonationSucceededPayload;
@@ -174,13 +204,14 @@ export interface S4nEventMap {
   "s4n.goal.updated": GoalUpdatedPayload;
   "s4n.tts.request": TtsRequestPayload;
   "s4n.media.now_playing": MediaNowPlayingPayload;
+  "s4n.plugin.changed": PluginChangedPayload;
 }
 
 export type S4nEventName = keyof S4nEventMap;
 
 export type PluginEmittableEventName = Exclude<
   S4nEventName,
-  CorePaymentEventName | "s4n.donation.test"
+  CorePaymentEventName | "s4n.donation.test" | "s4n.plugin.changed"
 >;
 
 export interface S4nEvent<T extends S4nEventName = S4nEventName> {

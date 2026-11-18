@@ -29,7 +29,21 @@ const enumLabel: Record<string, string> = {
   medium: "中",
 };
 
-export function PluginCard({ plugin, settingsOpen }: { plugin: PluginSummary; settingsOpen?: boolean }) {
+export function PluginCard({
+  plugin,
+  settingsOpen,
+  onUpdate,
+  onPin,
+  onUninstall,
+  busy,
+}: {
+  plugin: PluginSummary;
+  settingsOpen?: boolean;
+  onUpdate?: () => void;
+  onPin?: () => void;
+  onUninstall?: () => void;
+  busy?: boolean;
+}) {
   const [enabled, setEnabled] = useState(plugin.enabled);
   const [open, setOpen] = useState(settingsOpen ?? false);
   const [pending, setPending] = useState(false);
@@ -82,7 +96,7 @@ export function PluginCard({ plugin, settingsOpen }: { plugin: PluginSummary; se
             aria-pressed={enabled}
           >
             <span className={enabled ? "ts-icon is-pause-icon" : "ts-icon is-play-icon"} aria-hidden="true" />
-            {pending ? "更新中…" : enabled ? "停用" : "啟用"}
+            {pending ? "處理中…" : enabled ? "停用" : "啟用"}
           </button>
           {plugin.settingsFields.length > 0 ? (
             <button
@@ -95,7 +109,30 @@ export function PluginCard({ plugin, settingsOpen }: { plugin: PluginSummary; se
               {open ? "隱藏設定" : "設定"}
             </button>
           ) : null}
+          {plugin.updateAvailable && onUpdate ? (
+            <button type="button" className={buttonClass({ tone: "accent", icon: "start" })} disabled={busy} onClick={onUpdate}>
+              <span className="ts-icon is-rotate-icon" aria-hidden="true" />
+              更新到 {plugin.latestVersion}
+            </button>
+          ) : null}
+          {onPin ? (
+            <button type="button" className={buttonClass({ variant: "outlined", size: "small" })} disabled={busy} onClick={onPin}>
+              {plugin.pinned ? "取消釘選" : "釘選此版本"}
+            </button>
+          ) : null}
+          {onUninstall ? (
+            <button type="button" className={buttonClass({ variant: "outlined", size: "small" })} disabled={busy} onClick={onUninstall}>
+              移除
+            </button>
+          ) : null}
         </div>
+        <p className="ts-text is-description is-small">
+          安裝版本 {plugin.version}
+          {plugin.latestVersion !== plugin.version ? ` · 市集 ${plugin.latestVersion}` : ""}
+          {plugin.pinned ? " · 已釘選" : ""}
+          {plugin.author ? ` · ${plugin.author}` : ""}
+        </p>
+        {plugin.updateAvailable ? <span className="ts-badge is-warning">有更新</span> : null}
         {plugin.kind.includes("payment") ? (
           <p className="ts-text is-description">啟用且必填欄位都設定之後，才會出現在贊助頁。密文只顯示已設定或尚未設定。</p>
         ) : null}

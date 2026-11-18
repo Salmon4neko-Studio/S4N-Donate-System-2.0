@@ -16,7 +16,7 @@ English. These docs are written in Traditional Chinese. A short English summary 
 ## 現在可以用的
 
 - 第一位營運者的初次設定、登入、登出與伺服器端工作階段
-- 外掛庫：依 manifest 列出、啟用或停用、填寫設定。密文欄位只回報已設定或未設定
+- 外掛市集：簽過名的官方索引、權限確認、安裝與更新。見 [外掛市集](/guides/marketplace/)
 - 測試贊助：送到疊層，不寫入帳本
 - 帳本：待付款、已付款、未成功
 - 贊助頁：綠界與歐付寶信用卡一次付清
@@ -30,7 +30,6 @@ English. These docs are written in Traditional Chinese. A short English summary 
 
 - ATM、超商代碼，以及其他付款方式
 - YouTube 聊天連接器（Twitch 已有。下一個來源沿用同一份聊天事件，不必改聊天疊層）
-- 外掛市集
 - 目標計算、跑馬燈、語音合成
 - 多個 API 實例共用的登入限流（事件紀錄已經在 PostgreSQL，見 [事件紀錄](/guides/events/)）
 

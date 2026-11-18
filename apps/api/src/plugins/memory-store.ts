@@ -39,5 +39,8 @@ export function createMemorySecretStore(): SecretStore {
         secrets: { ...(current?.secrets ?? {}), ...input.secrets },
       });
     },
+    async discard(pluginId) {
+      rows.delete(pluginId);
+    },
   };
 }
