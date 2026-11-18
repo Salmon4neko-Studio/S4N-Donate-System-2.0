@@ -80,7 +80,7 @@ const plugins = listings.map((listing) => {
 const index = {
   format: "s4n-registry-index",
   version: 1,
-  issuedAt: "2026-11-18T07:00:00.000Z",
+  issuedAt: "2026-11-18T16:30:00.000Z",
   plugins,
 };
 

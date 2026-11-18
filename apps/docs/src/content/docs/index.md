@@ -3,7 +3,7 @@ title: S4N DONATE SYSTEM 2.0
 description: 模組化贊助平台。綠界與歐付寶可以開單。
 ---
 
-這份文件描述 **S4N DONATE SYSTEM 2.0**：營運者登入、外掛管理、疊層事件，以及綠界與歐付寶的信用卡贊助。
+這份文件描述 **S4N DONATE SYSTEM 2.0**：營運者登入、外掛管理、疊層事件，以及綠界與歐付寶的信用卡、ATM、超商代碼與超商條碼。
 
 :::note
 English. These docs are written in Traditional Chinese. A short English summary is at the bottom of the repository README.
@@ -18,8 +18,8 @@ English. These docs are written in Traditional Chinese. A short English summary 
 - 第一位營運者的初次設定、登入、登出與伺服器端工作階段
 - 外掛市集：簽過名的官方索引、權限確認、安裝與更新。見 [外掛市集](/guides/marketplace/)
 - 測試贊助：送到疊層，不寫入帳本
-- 帳本：待付款、已付款、未成功
-- 贊助頁：綠界與歐付寶信用卡一次付清
+- 帳本：待付款、待繳費、已付款、已過期、失敗，可依狀態篩選
+- 贊助頁：綠界與歐付寶的信用卡、ATM 虛擬帳號、超商代碼、超商條碼
 - 贊助提醒：OBS 瀏覽器來源用網址裡的權杖連線，顯示名稱、金額與留言
 - Twitch 聊天疊層：伺服器以匿名身分讀取聊天室，OBS 網址仍只用疊層權杖
 - 型別化事件，含 `s4n.donation.test` 與付款成功、失敗。事件寫在 PostgreSQL，斷線可以依序號補上
@@ -28,7 +28,6 @@ English. These docs are written in Traditional Chinese. A short English summary 
 
 ## 還沒有的
 
-- ATM、超商代碼，以及其他付款方式
 - YouTube 聊天連接器（Twitch 已有。下一個來源沿用同一份聊天事件，不必改聊天疊層）
 - 目標計算、跑馬燈、語音合成
 - 多個 API 實例共用的登入限流（事件紀錄已經在 PostgreSQL，見 [事件紀錄](/guides/events/)）

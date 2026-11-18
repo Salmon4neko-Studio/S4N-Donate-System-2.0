@@ -42,6 +42,11 @@ function order(id: string, providerId: string, amount = 500, status: LedgerOrder
     providerRef: null,
     donorName: asUntrustedText("小光"),
     message: asUntrustedText("謝謝"),
+    expiresAt: null,
+    bankCode: null,
+    payCode: null,
+    barcodes: null,
+    paymentType: null,
   };
 }
 

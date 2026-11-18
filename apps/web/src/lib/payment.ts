@@ -6,9 +6,16 @@ export const PAYMENT_HOSTS = new Set([
 ]);
 
 export const providerLabel: Record<string, string> = {
-  "official.ecpay": "綠界",
-  "official.opay": "歐付寶",
+  "official.ecpay": "綠界信用卡",
+  "official.ecpay-atm": "綠界 ATM",
+  "official.ecpay-cvs": "綠界超商代碼",
+  "official.ecpay-barcode": "綠界超商條碼",
+  "official.opay": "歐付寶信用卡",
+  "official.opay-atm": "歐付寶 ATM",
+  "official.opay-cvs": "歐付寶超商代碼",
+  "official.opay-barcode": "歐付寶超商條碼",
 };
+
 
 const CHECKOUT_KEY = "s4n.checkout";
 

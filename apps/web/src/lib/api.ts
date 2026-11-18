@@ -132,10 +132,14 @@ export interface DonationRow {
   providerRef: string | null;
   amountMinor: number;
   currency: string;
-  status: "created" | "succeeded" | "failed";
+  status: "created" | "awaiting" | "succeeded" | "expired" | "failed";
   donorName: string;
   message: string;
   createdAt: string;
+  expiresAt: string | null;
+  bankCode: string | null;
+  payCode: string | null;
+  barcodes: readonly [string, string, string] | null;
 }
 
 export interface EventLogEntry {

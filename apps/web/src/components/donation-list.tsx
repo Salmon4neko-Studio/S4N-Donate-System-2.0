@@ -7,44 +7,47 @@ import { formatTaipei } from "@/lib/time";
 
 const statusLabel: Record<DonationRow["status"], string> = {
   created: "待付款",
+  awaiting: "待繳費",
   succeeded: "已付款",
-  failed: "未成功",
+  expired: "已過期",
+  failed: "失敗",
 };
 
 const statusClass: Record<DonationRow["status"], string> = {
   created: "ts-badge is-warning",
+  awaiting: "ts-badge is-accent",
   succeeded: "ts-badge is-positive",
+  expired: "ts-badge",
   failed: "ts-badge is-negative",
 };
 
 const indicatorClass: Record<DonationRow["status"], string> = {
   created: "is-warning",
+  awaiting: "is-accent",
   succeeded: "is-positive",
+  expired: "",
   failed: "is-negative",
 };
 
-export function DonationList({ donations, onChange }: { donations: DonationRow[]; onChange: (next: DonationRow[]) => void }) {
+export function DonationList({ donations, onReload }: { donations: DonationRow[]; onReload: () => void }) {
   return (
     <ul className="s4n-stack">
       {donations.map((donation) => (
         <li key={donation.id}>
-          <DonationItem donation={donation} onChange={onChange} />
+          <DonationItem donation={donation} onReload={onReload} />
         </li>
       ))}
     </ul>
   );
 }
 
-function DonationItem({
-  donation,
-  onChange,
-}: {
-  donation: DonationRow;
-  onChange: (next: DonationRow[]) => void;
-}) {
+function DonationItem({ donation, onReload }: { donation: DonationRow; onReload: () => void }) {
   const [pending, setPending] = useState(false);
   const [note, setNote] = useState<string | null>(null);
-  const canReconcile = donation.status === "created" && providerLabel[donation.providerId] !== undefined;
+  const canReconcile =
+    (donation.status === "created" || donation.status === "awaiting") &&
+    providerLabel[donation.providerId] !== undefined;
+  const method = providerLabel[donation.providerId] ?? donation.providerId;
 
   async function reconcile() {
     setPending(true);
@@ -54,8 +57,7 @@ function DonationItem({
         method: "POST",
         body: JSON.stringify({ orderId: donation.id }),
       });
-      const body = await api<{ donations: DonationRow[] }>("/api/donations");
-      onChange(body.donations);
+      onReload();
     } catch {
       setNote("金流沒有回覆這筆訂單。");
     } finally {
@@ -79,14 +81,15 @@ function DonationItem({
             <span className={statusClass[donation.status]}>{statusLabel[donation.status]}</span>
           </span>
           <span className="item">
-            <span className="s4n-visually-hidden">付款</span>
-            {providerLabel[donation.providerId] ?? donation.providerId}
+            <span className="s4n-visually-hidden">付款方式</span>
+            {method}
           </span>
           <span className="item">
             <span className="s4n-visually-hidden">時間</span>
             <time dateTime={donation.createdAt}>{formatTaipei(donation.createdAt)}</time>
           </span>
         </div>
+        <PaymentHint donation={donation} />
         {canReconcile ? (
           <div className="s4n-choices">
             <button
@@ -104,4 +107,15 @@ function DonationItem({
       </div>
     </article>
   );
+}
+
+function PaymentHint({ donation }: { donation: DonationRow }) {
+  if (donation.status !== "awaiting" && donation.status !== "expired") return null;
+  const bits: string[] = [];
+  if (donation.bankCode) bits.push(`銀行 ${donation.bankCode}`);
+  if (donation.payCode) bits.push(donation.bankCode ? `帳號 ${donation.payCode}` : `代碼 ${donation.payCode}`);
+  if (donation.barcodes) bits.push(donation.barcodes.join(" · "));
+  if (donation.expiresAt) bits.push(`期限 ${formatTaipei(donation.expiresAt)}`);
+  if (bits.length === 0) return null;
+  return <p className="ts-text is-description s4n-slip-hint">{bits.join("　")}</p>;
 }

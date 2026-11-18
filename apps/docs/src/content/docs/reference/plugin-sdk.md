@@ -151,12 +151,14 @@ YouTube 若要加進來，實作同一個 `ChatSource`、送同一份事件，�
 
 ## 付款契約
 
-核心建立訂單並寫入帳本的「待付款」。外掛的 `PaymentProvider` 做三件事：
+核心建立訂單並寫入帳本的「待付款」。外掛的 `PaymentProvider` 做這些事，碰不到帳本：
 
-1. `createPayment` 用核心給的 `orderId`、金額與回呼網址組出結帳表單。表單的 `action` 是廠商網址，`fields` 是字串欄位。金額不得改成別的數字。
-2. `verifyCallback` 用常數時間比較 CheckMacValue，並核對商店代號。通過時回傳訂單編號、廠商參考號、簽章裡的金額，以及 `paid`、`failed` 或 `simulated`。簽章不符就拒絕。
-3. 選填的 `queryTrade` 用伺服器上的金鑰向廠商查單。核心仍以帳本金額為準。
+1. `createPayment` 用核心給的 `orderId`、金額與回呼網址組出結帳表單。表單的 `action` 是廠商網址，`fields` 是字串欄位。金額不得改成別的數字。信用卡帶 ReturnURL、OrderResultURL、ClientBackURL。ATM、超商代碼、超商條碼帶 ReturnURL、PaymentInfoURL、ClientRedirectURL，不帶 OrderResultURL。
+2. `verifyCallback` 驗證 ReturnURL。用常數時間比較 CheckMacValue，並核對商店代號與付款方式。通過時回傳訂單編號、廠商參考號、簽章裡的金額，以及 `paid`、`failed` 或 `simulated`。簽章不符就拒絕。取號成功碼（ATM 的 `2`、超商的 `10100073`）出現在這條網址時當成格式錯誤，不把訂單標成失敗。
+3. `verifyPaymentInfo` 只給非信用卡。驗證 PaymentInfoURL，回傳銀行代碼、虛擬帳號或超商代碼、三段條碼，以及期限。這不是付款。
+4. `queryTrade` 用伺服器上的金鑰向廠商查單（QueryTradeInfo）。核心仍以帳本金額為準。通知沒到時，到期作業會先查單再決定入帳或過期。
+5. `provisionalExpiry` 告訴核心一筆還沒付款的訂單可以開多久。取號通知裡的期限會蓋過這個暫定值。
 
-綠界與歐付寶的 `notifyBody` 是 `1|OK` 與 `0|Error`。同一筆成功通知再來一次，核心回 `1|OK`，而且不會再插一列入帳事件。簽章通過但交易失敗，訂單改成未成功，只發一次 `s4n.donation.failed`。
+綠界與歐付寶的 `notifyBody` 是 `1|OK` 與 `0|Error`。同一筆成功通知再來一次，核心回 `1|OK`，而且不會再插一列入帳事件。簽章通過但交易失敗，訂單改成失敗，只發一次 `s4n.donation.failed`。取號成功不發 `s4n.donation.succeeded`。
 
-外掛拿不到帳本，也看不到別的外掛的密文。正式站不會把模擬付款入帳。回呼網址來自 `S4N_PUBLIC_BASE_URL`，不用這次請求的 Host。
+外掛拿不到帳本，也看不到別的外掛的密文。正式站不會把模擬付款入帳。回呼網址來自 `S4N_PUBLIC_BASE_URL`，不用這次請求的 Host。`s4n.donation.test` 不建立訂單。

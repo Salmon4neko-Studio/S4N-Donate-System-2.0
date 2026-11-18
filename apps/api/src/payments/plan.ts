@@ -68,6 +68,11 @@ export function planDonation(id: string, request: DonationRequest): LedgerOrder 
     providerRef: null,
     donorName: asUntrustedText(request.donorName),
     message: asUntrustedText(request.message),
+    expiresAt: null,
+    bankCode: null,
+    payCode: null,
+    barcodes: null,
+    paymentType: null,
   };
 }
 

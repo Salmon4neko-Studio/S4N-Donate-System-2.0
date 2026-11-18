@@ -2,10 +2,10 @@ import type { PluginManifest } from "@s4n/plugin-sdk";
 
 export const manifest = {
   "id": "official.opay",
-  "name": "歐付寶 O'Pay",
-  "version": "0.1.0",
+  "name": "歐付寶信用卡",
+  "version": "0.2.0",
   "api": "0.1",
-  "description": "官方歐付寶全方位金流。信用卡一次付清。商店代號與金鑰只以密文保存。",
+  "description": "官方歐付寶信用卡一次付清。商店代號與金鑰只以密文保存。",
   "kind": [
     "payment"
   ],
