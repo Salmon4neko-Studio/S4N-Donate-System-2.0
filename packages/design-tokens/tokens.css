@@ -1,5 +1,8 @@
+@import "./fonts.css";
+
 /*
  * S4N 的視覺基礎。溫暖紙色、橘色印、靛藍字，留白比線條多。
+ * 字體是 jf open 粉圓 2.1，內文與標題同一家族。見 fonts.css。
  * Spacing follows Tailwind's 4px scale. Named steps below are the ones
  * shells should prefer: 4, 8, 12, 16, 24, 32, 48, 72.
  *
@@ -21,8 +24,7 @@
   --s4n-color-moss: #3d6a58;
   --s4n-color-warning: #8a5a2a;
 
-  --s4n-font-serif: "Noto Serif TC", "Iowan Old Style", "Palatino Linotype", Palatino, serif;
-  --s4n-font-sans: "Noto Sans TC", "PingFang TC", "Microsoft JhengHei", sans-serif;
+  --s4n-font-sans: "jf open 粉圓", "PingFang TC", "Microsoft JhengHei", sans-serif;
 
   --s4n-space-1: 0.25rem;
   --s4n-space-2: 0.5rem;

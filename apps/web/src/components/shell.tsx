@@ -25,7 +25,7 @@ export function Shell() {
             S
           </span>
           <span>
-            <span className="ts-header is-big s4n-serif">S4N</span>
+            <span className="ts-header is-big">S4N</span>
             <span className="ts-text is-description is-small">捐款系統 2.0</span>
           </span>
         </Link>

@@ -12,20 +12,7 @@ export default defineConfig({
         root: { label: "繁體中文", lang: "zh-TW" },
       },
       lastUpdated: false,
-      customCss: ["./src/styles/custom.css"],
-      head: [
-        {
-          tag: "link",
-          attrs: { rel: "preconnect", href: "https://fonts.googleapis.com" },
-        },
-        {
-          tag: "link",
-          attrs: {
-            rel: "stylesheet",
-            href: "https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;600&family=Noto+Serif+TC:wght@500;600&display=swap",
-          },
-        },
-      ],
+      customCss: ["@s4n/design-tokens/fonts.css", "./src/styles/custom.css"],
       sidebar: [
         {
           label: "開始",

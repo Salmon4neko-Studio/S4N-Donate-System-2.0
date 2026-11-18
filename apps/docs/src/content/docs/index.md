@@ -11,6 +11,8 @@ English. These docs are written in Traditional Chinese. A short English summary 
 
 優先順序是安全、美感，然後才是開發容易。核心擁有帳本、付款介面、事件、疊層、外掛密鑰與權限。功能以外掛的形式掛上來。
 
+儀表板、贊助頁與 OBS 提醒使用同一套本機字體：jf open 粉圓 2.1（justfont，SIL OFL 1.1）。檔案在 `packages/design-tokens/fonts/`，不連外部字型服務。
+
 ## 現在可以用的
 
 - 第一位營運者的初次設定、登入、登出與伺服器端工作階段
