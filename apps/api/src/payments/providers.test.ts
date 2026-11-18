@@ -47,6 +47,7 @@ function order(id: string, providerId: string, amount = 500, status: LedgerOrder
     payCode: null,
     barcodes: null,
     paymentType: null,
+    reviewNotice: null,
   };
 }
 

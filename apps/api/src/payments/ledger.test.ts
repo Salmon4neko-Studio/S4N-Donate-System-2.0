@@ -19,6 +19,7 @@ function order(overrides: Partial<LedgerOrder> = {}): LedgerOrder {
     payCode: null,
     barcodes: null,
     paymentType: null,
+    reviewNotice: null,
     ...overrides,
   };
 }
@@ -64,8 +65,17 @@ test("awaiting keeps one set of instructions and the list can filter it", async 
   assert.equal((await ledger.listRecent(10, "awaiting")).length, 1);
   assert.equal((await ledger.listRecent(10, "created")).length, 0);
   assert.equal(await ledger.markExpired("order_1"), "updated");
-  assert.equal(await ledger.markSucceeded("order_1", "ref_1"), "updated");
-  assert.equal((await ledger.getById("order_1"))?.status, "succeeded");
+  assert.equal(await ledger.markSucceeded("order_1", "ref_1"), "lost_race");
+  assert.equal(
+    await ledger.markNeedsReview("order_1", { providerRef: "ref_1", notice: { TradeNo: "ref_1", TradeAmt: "500" } }),
+    "updated",
+  );
+  assert.equal((await ledger.getById("order_1"))?.status, "review");
+  assert.equal(
+    await ledger.markNeedsReview("order_1", { providerRef: "ref_1", notice: { TradeNo: "other" } }),
+    "duplicate",
+  );
+  assert.equal((await ledger.getById("order_1"))?.reviewNotice?.TradeNo, "ref_1");
 });
 
 test("rejects missing, mismatched, and already failed orders", () => {
@@ -117,7 +127,16 @@ test("rejects missing, mismatched, and already failed orders", () => {
       providerRef: "ref_1",
       amountMinor: 500,
     }).action,
-    "record",
+    "needs_review",
+  );
+  assert.equal(
+    decideVerifiedPayment(order({ status: "review", providerRef: "ref_1" }), {
+      orderId: "order_1",
+      providerId: "official.ecpay",
+      providerRef: "ref_1",
+      amountMinor: 500,
+    }).action,
+    "duplicate",
   );
   assert.equal(
     decideVerifiedPayment(order({ status: "awaiting", providerRef: "ref_1" }), {

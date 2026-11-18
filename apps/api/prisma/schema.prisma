@@ -84,6 +84,7 @@ model Donation {
   barcode2    String?
   barcode3    String?
   paymentType String?
+  reviewNotice Json?
   createdAt   DateTime       @default(now())
   updatedAt   DateTime       @updatedAt
 
@@ -98,6 +99,7 @@ enum DonationStatus {
   failed
   awaiting
   expired
+  review
 }
 
 /// Append-only delivery log. This is not the donation ledger.

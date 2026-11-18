@@ -150,21 +150,6 @@
     ]
   },
   {
-    "id": "official.opay-barcode",
-    "category": "payment",
-    "author": "S4N",
-    "featured": false,
-    "icon": "credit-card",
-    "changelog": "0.1.0 歐付寶超商條碼。取號後待繳費，付款通知才入帳。",
-    "screenshots": [
-      {
-        "alt": "繳費資訊",
-        "caption": "待繳費",
-        "frame": "checkout"
-      }
-    ]
-  },
-  {
     "id": "official.ticker",
     "category": "tool",
     "author": "S4N",

@@ -1,6 +1,6 @@
 import type { UntrustedText } from "@s4n/events";
 
-export type DonationState = "created" | "awaiting" | "succeeded" | "expired" | "failed";
+export type DonationState = "created" | "awaiting" | "succeeded" | "expired" | "failed" | "review";
 
 export interface LedgerOrder {
   id: string;
@@ -17,6 +17,8 @@ export interface LedgerOrder {
   payCode: string | null;
   barcodes: readonly [string, string, string] | null;
   paymentType: string | null;
+  /** Provider notice kept for 待人工處理. No CheckMacValue and no key material. */
+  reviewNotice: Readonly<Record<string, string>> | null;
 }
 
 export interface AwaitSlip {
@@ -30,6 +32,7 @@ export interface AwaitSlip {
 
 export type LedgerDecision =
   | { action: "record"; amountMinor: number }
+  | { action: "needs_review" }
   | { action: "duplicate" }
   | { action: "missing_order" }
   | { action: "provider_mismatch" }
@@ -50,17 +53,22 @@ export interface ListedDonation {
   bankCode: string | null;
   payCode: string | null;
   barcodes: readonly [string, string, string] | null;
+  reviewNotice: Readonly<Record<string, string>> | null;
 }
 
 export interface Ledger {
   create(order: LedgerOrder): Promise<void>;
   getById(id: string): Promise<LedgerOrder | null>;
-  /**
-   * Conditional write from 待付款, 待繳費, or 已過期.
-   * A verified payment after local expiry still books: the bank may have accepted it.
-   * `lost_race` means the row was no longer one of those states.
-   */
+  /** Conditional write from 待付款 or 待繳費. An expired order is not booked here. */
   markSucceeded(id: string, providerRef: string): Promise<"updated" | "lost_race">;
+  /**
+   * 已過期 -> 待人工處理. Does not book the payment.
+   * A second notice is `duplicate` and keeps the first payload.
+   */
+  markNeedsReview(
+    id: string,
+    input: { providerRef: string; notice: Readonly<Record<string, string>> },
+  ): Promise<"updated" | "duplicate" | "lost_race">;
   /** Conditional write from 待付款 or 待繳費. */
   markFailed(id: string, providerRef: string | null): Promise<"updated" | "lost_race">;
   /**
@@ -90,8 +98,9 @@ export function decideVerifiedPayment(
   if (order.providerRef !== null && order.providerRef !== input.providerRef) {
     return { action: "provider_mismatch" };
   }
-  if (order.status === "succeeded") return { action: "duplicate" };
+  if (order.status === "succeeded" || order.status === "review") return { action: "duplicate" };
   if (order.status === "failed") return { action: "already_failed" };
+  if (order.status === "expired") return { action: "needs_review" };
   return { action: "record", amountMinor: order.amountMinor };
 }
 

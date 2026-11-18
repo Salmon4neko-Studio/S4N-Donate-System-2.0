@@ -59,9 +59,6 @@ importers:
       '@s4n/plugin-opay-atm':
         specifier: workspace:*
         version: link:../../plugins/opay-atm
-      '@s4n/plugin-opay-barcode':
-        specifier: workspace:*
-        version: link:../../plugins/opay-barcode
       '@s4n/plugin-opay-cvs':
         specifier: workspace:*
         version: link:../../plugins/opay-cvs

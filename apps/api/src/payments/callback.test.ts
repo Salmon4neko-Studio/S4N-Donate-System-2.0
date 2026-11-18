@@ -21,6 +21,10 @@ test("unknown and non-payment callbacks never touch the ledger", async () => {
         touched = true;
         return "lost_race";
       },
+      async markNeedsReview() {
+        touched = true;
+        return "lost_race";
+      },
       async markFailed() {
         touched = true;
         return "lost_race";
@@ -69,6 +73,7 @@ test("a verified callback records the server order once and ignores the body amo
       payCode: null,
       barcodes: null,
       paymentType: null,
+      reviewNotice: null,
     },
   ]);
   const providers = new PaymentRegistry();

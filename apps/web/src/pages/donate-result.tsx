@@ -5,7 +5,7 @@ import { PublicPage } from "@/components/public-page";
 import { api } from "@/lib/api";
 
 interface DonationStatus {
-  status: "created" | "awaiting" | "succeeded" | "expired" | "failed";
+  status: "created" | "awaiting" | "succeeded" | "expired" | "failed" | "review";
   amountMinor: number;
   currency: string;
   providerId: string;
@@ -41,6 +41,10 @@ export function DonateResultPage() {
           }
           if (body.status === "expired") {
             setState("expired");
+            return;
+          }
+          if (body.status === "review") {
+            setState("review");
             return;
           }
           if (body.status === "awaiting") {

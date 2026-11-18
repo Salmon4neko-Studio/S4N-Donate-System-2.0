@@ -271,6 +271,54 @@ test("a number-issued code posted to the credit callback does not fail the order
   assert.equal((await ledger.getById(id))?.status, "created");
 });
 
+test("a paid notice after expiry is held for review and does not alert", { timeout: 60_000 }, async () => {
+  const id = "a".repeat(20);
+  const ledger = createMemoryLedger([blank(id, "official.ecpay")]);
+  assert.equal(await ledger.markExpired(id), "updated");
+  const { app, bus } = createTestApp({ ledger });
+  const events: AnyS4nEvent[] = [];
+  bus.subscribe((event) => events.push(event));
+  await arm(app, "official.ecpay");
+  const fields = {
+    MerchantID: STAGE.merchantId,
+    MerchantTradeNo: id,
+    RtnCode: "1",
+    RtnMsg: "paid",
+    TradeNo: "12345678901234567890",
+    TradeAmt: "500",
+    PaymentType: "Credit_CreditCard",
+    PaymentDate: "2026/11/18 18:00:00",
+    TradeDate: "2026/11/18 17:00:00",
+    SimulatePaid: "0",
+    CheckMacValue: "should-be-replaced",
+  };
+  const first = await app.request("/api/payments/official.ecpay/callback", { method: "POST", body: notice(fields) });
+  assert.equal(first.status, 200);
+  assert.equal(await first.text(), "1|OK");
+  const stored = await ledger.getById(id);
+  assert.equal(stored?.status, "review");
+  assert.equal(stored?.reviewNotice?.TradeNo, "12345678901234567890");
+  assert.equal(stored?.reviewNotice?.CheckMacValue, undefined);
+  assert.equal(stored?.reviewNotice?.HashKey, undefined);
+  assert.equal(events.filter((event) => event.type === "s4n.donation.succeeded").length, 0);
+  assert.equal(events.filter((event) => event.type === "s4n.donation.failed").length, 0);
+
+  const second = await app.request("/api/payments/official.ecpay/callback", { method: "POST", body: notice(fields) });
+  assert.equal(second.status, 200);
+  assert.equal(await second.text(), "1|OK");
+  assert.equal((await ledger.getById(id))?.status, "review");
+  assert.equal(events.filter((event) => event.type === "s4n.donation.succeeded").length, 0);
+
+  const wrongAmount = { ...fields, TradeAmt: "1" };
+  const rejected = await app.request("/api/payments/official.ecpay/callback", {
+    method: "POST",
+    body: notice(wrongAmount),
+  });
+  assert.equal(rejected.status, 409);
+  assert.equal(await rejected.text(), "0|Error");
+  assert.equal((await ledger.getById(id))?.status, "review");
+});
+
 test("expiry queries first and does not expire when the provider is down", async () => {
   const past = "2020-01-01T00:00:00.000Z";
   const unpaid = blank("a".repeat(20), "official.ecpay-atm");
@@ -338,5 +386,6 @@ function blank(id: string, providerId: string): LedgerOrder {
     payCode: null,
     barcodes: null,
     paymentType: null,
+    reviewNotice: null,
   };
 }

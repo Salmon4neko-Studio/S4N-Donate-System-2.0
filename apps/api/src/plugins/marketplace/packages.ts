@@ -10,7 +10,6 @@ export const BUNDLED_PLUGIN_FILES: Record<string, string> = {
   "official.opay": "plugins/opay/s4n-plugin.json",
   "official.opay-atm": "plugins/opay-atm/s4n-plugin.json",
   "official.opay-cvs": "plugins/opay-cvs/s4n-plugin.json",
-  "official.opay-barcode": "plugins/opay-barcode/s4n-plugin.json",
   "official.alerts": "plugins/alerts/s4n-plugin.json",
   "official.chat-overlay": "plugins/chat-overlay/s4n-plugin.json",
   "official.twitch-chat": "plugins/twitch-chat/s4n-plugin.json",

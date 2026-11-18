@@ -599,7 +599,7 @@ export function createApp(deps: AppDeps): Hono<SessionEnv> {
   return app;
 }
 
-const DONATION_STATES = new Set<DonationState>(["created", "awaiting", "succeeded", "expired", "failed"]);
+const DONATION_STATES = new Set<DonationState>(["created", "awaiting", "succeeded", "expired", "failed", "review"]);
 
 function readStatusFilter(value: string | undefined): DonationState | undefined | "invalid" {
   if (value === undefined || value === "") return undefined;

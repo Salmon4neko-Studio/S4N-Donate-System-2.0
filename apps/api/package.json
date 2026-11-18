@@ -27,7 +27,6 @@
     "@s4n/plugin-goals": "workspace:*",
     "@s4n/plugin-opay": "workspace:*",
     "@s4n/plugin-opay-atm": "workspace:*",
-    "@s4n/plugin-opay-barcode": "workspace:*",
     "@s4n/plugin-opay-cvs": "workspace:*",
     "@s4n/plugin-sdk": "workspace:*",
     "@s4n/plugin-ticker": "workspace:*",

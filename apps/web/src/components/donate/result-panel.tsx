@@ -1,7 +1,7 @@
 import { Link } from "react-router";
 import { formatTwd } from "@/lib/money";
 
-export type DonateResultState = "thanks" | "failed" | "expired" | "pending" | "cancelled" | "missing" | "loading";
+export type DonateResultState = "thanks" | "failed" | "expired" | "review" | "pending" | "cancelled" | "missing" | "loading";
 
 const copy: Record<DonateResultState, { title: string; body: string; icon: string }> = {
   loading: { title: "正在確認付款", body: "正在讀取這筆訂單。", icon: "ts-icon is-clock-icon is-huge" },
@@ -13,6 +13,11 @@ const copy: Record<DonateResultState, { title: string; body: string; icon: strin
   thanks: { title: "謝謝你的贊助", body: "這筆付款已經記下。若提醒疊層有開著，會顯示這則贊助。", icon: "ts-icon is-circle-check-icon is-huge is-positive" },
   failed: { title: "這筆付款沒有完成", body: "沒有入帳。若你已經付款，請聯絡這位創作者。", icon: "ts-icon is-circle-xmark-icon is-huge is-negative" },
   expired: { title: "這筆繳費已經過期", body: "沒有在期限內入帳。若你已經繳了，請聯絡這位創作者。", icon: "ts-icon is-clock-icon is-huge" },
+  review: {
+    title: "這筆付款需要人工確認",
+    body: "通知在期限之後才到。還沒有入帳，也還沒有送到提醒。請聯絡這位創作者。",
+    icon: "ts-icon is-triangle-exclamation-icon is-huge",
+  },
   cancelled: { title: "你回到了贊助頁", body: "如果沒有完成付款，這筆不會入帳。", icon: "ts-icon is-ban-icon is-huge" },
   missing: { title: "找不到這筆訂單", body: "請從贊助頁重新開始。", icon: "ts-icon is-triangle-exclamation-icon is-huge is-negative" },
 };

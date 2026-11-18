@@ -9,7 +9,7 @@ import { providerLabel } from "@/lib/payment";
 import { formatTaipei } from "@/lib/time";
 
 interface Instructions {
-  status: "created" | "awaiting" | "succeeded" | "expired" | "failed";
+  status: "created" | "awaiting" | "succeeded" | "expired" | "failed" | "review";
   amountMinor: number;
   currency: string;
   providerId: string;
@@ -82,6 +82,13 @@ export function DonatePayPage() {
     return (
       <PublicPage kicker="繳費">
         <ResultPanel state="failed" amountMinor={instructions.amountMinor} />
+      </PublicPage>
+    );
+  }
+  if (instructions.status === "review") {
+    return (
+      <PublicPage kicker="繳費">
+        <ResultPanel state="review" amountMinor={instructions.amountMinor} />
       </PublicPage>
     );
   }

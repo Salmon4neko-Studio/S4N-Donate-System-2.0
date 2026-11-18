@@ -132,7 +132,7 @@ export interface DonationRow {
   providerRef: string | null;
   amountMinor: number;
   currency: string;
-  status: "created" | "awaiting" | "succeeded" | "expired" | "failed";
+  status: "created" | "awaiting" | "succeeded" | "expired" | "failed" | "review";
   donorName: string;
   message: string;
   createdAt: string;
@@ -140,6 +140,7 @@ export interface DonationRow {
   bankCode: string | null;
   payCode: string | null;
   barcodes: readonly [string, string, string] | null;
+  reviewNotice: Readonly<Record<string, string>> | null;
 }
 
 export interface EventLogEntry {

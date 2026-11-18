@@ -70,7 +70,7 @@ export async function settlePaymentInfo(options: {
   }
 
   if (verification.outcome === "failed") {
-    if (order.status === "failed" || order.status === "succeeded" || order.status === "expired") {
+    if (order.status === "failed" || order.status === "succeeded" || order.status === "expired" || order.status === "review") {
       return accept(order.id, { status: "duplicate", donationId: order.id }, provider);
     }
     try {
@@ -91,7 +91,7 @@ export async function settlePaymentInfo(options: {
     return accept(order.id, { status: "failed", donationId: order.id }, provider);
   }
 
-  if (order.status === "succeeded" || order.status === "expired" || order.status === "failed") {
+  if (order.status === "succeeded" || order.status === "expired" || order.status === "failed" || order.status === "review") {
     return accept(order.id, { status: "duplicate", donationId: order.id }, provider);
   }
 

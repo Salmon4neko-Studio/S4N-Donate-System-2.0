@@ -18,6 +18,10 @@ test("donation creation stops at the unimplemented provider and does not write t
         touched = true;
         return "lost_race";
       },
+      async markNeedsReview() {
+        touched = true;
+        return "lost_race" as const;
+      },
       async markFailed() {
         touched = true;
         return "lost_race";

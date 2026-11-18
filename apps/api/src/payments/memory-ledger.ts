@@ -19,18 +19,35 @@ export function createMemoryLedger(seed: readonly LedgerOrder[] = []): Ledger {
         payCode: null,
         barcodes: null,
         paymentType: null,
+        reviewNotice: null,
       });
       createdAt.set(order.id, new Date().toISOString());
     },
     async getById(id) {
       const row = rows.get(id);
-      return row === undefined ? null : { ...row, barcodes: copyBarcodes(row.barcodes) };
+      return row === undefined
+        ? null
+        : {
+            ...row,
+            barcodes: copyBarcodes(row.barcodes),
+            reviewNotice: row.reviewNotice === null ? null : { ...row.reviewNotice },
+          };
     },
     async markSucceeded(id, providerRef) {
       const row = rows.get(id);
       if (row === undefined || !canPay(row.status)) return "lost_race";
       row.status = "succeeded";
       row.providerRef = providerRef;
+      return "updated";
+    },
+    async markNeedsReview(id, input) {
+      const row = rows.get(id);
+      if (row === undefined) return "lost_race";
+      if (row.status === "review") return "duplicate";
+      if (row.status !== "expired") return "lost_race";
+      row.status = "review";
+      if (row.providerRef === null) row.providerRef = input.providerRef;
+      row.reviewNotice = { ...input.notice };
       return "updated";
     },
     async markFailed(id, providerRef) {
@@ -84,6 +101,7 @@ export function createMemoryLedger(seed: readonly LedgerOrder[] = []): Ledger {
           bankCode: row.bankCode,
           payCode: row.payCode,
           barcodes: copyBarcodes(row.barcodes),
+          reviewNotice: row.reviewNotice === null ? null : { ...row.reviewNotice },
         }));
       listed.sort((a, b) => (a.createdAt < b.createdAt ? 1 : a.createdAt > b.createdAt ? -1 : 0));
       return listed.slice(0, take);
@@ -92,7 +110,7 @@ export function createMemoryLedger(seed: readonly LedgerOrder[] = []): Ledger {
 }
 
 function canPay(status: DonationState): boolean {
-  return status === "created" || status === "awaiting" || status === "expired";
+  return status === "created" || status === "awaiting";
 }
 
 function applySlip(row: LedgerOrder, slip: AwaitSlip): void {
@@ -112,6 +130,7 @@ function normalize(order: LedgerOrder): LedgerOrder {
     payCode: order.payCode ?? null,
     barcodes: copyBarcodes(order.barcodes ?? null),
     paymentType: order.paymentType ?? null,
+    reviewNotice: order.reviewNotice ?? null,
   };
 }
 

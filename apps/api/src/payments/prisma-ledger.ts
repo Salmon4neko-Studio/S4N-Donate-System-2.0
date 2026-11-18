@@ -1,8 +1,8 @@
 import { asUntrustedText } from "@s4n/events";
-import { DonationStatus, type PrismaClient } from "../../generated/prisma/client.js";
+import { Prisma, DonationStatus, type PrismaClient } from "../../generated/prisma/client.js";
 import { sameAwaitSlip, type AwaitSlip, type DonationState, type Ledger, type LedgerOrder, type ListedDonation } from "./ledger.js";
 
-const PAYABLE = [DonationStatus.created, DonationStatus.awaiting, DonationStatus.expired];
+const PAYABLE = [DonationStatus.created, DonationStatus.awaiting];
 
 export function createPrismaLedger(prisma: PrismaClient): Ledger {
   return {
@@ -31,6 +31,24 @@ export function createPrismaLedger(prisma: PrismaClient): Ledger {
         data: { status: DonationStatus.succeeded, providerRef },
       });
       return result.count === 1 ? "updated" : "lost_race";
+    },
+    async markNeedsReview(id, input) {
+      const existing = await prisma.donation.findUnique({ where: { id } });
+      if (existing === null) return "lost_race";
+      if (existing.status === DonationStatus.review) return "duplicate";
+      if (existing.status !== DonationStatus.expired) return "lost_race";
+      const result = await prisma.donation.updateMany({
+        where: { id, status: DonationStatus.expired },
+        data: {
+          status: DonationStatus.review,
+          reviewNotice: input.notice as Prisma.InputJsonValue,
+          ...(existing.providerRef === null ? { providerRef: input.providerRef } : {}),
+        },
+      });
+      if (result.count === 1) return "updated";
+      const again = await prisma.donation.findUnique({ where: { id } });
+      if (again?.status === DonationStatus.review) return "duplicate";
+      return "lost_race";
     },
     async markFailed(id, providerRef) {
       const result = await prisma.donation.updateMany({
@@ -132,7 +150,17 @@ function toOrder(row: DonationRow): LedgerOrder {
     payCode: row.payCode,
     barcodes,
     paymentType: row.paymentType,
+    reviewNotice: readNotice(row.reviewNotice),
   };
+}
+
+function readNotice(value: unknown): Record<string, string> | null {
+  if (value === null || value === undefined || typeof value !== "object" || Array.isArray(value)) return null;
+  const notice: Record<string, string> = {};
+  for (const [key, item] of Object.entries(value)) {
+    if (typeof item === "string") notice[key] = item;
+  }
+  return notice;
 }
 
 function toPrismaStatus(status: DonationState): DonationStatus {
@@ -156,4 +184,5 @@ interface DonationRow {
   barcode2: string | null;
   barcode3: string | null;
   paymentType: string | null;
+  reviewNotice: unknown;
 }

@@ -836,6 +836,27 @@ p .ts-text.is-link,
   overflow-wrap: anywhere;
 }
 
+.s4n-review {
+  margin-top: 0.35rem;
+  padding: 0.75rem 0.85rem;
+  border-radius: var(--ts-border-radius-element);
+  background: var(--ts-tonal-warning-400);
+  color: var(--ts-tonal-warning-800);
+}
+
+.s4n-review p {
+  margin: 0;
+}
+
+.s4n-review p + p {
+  margin-top: 0.35rem;
+}
+
+.has-dark .s4n-review {
+  background: #4e3116;
+  color: #f6ead7;
+}
+
 @media (max-width: 420px) {
   .s4n-slip-row dd {
     align-items: stretch;

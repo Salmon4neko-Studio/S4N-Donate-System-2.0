@@ -23,6 +23,10 @@ test("a test donation is marked as a test and does not touch the paid ledger", {
         writes += 1;
         return inner.markSucceeded(id, providerRef);
       },
+      async markNeedsReview(id, input) {
+        writes += 1;
+        return inner.markNeedsReview(id, input);
+      },
       async markFailed(id, providerRef) {
         writes += 1;
         return inner.markFailed(id, providerRef);

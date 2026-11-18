@@ -58,8 +58,8 @@ test("payment plugins are official-only, including a signed community copy", () 
     reason: "payment_official_only",
   });
   assert.deepEqual(installDecision({ ...payment, official: true, id: "official.opay-barcode" }, "official"), {
-    allow: true,
-    runtime: "bundled",
+    allow: false,
+    reason: "payment_official_only",
   });
 });
 

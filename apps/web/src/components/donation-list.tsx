@@ -10,6 +10,7 @@ const statusLabel: Record<DonationRow["status"], string> = {
   awaiting: "待繳費",
   succeeded: "已付款",
   expired: "已過期",
+  review: "待人工處理",
   failed: "失敗",
 };
 
@@ -18,6 +19,7 @@ const statusClass: Record<DonationRow["status"], string> = {
   awaiting: "ts-badge is-accent",
   succeeded: "ts-badge is-positive",
   expired: "ts-badge",
+  review: "ts-badge is-warning",
   failed: "ts-badge is-negative",
 };
 
@@ -26,6 +28,7 @@ const indicatorClass: Record<DonationRow["status"], string> = {
   awaiting: "is-accent",
   succeeded: "is-positive",
   expired: "",
+  review: "is-warning",
   failed: "is-negative",
 };
 
@@ -90,6 +93,7 @@ function DonationItem({ donation, onReload }: { donation: DonationRow; onReload:
           </span>
         </div>
         <PaymentHint donation={donation} />
+        {donation.status === "review" ? <ReviewNote notice={donation.reviewNotice} /> : null}
         {canReconcile ? (
           <div className="s4n-choices">
             <button
@@ -106,6 +110,22 @@ function DonationItem({ donation, onReload }: { donation: DonationRow; onReload:
         ) : null}
       </div>
     </article>
+  );
+}
+
+function ReviewNote({ notice }: { notice: DonationRow["reviewNotice"] }) {
+  const bits = [
+    notice?.TradeNo ? `交易編號 ${notice.TradeNo}` : null,
+    notice?.PaymentType ? `方式 ${notice.PaymentType}` : null,
+    notice?.RtnCode ? `代碼 ${notice.RtnCode}` : null,
+    notice?.PaymentDate ? `付款時間 ${notice.PaymentDate}` : null,
+    notice?.source ? `來源 ${notice.source}` : null,
+  ].filter((item): item is string => item !== null);
+  return (
+    <div className="s4n-review">
+      <p>期限過了之後才收到付款通知。這筆沒有入帳，也沒有送到提醒疊層。</p>
+      {bits.length > 0 ? <p className="ts-text is-description">{bits.join("　")}</p> : null}
+    </div>
   );
 }
 

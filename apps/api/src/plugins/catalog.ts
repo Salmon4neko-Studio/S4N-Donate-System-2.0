@@ -7,7 +7,6 @@ import { createProvider as createEcpayCvs, manifest as ecpayCvs } from "@s4n/plu
 import { manifest as goals } from "@s4n/plugin-goals";
 import { createProvider as createOpay, manifest as opay } from "@s4n/plugin-opay";
 import { createProvider as createOpayAtm, manifest as opayAtm } from "@s4n/plugin-opay-atm";
-import { createProvider as createOpayBarcode, manifest as opayBarcode } from "@s4n/plugin-opay-barcode";
 import { createProvider as createOpayCvs, manifest as opayCvs } from "@s4n/plugin-opay-cvs";
 import { manifest as ticker } from "@s4n/plugin-ticker";
 import { createTwitchChatSource, manifest as twitchChat } from "@s4n/plugin-twitch-chat";
@@ -39,7 +38,6 @@ export function createOfficialCatalog(): LoadedPlugin[] {
     { manifest: opay, createProvider: createOpay },
     { manifest: opayAtm, createProvider: createOpayAtm },
     { manifest: opayCvs, createProvider: createOpayCvs },
-    { manifest: opayBarcode, createProvider: createOpayBarcode },
     { manifest: alerts },
     { manifest: chatOverlay },
     { manifest: twitchChat, createChatSource: createTwitchChatSource },

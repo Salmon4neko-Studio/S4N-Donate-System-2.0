@@ -94,13 +94,37 @@ export async function reconcileDonation(options: {
     return { status: 200, body: { status: "failed", donationId: order.id } };
   }
 
+  if ((order.status === "expired" || order.status === "review") && queried.tradeStatus === "paid") {
+    if (order.status === "review") {
+      return { status: 200, body: { status: "review", donationId: order.id } };
+    }
+    try {
+      const wrote = await options.ledger.markNeedsReview(order.id, {
+        providerRef: queried.providerRef,
+        notice: {
+          source: "QueryTradeInfo",
+          MerchantTradeNo: queried.orderId,
+          TradeNo: queried.providerRef,
+          TradeAmt: String(queried.amountMinor),
+          TradeStatus: "1",
+        },
+      });
+      if (wrote === "lost_race") {
+        return { status: 200, body: { status: "duplicate", donationId: order.id } };
+      }
+    } catch {
+      return { status: 503, body: { error: "ledger_unavailable" } };
+    }
+    return { status: 200, body: { status: "review", donationId: order.id } };
+  }
+
   if (order.status === "succeeded") {
     return { status: 200, body: { status: "duplicate", donationId: order.id } };
   }
   if (order.status === "failed") {
     return { status: 409, body: { error: "already_failed" } };
   }
-  if (order.status !== "created" && order.status !== "awaiting" && order.status !== "expired") {
+  if (order.status !== "created" && order.status !== "awaiting") {
     return { status: 409, body: { error: "already_failed" } };
   }
 

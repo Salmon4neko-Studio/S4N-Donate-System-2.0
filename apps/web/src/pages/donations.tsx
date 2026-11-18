@@ -11,6 +11,7 @@ const filters: ReadonlyArray<{ id: LedgerFilter; label: string }> = [
   { id: "awaiting", label: "待繳費" },
   { id: "succeeded", label: "已付款" },
   { id: "expired", label: "已過期" },
+  { id: "review", label: "待人工處理" },
   { id: "failed", label: "失敗" },
 ];
 
@@ -85,7 +86,7 @@ function EmptyLedger({ filtered }: { filtered: boolean }) {
         <p className="description">
           {filtered
             ? "換一個狀態，或等新的訂單進來。"
-            : "待付款、待繳費、已付款、已過期和失敗都會列在這裡。測試按鈕只把預覽送到疊層。"}
+            : "待付款、待繳費、已付款、已過期、待人工處理和失敗都會列在這裡。測試按鈕只把預覽送到疊層。"}
         </p>
       </div>
     </section>

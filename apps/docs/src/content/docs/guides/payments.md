@@ -57,13 +57,14 @@ S4N_PUBLIC_BASE_URL=https://donate.example
 | 待繳費 | `awaiting` | ATM 帳號或超商代碼已經核發 |
 | 已付款 | `succeeded` | 驗過的付款通知或查單結果。這時才送 `s4n.donation.succeeded` |
 | 已過期 | `expired` | 期限過了，查單仍是未付款 |
+| 待人工處理 | `review` | 過期之後才收到驗過的付款通知。沒有入帳，也沒有送提醒 |
 | 失敗 | `failed` | 廠商明確拒絕。之後不會再改成已付款 |
 
 信用卡沒有取號，待付款超過 24 小時且查單仍未付款，會標成已過期。ATM 預設 3 天，到期日的台北時間 23:59:59。超商代碼預設 10080 分鐘（7 天），這是繳款單的列印期限，列印後各超商的繳費期限以單據為準。超商條碼預設 7 天，到期日的 23:59:59。
 
 到期前會先打 QueryTradeInfo。查到已付款就入帳並提醒。廠商沒回應就先留著，下一輪再查，避免金流中斷時把還能繳的帳號標成過期。
 
-本地過期之後，若仍收到驗過的付款成功（銀行有時會收下逾期匯款），核心會改成已付款。已經失敗的訂單不會被改成已付款。
+本地過期之後，若仍收到驗過的付款成功，訂單改成待人工處理，並留下不含檢查碼與金鑰的通知內容。這一筆不入帳，也不送 `s4n.donation.succeeded`。回應仍是 `1|OK`，讓廠商停止重送。金額不符仍然回 `0|Error`，訂單維持原狀。已經失敗的訂單不會被改成已付款。帳本沒有把待人工處理改回已付款的按鈕。
 
 `s4n.donation.test` 只進事件紀錄，不建立訂單，也不進帳本。
 
@@ -117,7 +118,7 @@ S4N_PUBLIC_BASE_URL=https://donate.example
 | 信用卡 | `official.opay` |
 | ATM | `official.opay-atm` |
 | 超商代碼 | `official.opay-cvs` |
-| 超商條碼 | `official.opay-barcode` |
+| 超商條碼 | 先不提供。程式留在 `plugins/opay-barcode`，沒有放進官方索引，贊助頁不會出現 |
 
 歐付寶公開的測試商店與綠界那組無 3D 的測試商店相同：MerchantID `2000132`、HashKey `5294y06JbISpM5x9`、HashIV `v77hoKGq4kWxNNIS`。測試卡同樣是 `4311-9522-2222-2222` / 安全碼 `222`。
 
@@ -128,7 +129,7 @@ S4N_PUBLIC_BASE_URL=https://donate.example
 
 歐付寶超商代碼的 `StoreExpireDate` 在大於 100 時以分鐘計，所以同樣送 `10080`。ATM 的 `ExpireDate` 是天數 `3`。取號與付款的 `RtnCode` 規則與綠界相同。
 
-歐付寶公開的付款方式表以信用卡、ATM、超商代碼為主。超商條碼外掛沿用同一份全方位金流參數；若測試站拒絕 `ChoosePayment=BARCODE`，停用 `official.opay-barcode` 即可，不影響其他方式。
+歐付寶超商條碼先關掉。公開的付款方式表以信用卡、ATM、超商代碼為主，所以 `official.opay-barcode` 不在簽名索引裡，也不能安裝，贊助頁不會列出它。綠界超商條碼仍然可用。
 
 ## 檢查碼
 

@@ -6,7 +6,6 @@ export const OFFICIAL_PLUGIN_IDS = [
   "official.opay",
   "official.opay-atm",
   "official.opay-cvs",
-  "official.opay-barcode",
   "official.alerts",
   "official.chat-overlay",
   "official.twitch-chat",
@@ -32,7 +31,6 @@ export const PAYMENT_PLUGIN_IDS = [
   "official.opay",
   "official.opay-atm",
   "official.opay-cvs",
-  "official.opay-barcode",
 ] as const;
 
 const PAYMENT = new Set<string>(PAYMENT_PLUGIN_IDS);

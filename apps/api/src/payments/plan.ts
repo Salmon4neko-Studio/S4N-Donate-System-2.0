@@ -73,6 +73,7 @@ export function planDonation(id: string, request: DonationRequest): LedgerOrder 
     payCode: null,
     barcodes: null,
     paymentType: null,
+    reviewNotice: null,
   };
 }
 
