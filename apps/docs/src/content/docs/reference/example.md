@@ -37,13 +37,13 @@ description: 一份社群疊層清單，以及官方綠界清單的密文欄位�
 
 ## 官方付款外掛
 
-綠界與歐付寶是兩份獨立清單。工人組出信用卡一次付清的結帳表單，並驗證付款通知與查單結果的 CheckMacValue。表單會送到廠商，查單也會打廠商的 API，但工人碰不到帳本。核心先建立待付款訂單；簽章、商店代號與金額都通過之後，才由核心寫帳。密文欄位是商店代號、HashKey、HashIV。`environment` 是 `stage` 或 `production`，不是密文。
+綠界與歐付寶的每種付款方式各是一份清單：信用卡、ATM、超商代碼、超商條碼。工人組出結帳表單，並驗證付款通知、取號通知與查單結果的 CheckMacValue。表單會送到廠商，查單也會打廠商的 API，但工人碰不到帳本。核心先建立待付款訂單；簽章、商店代號、付款方式與金額都通過之後，才由核心寫帳。取號成功只把訂單改成待繳費。密文欄位是商店代號、HashKey、HashIV。`environment` 是 `stage` 或 `production`，不是密文。
 
 ```json
 {
   "id": "official.ecpay",
-  "name": "綠界 ECPay",
-  "version": "0.1.0",
+  "name": "綠界信用卡",
+  "version": "0.2.0",
   "api": "0.1",
   "kind": ["payment"],
   "permissions": ["payments.provider", "secrets", "network"],
@@ -62,4 +62,4 @@ description: 一份社群疊層清單，以及官方綠界清單的密文欄位�
 }
 ```
 
-歐付寶的欄位相同，id 是 `official.opay`。贊助提醒會在疊層顯示名稱、金額與留言，版本 `0.1.0`，沒有密文欄位。目標、跑馬燈與語音仍是官方佔位，版本是 `0.0.0`，沒有密文欄位。
+歐付寶信用卡的欄位相同，id 是 `official.opay`。ATM 與超商代碼的 id 是 `official.ecpay-atm`、`official.ecpay-cvs`、`official.opay-atm`、`official.opay-cvs`。綠界超商條碼是 `official.ecpay-barcode`。歐付寶超商條碼的程式在 `plugins/opay-barcode`，目前沒有註冊，贊助頁不會出現。已註冊的付款外掛版本：信用卡 `0.2.0`，其餘 `0.1.0`，密文欄位相同。贊助提醒會在疊層顯示名稱、金額與留言，版本 `0.1.0`，沒有密文欄位。目標、跑馬燈與語音仍是官方佔位，版本是 `0.0.0`，沒有密文欄位。

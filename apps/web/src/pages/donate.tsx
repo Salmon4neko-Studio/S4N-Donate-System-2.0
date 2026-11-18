@@ -83,7 +83,7 @@ export function DonatePage() {
     <PublicPage
       kicker="贊助"
       title="送給這位創作者"
-      lede="選擇付款方式後，會先在伺服器建立訂單，再前往綠界或歐付寶的信用卡頁。顯示名稱和留言只當文字保存，不會送給金流。"
+      lede="選擇付款方式後，會先在伺服器建立訂單，再前往綠界或歐付寶。信用卡會立刻請款；ATM、超商代碼與超商條碼會先取得繳費資訊。顯示名稱和留言只當文字保存，不會送給金流。"
     >
       {loadError ? <Note tone="danger">無法連上核心 API。</Note> : null}
       {options === null && !loadError ? <p className="ts-text is-description">正在讀取付款方式…</p> : null}

@@ -77,17 +77,29 @@ model Donation {
   status      DonationStatus
   donorName   String
   message     String
+  expiresAt   DateTime?
+  bankCode    String?
+  payCode     String?
+  barcode1    String?
+  barcode2    String?
+  barcode3    String?
+  paymentType String?
+  reviewNotice Json?
   createdAt   DateTime       @default(now())
   updatedAt   DateTime       @updatedAt
 
   @@unique([providerId, providerRef])
   @@index([status, createdAt])
+  @@index([status, expiresAt])
 }
 
 enum DonationStatus {
   created
   succeeded
   failed
+  awaiting
+  expired
+  review
 }
 
 /// Append-only delivery log. This is not the donation ledger.

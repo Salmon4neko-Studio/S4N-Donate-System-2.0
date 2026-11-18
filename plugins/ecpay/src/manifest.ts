@@ -2,10 +2,10 @@ import type { PluginManifest } from "@s4n/plugin-sdk";
 
 export const manifest = {
   "id": "official.ecpay",
-  "name": "綠界 ECPay",
-  "version": "0.1.0",
+  "name": "綠界信用卡",
+  "version": "0.2.0",
   "api": "0.1",
-  "description": "官方綠界全方位金流。信用卡一次付清。商店代號與金鑰只以密文保存。",
+  "description": "官方綠界信用卡一次付清。商店代號與金鑰只以密文保存。",
   "kind": [
     "payment"
   ],

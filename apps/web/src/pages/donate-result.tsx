@@ -1,17 +1,19 @@
 import { useEffect, useState } from "react";
-import { useSearchParams } from "react-router";
+import { useNavigate, useSearchParams } from "react-router";
 import { ResultPanel, type DonateResultState } from "@/components/donate/result-panel";
 import { PublicPage } from "@/components/public-page";
 import { api } from "@/lib/api";
 
 interface DonationStatus {
-  status: "created" | "succeeded" | "failed";
+  status: "created" | "awaiting" | "succeeded" | "expired" | "failed" | "review";
   amountMinor: number;
   currency: string;
+  providerId: string;
 }
 
 export function DonateResultPage() {
   const [params] = useSearchParams();
+  const navigate = useNavigate();
   const order = params.get("order") ?? "";
   const [state, setState] = useState<DonateResultState>(order === "" ? "missing" : "loading");
   const [amountMinor, setAmountMinor] = useState<number | undefined>();
@@ -37,6 +39,18 @@ export function DonateResultPage() {
             setState("failed");
             return;
           }
+          if (body.status === "expired") {
+            setState("expired");
+            return;
+          }
+          if (body.status === "review") {
+            setState("review");
+            return;
+          }
+          if (body.status === "awaiting") {
+            navigate(`/donate/pay?order=${order}`, { replace: true });
+            return;
+          }
           setState("pending");
           attempts += 1;
           if (attempts < 8) timer = window.setTimeout(poll, 2000);
@@ -52,7 +66,7 @@ export function DonateResultPage() {
       controller.abort();
       window.clearTimeout(timer);
     };
-  }, [order]);
+  }, [navigate, order]);
 
   return (
     <PublicPage kicker="贊助">

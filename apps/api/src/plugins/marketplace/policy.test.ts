@@ -49,6 +49,18 @@ test("payment plugins are official-only, including a signed community copy", () 
     allow: true,
     runtime: "bundled",
   });
+  assert.deepEqual(installDecision({ ...payment, official: true, id: "official.ecpay-atm" }, "official"), {
+    allow: true,
+    runtime: "bundled",
+  });
+  assert.deepEqual(installDecision({ ...payment, official: true, id: "official.ecpay-cvs" }, "community"), {
+    allow: false,
+    reason: "payment_official_only",
+  });
+  assert.deepEqual(installDecision({ ...payment, official: true, id: "official.opay-barcode" }, "official"), {
+    allow: false,
+    reason: "payment_official_only",
+  });
 });
 
 test("a community plugin installs only with the trivial permission set", () => {

@@ -4,6 +4,7 @@ import { decryptPluginSecrets } from "../plugins/secrets.js";
 import type { SecretStore } from "../plugins/settings.js";
 import type { LoadedPlugin, PaymentRegistry } from "../plugins/catalog.js";
 import { decideVerifiedPayment, type Ledger, type LedgerOrder } from "./ledger.js";
+import { noticeFromForm } from "./notice.js";
 
 export interface CallbackResult {
   status: number;
@@ -134,6 +135,32 @@ export async function settlePaymentNotification(options: {
       return accept(verification.orderId, { status: "duplicate", donationId: verification.orderId }, provider);
     }
     return reject(verification.orderId, 409, { error: "already_failed" }, provider);
+  }
+  if (decision.action === "needs_review") {
+    if (order === null || verification.outcome !== "paid") {
+      return accept(verification.orderId, { status: "duplicate", donationId: verification.orderId }, provider);
+    }
+    try {
+      const wrote = await options.ledger.markNeedsReview(order.id, {
+        providerRef: verification.providerRef,
+        notice: {
+          ...noticeFromForm(options.rawBody),
+          MerchantTradeNo: verification.orderId,
+          TradeNo: verification.providerRef,
+          TradeAmt: String(verification.amountMinor),
+        },
+      });
+      if (wrote === "lost_race") {
+        const again = await options.ledger.getById(order.id);
+        if (again?.status === "review") {
+          return accept(order.id, { status: "duplicate", donationId: order.id }, provider);
+        }
+        return reject(order.id, 409, { error: "provider_mismatch" }, provider);
+      }
+    } catch {
+      return reject(order.id, 503, { error: "ledger_unavailable" }, provider);
+    }
+    return accept(order.id, { status: "review", donationId: order.id }, provider);
   }
 
   if (order === null) {

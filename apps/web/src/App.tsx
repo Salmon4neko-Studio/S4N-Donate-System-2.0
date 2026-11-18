@@ -6,6 +6,7 @@ import { useAuth } from "@/lib/auth";
 import { DashboardPage } from "@/pages/dashboard";
 import { DonatePage } from "@/pages/donate";
 import { DonateCheckoutPage } from "@/pages/donate-checkout";
+import { DonatePayPage } from "@/pages/donate-pay";
 import { DonateCancelledPage, DonateResultPage } from "@/pages/donate-result";
 import { DonationsPage } from "@/pages/donations";
 import { LoginPage } from "@/pages/login";
@@ -22,6 +23,7 @@ export function App() {
       <Route path="login" element={<LoginPage />} />
       <Route path="donate" element={<DonatePage />} />
       <Route path="donate/checkout" element={<DonateCheckoutPage />} />
+      <Route path="donate/pay" element={<DonatePayPage />} />
       <Route path="donate/result" element={<DonateResultPage />} />
       <Route path="donate/cancelled" element={<DonateCancelledPage />} />
       <Route element={<RequireAuth />}>

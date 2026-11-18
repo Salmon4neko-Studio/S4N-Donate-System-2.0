@@ -7,7 +7,11 @@
     "icon": "bell",
     "changelog": "0.1.0 把贊助提醒放進官方市集。畫面、權限與設定和上一版相同。",
     "screenshots": [
-      { "alt": "紙色提醒卡，左邊是橘色細線", "caption": "疊層上的贊助提醒", "frame": "overlay" }
+      {
+        "alt": "紙色提醒卡，左邊是橘色細線",
+        "caption": "疊層上的贊助提醒",
+        "frame": "overlay"
+      }
     ]
   },
   {
@@ -18,7 +22,11 @@
     "icon": "display",
     "changelog": "0.1.0 顯示已經正規化的聊天。它不連到任何平台。",
     "screenshots": [
-      { "alt": "聊天列與徽章", "caption": "OBS 裡的聊天疊層", "frame": "chat" }
+      {
+        "alt": "聊天列與徽章",
+        "caption": "OBS 裡的聊天疊層",
+        "frame": "chat"
+      }
     ]
   },
   {
@@ -27,9 +35,58 @@
     "author": "S4N",
     "featured": true,
     "icon": "credit-card",
-    "changelog": "0.1.0 綠界信用卡一次付清。商店代號與金鑰只以密文保存。",
+    "changelog": "0.2.0 核對付款方式。取號成功的代碼不會被當成付款失敗。信用卡仍是一次付清。",
     "screenshots": [
-      { "alt": "贊助頁上的綠界結帳", "caption": "信用卡結帳", "frame": "checkout" }
+      {
+        "alt": "贊助頁上的綠界結帳",
+        "caption": "信用卡結帳",
+        "frame": "checkout"
+      }
+    ]
+  },
+  {
+    "id": "official.ecpay-atm",
+    "category": "payment",
+    "author": "S4N",
+    "featured": true,
+    "icon": "credit-card",
+    "changelog": "0.1.0 綠界 ATM 虛擬帳號。取號後待繳費，付款通知才入帳。",
+    "screenshots": [
+      {
+        "alt": "繳費資訊",
+        "caption": "待繳費",
+        "frame": "checkout"
+      }
+    ]
+  },
+  {
+    "id": "official.ecpay-cvs",
+    "category": "payment",
+    "author": "S4N",
+    "featured": true,
+    "icon": "credit-card",
+    "changelog": "0.1.0 綠界超商代碼。取號後待繳費，付款通知才入帳。",
+    "screenshots": [
+      {
+        "alt": "繳費資訊",
+        "caption": "待繳費",
+        "frame": "checkout"
+      }
+    ]
+  },
+  {
+    "id": "official.ecpay-barcode",
+    "category": "payment",
+    "author": "S4N",
+    "featured": false,
+    "icon": "credit-card",
+    "changelog": "0.1.0 綠界超商條碼。取號後待繳費，付款通知才入帳。",
+    "screenshots": [
+      {
+        "alt": "繳費資訊",
+        "caption": "待繳費",
+        "frame": "checkout"
+      }
     ]
   },
   {
@@ -40,7 +97,11 @@
     "icon": "bullseye",
     "changelog": "0.0.0 目標條的佔位。還沒有計算進度。",
     "screenshots": [
-      { "alt": "目標進度的佔位", "caption": "尚未計算進度", "frame": "tool" }
+      {
+        "alt": "目標進度的佔位",
+        "caption": "尚未計算進度",
+        "frame": "tool"
+      }
     ]
   },
   {
@@ -49,9 +110,43 @@
     "author": "S4N",
     "featured": false,
     "icon": "credit-card",
-    "changelog": "0.1.0 歐付寶信用卡一次付清。商店代號與金鑰只以密文保存。",
+    "changelog": "0.2.0 核對付款方式。取號成功的代碼不會被當成付款失敗。信用卡仍是一次付清。",
     "screenshots": [
-      { "alt": "贊助頁上的歐付寶結帳", "caption": "信用卡結帳", "frame": "checkout" }
+      {
+        "alt": "贊助頁上的歐付寶結帳",
+        "caption": "信用卡結帳",
+        "frame": "checkout"
+      }
+    ]
+  },
+  {
+    "id": "official.opay-atm",
+    "category": "payment",
+    "author": "S4N",
+    "featured": false,
+    "icon": "credit-card",
+    "changelog": "0.1.0 歐付寶 ATM 虛擬帳號。取號後待繳費，付款通知才入帳。",
+    "screenshots": [
+      {
+        "alt": "繳費資訊",
+        "caption": "待繳費",
+        "frame": "checkout"
+      }
+    ]
+  },
+  {
+    "id": "official.opay-cvs",
+    "category": "payment",
+    "author": "S4N",
+    "featured": false,
+    "icon": "credit-card",
+    "changelog": "0.1.0 歐付寶超商代碼。取號後待繳費，付款通知才入帳。",
+    "screenshots": [
+      {
+        "alt": "繳費資訊",
+        "caption": "待繳費",
+        "frame": "checkout"
+      }
     ]
   },
   {
@@ -62,7 +157,11 @@
     "icon": "scroll",
     "changelog": "0.0.0 跑馬燈的佔位。還沒有捲動文字。",
     "screenshots": [
-      { "alt": "跑馬燈的佔位", "caption": "尚未捲動", "frame": "tool" }
+      {
+        "alt": "跑馬燈的佔位",
+        "caption": "尚未捲動",
+        "frame": "tool"
+      }
     ]
   },
   {
@@ -73,7 +172,11 @@
     "icon": "microphone",
     "changelog": "0.0.0 語音的佔位。不會朗讀不受信任的文字。",
     "screenshots": [
-      { "alt": "語音的佔位", "caption": "尚未合成", "frame": "tool" }
+      {
+        "alt": "語音的佔位",
+        "caption": "尚未合成",
+        "frame": "tool"
+      }
     ]
   },
   {
@@ -84,7 +187,11 @@
     "icon": "comments",
     "changelog": "0.1.0 以匿名 justinfan 讀取 Twitch 聊天室。選填的 Client ID 與 Client Secret 只以密文保存。",
     "screenshots": [
-      { "alt": "來自 Twitch 的聊天列", "caption": "聊天室來源", "frame": "chat" }
+      {
+        "alt": "來自 Twitch 的聊天列",
+        "caption": "聊天室來源",
+        "frame": "chat"
+      }
     ]
   }
 ]

@@ -14,6 +14,12 @@ function order(overrides: Partial<LedgerOrder> = {}): LedgerOrder {
     providerRef: null,
     donorName: asUntrustedText("小光"),
     message: asUntrustedText("謝謝"),
+    expiresAt: null,
+    bankCode: null,
+    payCode: null,
+    barcodes: null,
+    paymentType: null,
+    reviewNotice: null,
     ...overrides,
   };
 }
@@ -40,6 +46,36 @@ test("a verified callback records the server amount once", async () => {
     }).action,
     "duplicate",
   );
+});
+
+test("awaiting keeps one set of instructions and the list can filter it", async () => {
+  const ledger = createMemoryLedger([order()]);
+  const slip = {
+    providerRef: "ref_1",
+    bankCode: "812",
+    payCode: "9103522175887271",
+    barcodes: null,
+    expiresAt: "2026-03-15T15:59:59.000Z",
+    paymentType: "ATM_TAISHIN",
+  };
+  assert.equal(await ledger.markAwaiting("order_1", slip), "updated");
+  assert.equal(await ledger.markAwaiting("order_1", slip), "duplicate");
+  assert.equal(await ledger.markAwaiting("order_1", { ...slip, payCode: "0000000000000001" }), "conflict");
+  assert.equal((await ledger.getById("order_1"))?.payCode, "9103522175887271");
+  assert.equal((await ledger.listRecent(10, "awaiting")).length, 1);
+  assert.equal((await ledger.listRecent(10, "created")).length, 0);
+  assert.equal(await ledger.markExpired("order_1"), "updated");
+  assert.equal(await ledger.markSucceeded("order_1", "ref_1"), "lost_race");
+  assert.equal(
+    await ledger.markNeedsReview("order_1", { providerRef: "ref_1", notice: { TradeNo: "ref_1", TradeAmt: "500" } }),
+    "updated",
+  );
+  assert.equal((await ledger.getById("order_1"))?.status, "review");
+  assert.equal(
+    await ledger.markNeedsReview("order_1", { providerRef: "ref_1", notice: { TradeNo: "other" } }),
+    "duplicate",
+  );
+  assert.equal((await ledger.getById("order_1"))?.reviewNotice?.TradeNo, "ref_1");
 });
 
 test("rejects missing, mismatched, and already failed orders", () => {
@@ -83,5 +119,32 @@ test("rejects missing, mismatched, and already failed orders", () => {
       amountMinor: 1,
     }).action,
     "amount_mismatch",
+  );
+  assert.equal(
+    decideVerifiedPayment(order({ status: "expired", providerRef: "ref_1" }), {
+      orderId: "order_1",
+      providerId: "official.ecpay",
+      providerRef: "ref_1",
+      amountMinor: 500,
+    }).action,
+    "needs_review",
+  );
+  assert.equal(
+    decideVerifiedPayment(order({ status: "review", providerRef: "ref_1" }), {
+      orderId: "order_1",
+      providerId: "official.ecpay",
+      providerRef: "ref_1",
+      amountMinor: 500,
+    }).action,
+    "duplicate",
+  );
+  assert.equal(
+    decideVerifiedPayment(order({ status: "awaiting", providerRef: "ref_1" }), {
+      orderId: "order_1",
+      providerId: "official.ecpay",
+      providerRef: "other",
+      amountMinor: 500,
+    }).action,
+    "provider_mismatch",
   );
 });

@@ -786,6 +786,88 @@ p .ts-text.is-link,
   border: 0;
 }
 
+.s4n-slip {
+  display: flex;
+  flex-direction: column;
+  gap: 0.85rem;
+}
+
+.s4n-slip-rows {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  margin: 0;
+}
+
+.s4n-slip-row {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  padding: 0.85rem 0.95rem;
+  border: 1px solid var(--ts-gray-300);
+  border-radius: var(--ts-border-radius-element);
+  background: var(--ts-gray-50);
+}
+
+.s4n-slip-row dt {
+  margin: 0;
+  color: var(--ts-gray-600);
+  font-size: 0.92rem;
+}
+
+.s4n-slip-row dd {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  margin: 0;
+}
+
+.s4n-slip-value {
+  font-size: 1.55rem;
+  letter-spacing: 0.06em;
+  line-height: 1.25;
+  overflow-wrap: anywhere;
+  font-variant-numeric: tabular-nums;
+}
+
+.s4n-slip-hint {
+  margin: 0.35rem 0 0;
+  overflow-wrap: anywhere;
+}
+
+.s4n-review {
+  margin-top: 0.35rem;
+  padding: 0.75rem 0.85rem;
+  border-radius: var(--ts-border-radius-element);
+  background: var(--ts-tonal-warning-400);
+  color: var(--ts-tonal-warning-800);
+}
+
+.s4n-review p {
+  margin: 0;
+}
+
+.s4n-review p + p {
+  margin-top: 0.35rem;
+}
+
+.has-dark .s4n-review {
+  background: #4e3116;
+  color: #f6ead7;
+}
+
+@media (max-width: 420px) {
+  .s4n-slip-row dd {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .s4n-slip-value {
+    font-size: 1.28rem;
+  }
+}
+
 @media (max-width: 860px) {
   .s4n-detail-grid {
     grid-template-columns: 1fr;

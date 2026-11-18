@@ -21,9 +21,22 @@ test("unknown and non-payment callbacks never touch the ledger", async () => {
         touched = true;
         return "lost_race";
       },
+      async markNeedsReview() {
+        touched = true;
+        return "lost_race";
+      },
       async markFailed() {
         touched = true;
         return "lost_race";
+      },
+      async markAwaiting() {
+        return "lost_race";
+      },
+      async markExpired() {
+        return "lost_race";
+      },
+      async listDue() {
+        return [];
       },
       async listRecent() {
         return [];
@@ -55,6 +68,12 @@ test("a verified callback records the server order once and ignores the body amo
       providerRef: null,
       donorName: asUntrustedText("小光"),
       message: asUntrustedText("謝謝"),
+      expiresAt: null,
+      bankCode: null,
+      payCode: null,
+      barcodes: null,
+      paymentType: null,
+      reviewNotice: null,
     },
   ]);
   const providers = new PaymentRegistry();

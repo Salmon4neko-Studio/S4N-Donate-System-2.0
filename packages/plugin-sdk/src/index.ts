@@ -29,6 +29,8 @@ export type {
   CheckoutForm,
   CreatePaymentInput,
   CreatePaymentResult,
+  IssuedPayment,
+  PaymentInfoVerification,
   PaymentProvider,
   ProviderMaterial,
   QueryTradeResult,

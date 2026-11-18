@@ -1,6 +1,6 @@
 # S4N DONATE SYSTEM 2.0
 
-開源實況主贊助平台。這不是舊系統的遷移。綠界與歐付寶已可開信用卡單。
+開源實況主贊助平台。這不是舊系統的遷移。綠界與歐付寶可開信用卡、ATM、超商代碼與超商條碼。
 
 優先順序是安全、美感，然後才是開發容易。核心擁有帳本、付款介面、事件匯流排、疊層外殼、外掛密鑰與權限。功能以外掛掛上。文件與介面文字以繁體中文為主。
 
@@ -8,14 +8,13 @@
 
 - `@s4n/events`：`s4n.donation.created` / `succeeded` / `failed`、`s4n.chat.message` / `delete` / `clear`、`s4n.goal.updated`、`s4n.tts.request`、`s4n.media.now_playing`
 - `@s4n/plugin-sdk`：外掛規格 0.1、權限，以及不能寫帳的付款介面
-- 官方外掛清單：綠界 ECPay、歐付寶 O'Pay 的信用卡結帳，加上提醒、Twitch 聊天來源、聊天疊層，以及目標、跑馬燈、語音的佔位
+- 官方外掛清單：綠界與歐付寶的信用卡、ATM、超商代碼、超商條碼，加上提醒、Twitch 聊天來源、聊天疊層，以及目標、跑馬燈、語音的佔位
 - API：Argon2id 登入、AES-256-GCM 密文設定、`/api/payments/:pluginId/callback`、帶權杖的疊層 WebSocket
 - 儀表板（初次設定、外掛市集、帳本、測試贊助）、贊助頁，以及贊助提醒疊層
 - Starlight 文件，以及 Docker Compose
 
 ## 這個骨架故意沒做
 
-- ATM、超商代碼，以及其他付款方式
 - YouTube 聊天（Twitch 聊天疊層已有。下一個來源沿用同一份事件）
 - 目標計算、跑馬燈、語音合成
 - 多個 API 實例共用的登入限流（事件紀錄已在 PostgreSQL）

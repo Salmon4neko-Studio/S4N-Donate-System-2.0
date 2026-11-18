@@ -1,0 +1,59 @@
+import type { PluginManifest } from "@s4n/plugin-sdk";
+
+export const manifest = {
+  "id": "official.opay-cvs",
+  "name": "歐付寶超商代碼",
+  "version": "0.1.0",
+  "api": "0.1",
+  "description": "官方歐付寶超商代碼。取號後待繳費，付款通知才入帳。商店代號與金鑰只以密文保存。",
+  "kind": [
+    "payment"
+  ],
+  "permissions": [
+    "payments.provider",
+    "secrets",
+    "network"
+  ],
+  "entry": {
+    "worker": "./src/index.ts"
+  },
+  "settingsSchema": {
+    "type": "object",
+    "additionalProperties": false,
+    "required": [
+      "merchantId",
+      "hashKey",
+      "hashIv",
+      "environment"
+    ],
+    "properties": {
+      "merchantId": {
+        "type": "string",
+        "title": "商店代號 MerchantID",
+        "description": "歐付寶商店代號。只會存成密文。",
+        "x-s4n-secret": true
+      },
+      "hashKey": {
+        "type": "string",
+        "title": "HashKey",
+        "description": "歐付寶 HashKey。只會存成密文。",
+        "x-s4n-secret": true
+      },
+      "hashIv": {
+        "type": "string",
+        "title": "HashIV",
+        "description": "歐付寶 HashIV。只會存成密文。",
+        "x-s4n-secret": true
+      },
+      "environment": {
+        "type": "string",
+        "title": "環境",
+        "description": "測試站連到歐付寶沙盒，不會正式請款。正式站才會收款。",
+        "enum": [
+          "stage",
+          "production"
+        ]
+      }
+    }
+  }
+} as const satisfies PluginManifest;

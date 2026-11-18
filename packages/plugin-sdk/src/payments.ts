@@ -7,12 +7,22 @@ export interface CreatePaymentInput {
   orderId: string;
   amountMinor: number;
   currency: string;
-  /** Server notify URL (ECPay/O'Pay ReturnURL). */
+  /** Server notify URL (ECPay/O'Pay ReturnURL). Payment completed. */
   callbackUrl: string;
-  /** Browser return URL (OrderResultURL). Not the ledger. */
+  /**
+   * Browser return URL (OrderResultURL). Credit only.
+   * ATM, CVS, and BARCODE do not support this parameter.
+   */
   returnUrl: string;
-  /** Browser back button (ClientBackURL). No payment result is posted here. */
+  /**
+   * Browser back button (ClientBackURL). No payment result is posted here.
+   * Omitted when ClientRedirectURL is set, because the providers disable it.
+   */
   clientBackUrl: string;
+  /** Server URL for ATM/CVS/BARCODE number issuance (PaymentInfoURL). */
+  paymentInfoUrl: string;
+  /** Browser POST after the number is issued (ClientRedirectURL). Not a payment. */
+  clientRedirectUrl: string;
 }
 
 export interface CheckoutForm {
@@ -61,6 +71,30 @@ export type QueryTradeResult =
       readonly reason: "invalid_signature" | "malformed" | "unavailable";
     };
 
+/** Instructions from a signed PaymentInfoURL notice. The core stores them; the plugin does not. */
+export interface IssuedPayment {
+  readonly orderId: string;
+  readonly providerRef: string;
+  readonly amountMinor: number;
+  readonly method: "atm" | "cvs" | "barcode";
+  readonly bankCode: string | null;
+  readonly payCode: string | null;
+  readonly barcodes: readonly [string, string, string] | null;
+  readonly expiresAt: string;
+  readonly paymentType: string;
+}
+
+export type PaymentInfoVerification =
+  | { readonly ok: true; readonly outcome: "issued"; readonly issued: IssuedPayment }
+  | {
+      readonly ok: true;
+      readonly outcome: "failed";
+      readonly orderId: string;
+      readonly providerRef: string;
+      readonly amountMinor: number;
+    }
+  | { readonly ok: false; readonly reason: "invalid_signature" | "malformed" | "not_implemented" };
+
 export interface PaymentProvider {
   readonly pluginId: string;
   /**
@@ -71,8 +105,12 @@ export interface PaymentProvider {
     readonly accepted: "1|OK";
     readonly rejected: "0|Error";
   };
+  /** How long a still-unpaid order stays open before the core may expire it. */
+  provisionalExpiry?(now: Date): string;
   createPayment(input: CreatePaymentInput, material: ProviderMaterial): Promise<CreatePaymentResult>;
   verifyCallback(input: RawCallback, material: ProviderMaterial): Promise<CallbackVerification>;
+  /** ATM / CVS / BARCODE number-issued notice (PaymentInfoURL). Not a payment. */
+  verifyPaymentInfo?(input: RawCallback, material: ProviderMaterial): Promise<PaymentInfoVerification>;
   queryTrade?(input: { orderId: string }, material: ProviderMaterial): Promise<QueryTradeResult>;
 }
 

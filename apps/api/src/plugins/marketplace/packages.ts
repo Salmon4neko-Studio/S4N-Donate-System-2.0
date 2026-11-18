@@ -4,7 +4,12 @@ import { digestManifest } from "./digest.js";
 
 export const BUNDLED_PLUGIN_FILES: Record<string, string> = {
   "official.ecpay": "plugins/ecpay/s4n-plugin.json",
+  "official.ecpay-atm": "plugins/ecpay-atm/s4n-plugin.json",
+  "official.ecpay-cvs": "plugins/ecpay-cvs/s4n-plugin.json",
+  "official.ecpay-barcode": "plugins/ecpay-barcode/s4n-plugin.json",
   "official.opay": "plugins/opay/s4n-plugin.json",
+  "official.opay-atm": "plugins/opay-atm/s4n-plugin.json",
+  "official.opay-cvs": "plugins/opay-cvs/s4n-plugin.json",
   "official.alerts": "plugins/alerts/s4n-plugin.json",
   "official.chat-overlay": "plugins/chat-overlay/s4n-plugin.json",
   "official.twitch-chat": "plugins/twitch-chat/s4n-plugin.json",

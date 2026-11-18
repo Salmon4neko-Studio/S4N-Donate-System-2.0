@@ -13,7 +13,7 @@ description: 來源、顯示與付款外掛的差別、本機怎麼測、以及�
 | --- | --- | --- | --- |
 | 來源 | `connector` | 連到平台，送出已經正規化的事件 | `official.twitch-chat` |
 | 顯示 | `overlay` | 訂閱事件，畫在 OBS | `official.alerts`、`official.chat-overlay` |
-| 付款 | `payment` | 組結帳表單、驗證 CheckMacValue | `official.ecpay`、`official.opay` |
+| 付款 | `payment` | 組結帳表單、驗證 CheckMacValue、取號通知 | `official.ecpay`、`official.ecpay-atm`、`official.ecpay-cvs`、`official.ecpay-barcode`、`official.opay`、`official.opay-atm`、`official.opay-cvs`。`official.opay-barcode` 先不註冊 |
 
 顯示外掛不匯入來源。Twitch 聊天與之後的 YouTube 都送同一份 `s4n.chat.message`，聊天疊層不用改。
 
@@ -21,7 +21,7 @@ description: 來源、顯示與付款外掛的差別、本機怎麼測、以及�
 
 ## 付款只給官方允許清單
 
-`payments.provider`、`secrets`、`network` 只給 `apps/api/src/plugins/official.ts` 裡點名的 id。名字以 `official.` 開頭不夠。付款實作目前只允許 `official.ecpay` 與 `official.opay`。
+`payments.provider`、`secrets`、`network` 只給 `apps/api/src/plugins/official.ts` 裡點名的 id。名字以 `official.` 開頭不夠。付款實作只允許 `PAYMENT_PLUGIN_IDS`：綠界與歐付寶的信用卡、ATM、超商代碼，以及綠界超商條碼。歐付寶超商條碼先不在這份清單。一種方式一份外掛。
 
 社群外掛的預設權限是 `events.subscribe`、`overlay.slot`、`dashboard.settings`。可以再加 `events.emit`，仍然不能發送核心保留的贊助事件。
 
@@ -61,7 +61,7 @@ pnpm --filter @s4n/plugin-example-thanks typecheck
 官方市集不執行任意下載的程式。一份官方外掛要出現在市集，必須同時滿足：
 
 1. `s4n-plugin.json` 與程式放在這個版本裡，id 在 `OFFICIAL_PLUGIN_IDS`。
-2. 金流還要在 `PAYMENT_PLUGIN_IDS`。目前只有 `official.ecpay` 與 `official.opay`。
+2. 金流還要在 `PAYMENT_PLUGIN_IDS`。目前是綠界與歐付寶的信用卡、ATM、超商代碼，以及綠界超商條碼。歐付寶超商條碼先不放進允許清單。
 3. 索引 `apps/api/registry/official.json` 的簽章通過釘選的公鑰，而且該外掛的 `sha256` 等於清單的正規化 JSON。
 
 `apps/api/registry/listings.json` 只放分類、作者、是否精選、圖示、更新紀錄與示意畫面。名稱、版本、權限與摘要由簽名腳本從 `s4n-plugin.json` 讀入，避免兩份清單各寫各的。
@@ -83,7 +83,7 @@ pnpm --filter @s4n/api exec tsx scripts/sign-registry.ts
 
 `S4N_REGISTRY_SIGNING_KEY` 是 PKCS#8 PEM。公鑰寫在 `apps/api/src/plugins/marketplace/pinned-key.ts`。換一把鑰匙時，公鑰與新的 `official.json` 要在同一個審查過的提交裡一起換。只換索引、不換公鑰，而私鑰又不在手上，簽章不會通過。
 
-這個版本附上的公鑰，對應的私鑰沒有留在版本庫裡。下一次要發新的官方索引，請自行產生 Ed25519 鑰匙、換上公鑰、再跑上面的腳本。
+這個版本附上的公鑰，對應的私鑰沒有留在版本庫裡。加入 ATM 與超商外掛時，索引是用建置環境裡臨時產生的 Ed25519 鑰匙簽的，那把私鑰沒有保存。**正式上線前請自行產生鑰匙、換上 `pinned-key.ts`、再跑簽名腳本。** 不要沿用這次提交裡的公鑰當作正式信任根。
 
 社群目錄留了 `RegistrySource`。v1 的社群來源是空的。之後若接上，讀到的位元組仍要用同一把公鑰驗證。金流一律拒絕。權限超出 `events.subscribe`、`overlay.slot`、`dashboard.settings` 的社群外掛也不能安裝。就算權限都在這組裡，這個版本也只記下安裝，不載入它的程式。
 

@@ -56,6 +56,7 @@ export async function createDonationCheckout(options: {
   }
 
   const order = planDonation(createTradeNo(), parsed.value);
+  order.expiresAt = provider.provisionalExpiry?.(new Date()) ?? null;
   try {
     await options.ledger.create(order);
   } catch {
@@ -65,6 +66,8 @@ export async function createDonationCheckout(options: {
   const callbackUrl = `${options.publicBaseUrl}/api/payments/${provider.pluginId}/callback`;
   const returnUrl = `${options.publicBaseUrl}/api/payments/${provider.pluginId}/return`;
   const clientBackUrl = `${options.dashboardOrigin}/donate/cancelled?order=${order.id}`;
+  const paymentInfoUrl = `${options.publicBaseUrl}/api/payments/${provider.pluginId}/payment-info`;
+  const clientRedirectUrl = `${options.publicBaseUrl}/api/payments/${provider.pluginId}/payment-redirect`;
 
   try {
     const created = await provider.createPayment(
@@ -75,6 +78,8 @@ export async function createDonationCheckout(options: {
         callbackUrl,
         returnUrl,
         clientBackUrl,
+        paymentInfoUrl,
+        clientRedirectUrl,
       },
       { secrets, settings },
     );

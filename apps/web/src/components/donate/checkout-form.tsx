@@ -26,7 +26,7 @@ export function CheckoutForm({ draft }: { draft: CheckoutDraft }) {
         <input key={key} type="hidden" name={key} value={value} />
       ))}
       <p className="ts-text is-description">
-        {formatTwd(draft.amountMinor)}，接下來前往{provider}的信用卡付款頁。金額來自伺服器上的訂單。
+        {formatTwd(draft.amountMinor)}，接下來前往{provider}。金額來自伺服器上的訂單。
       </p>
       <button type="submit" className={buttonClass({ tone: "accent", size: "large", fluid: true, icon: "start" })}>
         <span className="ts-icon is-credit-card-icon" aria-hidden="true" />

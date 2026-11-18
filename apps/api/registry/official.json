@@ -2,7 +2,7 @@
   "index": {
     "format": "s4n-registry-index",
     "version": 1,
-    "issuedAt": "2026-11-18T07:00:00.000Z",
+    "issuedAt": "2026-11-18T16:30:00.000Z",
     "plugins": [
       {
         "id": "official.alerts",
@@ -71,13 +71,13 @@
       },
       {
         "id": "official.ecpay",
-        "name": "綠界 ECPay",
-        "version": "0.1.0",
+        "name": "綠界信用卡",
+        "version": "0.2.0",
         "api": "0.1",
         "category": "payment",
         "author": "S4N",
         "official": true,
-        "description": "官方綠界全方位金流。信用卡一次付清。商店代號與金鑰只以密文保存。",
+        "description": "官方綠界信用卡一次付清。商店代號與金鑰只以密文保存。",
         "icon": "credit-card",
         "permissions": [
           "payments.provider",
@@ -87,17 +87,116 @@
         "kind": [
           "payment"
         ],
-        "changelog": "0.1.0 綠界信用卡一次付清。商店代號與金鑰只以密文保存。",
+        "changelog": "0.2.0 核對付款方式。取號成功的代碼不會被當成付款失敗。信用卡仍是一次付清。",
         "compatibility": {
           "core": "0.1",
           "pluginSpec": "0.1"
         },
-        "sha256": "dc16b28aadf6eb70f218efc39b93c4ee24b06c498ed1f4be5d46667396a55dc6",
+        "sha256": "9e600e5b72737e4f90761dc23dfdfb901848b52c24c81e8acfb3bb4e235b7b23",
         "featured": true,
         "screenshots": [
           {
             "alt": "贊助頁上的綠界結帳",
             "caption": "信用卡結帳",
+            "frame": "checkout"
+          }
+        ]
+      },
+      {
+        "id": "official.ecpay-atm",
+        "name": "綠界 ATM",
+        "version": "0.1.0",
+        "api": "0.1",
+        "category": "payment",
+        "author": "S4N",
+        "official": true,
+        "description": "官方綠界 ATM 虛擬帳號。取號後待繳費，付款通知才入帳。商店代號與金鑰只以密文保存。",
+        "icon": "credit-card",
+        "permissions": [
+          "payments.provider",
+          "secrets",
+          "network"
+        ],
+        "kind": [
+          "payment"
+        ],
+        "changelog": "0.1.0 綠界 ATM 虛擬帳號。取號後待繳費，付款通知才入帳。",
+        "compatibility": {
+          "core": "0.1",
+          "pluginSpec": "0.1"
+        },
+        "sha256": "3483f0123c82c52c243064b84c0c15750b3c10bf44005e8b62b20b5aa49cf7f6",
+        "featured": true,
+        "screenshots": [
+          {
+            "alt": "繳費資訊",
+            "caption": "待繳費",
+            "frame": "checkout"
+          }
+        ]
+      },
+      {
+        "id": "official.ecpay-cvs",
+        "name": "綠界超商代碼",
+        "version": "0.1.0",
+        "api": "0.1",
+        "category": "payment",
+        "author": "S4N",
+        "official": true,
+        "description": "官方綠界超商代碼。取號後待繳費，付款通知才入帳。商店代號與金鑰只以密文保存。",
+        "icon": "credit-card",
+        "permissions": [
+          "payments.provider",
+          "secrets",
+          "network"
+        ],
+        "kind": [
+          "payment"
+        ],
+        "changelog": "0.1.0 綠界超商代碼。取號後待繳費，付款通知才入帳。",
+        "compatibility": {
+          "core": "0.1",
+          "pluginSpec": "0.1"
+        },
+        "sha256": "86b1ed96620732b823406f3a2e6b7ff5627478c7fea8d74b20807b0eb003db0d",
+        "featured": true,
+        "screenshots": [
+          {
+            "alt": "繳費資訊",
+            "caption": "待繳費",
+            "frame": "checkout"
+          }
+        ]
+      },
+      {
+        "id": "official.ecpay-barcode",
+        "name": "綠界超商條碼",
+        "version": "0.1.0",
+        "api": "0.1",
+        "category": "payment",
+        "author": "S4N",
+        "official": true,
+        "description": "官方綠界超商條碼。取號後待繳費，付款通知才入帳。商店代號與金鑰只以密文保存。",
+        "icon": "credit-card",
+        "permissions": [
+          "payments.provider",
+          "secrets",
+          "network"
+        ],
+        "kind": [
+          "payment"
+        ],
+        "changelog": "0.1.0 綠界超商條碼。取號後待繳費，付款通知才入帳。",
+        "compatibility": {
+          "core": "0.1",
+          "pluginSpec": "0.1"
+        },
+        "sha256": "26719b69b59424f6c8ed4b9de881b7ca5e7ff1e49a57917fb10178b8747559e6",
+        "featured": false,
+        "screenshots": [
+          {
+            "alt": "繳費資訊",
+            "caption": "待繳費",
             "frame": "checkout"
           }
         ]
@@ -138,13 +237,13 @@
       },
       {
         "id": "official.opay",
-        "name": "歐付寶 O'Pay",
-        "version": "0.1.0",
+        "name": "歐付寶信用卡",
+        "version": "0.2.0",
         "api": "0.1",
         "category": "payment",
         "author": "S4N",
         "official": true,
-        "description": "官方歐付寶全方位金流。信用卡一次付清。商店代號與金鑰只以密文保存。",
+        "description": "官方歐付寶信用卡一次付清。商店代號與金鑰只以密文保存。",
         "icon": "credit-card",
         "permissions": [
           "payments.provider",
@@ -154,17 +253,83 @@
         "kind": [
           "payment"
         ],
-        "changelog": "0.1.0 歐付寶信用卡一次付清。商店代號與金鑰只以密文保存。",
+        "changelog": "0.2.0 核對付款方式。取號成功的代碼不會被當成付款失敗。信用卡仍是一次付清。",
         "compatibility": {
           "core": "0.1",
           "pluginSpec": "0.1"
         },
-        "sha256": "1f5365b07d2386fe00b66df6de48f4d27a7777485426d53968264fd391d3106e",
+        "sha256": "fbec866a623e8a38a66358233868d0bb6d92c917ece406013cac5db20d076f25",
         "featured": false,
         "screenshots": [
           {
             "alt": "贊助頁上的歐付寶結帳",
             "caption": "信用卡結帳",
+            "frame": "checkout"
+          }
+        ]
+      },
+      {
+        "id": "official.opay-atm",
+        "name": "歐付寶 ATM",
+        "version": "0.1.0",
+        "api": "0.1",
+        "category": "payment",
+        "author": "S4N",
+        "official": true,
+        "description": "官方歐付寶 ATM 虛擬帳號。取號後待繳費，付款通知才入帳。商店代號與金鑰只以密文保存。",
+        "icon": "credit-card",
+        "permissions": [
+          "payments.provider",
+          "secrets",
+          "network"
+        ],
+        "kind": [
+          "payment"
+        ],
+        "changelog": "0.1.0 歐付寶 ATM 虛擬帳號。取號後待繳費，付款通知才入帳。",
+        "compatibility": {
+          "core": "0.1",
+          "pluginSpec": "0.1"
+        },
+        "sha256": "593a6fd88eb03250367d1b132fb464cae473d159e98d7b9501123a97b2784f09",
+        "featured": false,
+        "screenshots": [
+          {
+            "alt": "繳費資訊",
+            "caption": "待繳費",
+            "frame": "checkout"
+          }
+        ]
+      },
+      {
+        "id": "official.opay-cvs",
+        "name": "歐付寶超商代碼",
+        "version": "0.1.0",
+        "api": "0.1",
+        "category": "payment",
+        "author": "S4N",
+        "official": true,
+        "description": "官方歐付寶超商代碼。取號後待繳費，付款通知才入帳。商店代號與金鑰只以密文保存。",
+        "icon": "credit-card",
+        "permissions": [
+          "payments.provider",
+          "secrets",
+          "network"
+        ],
+        "kind": [
+          "payment"
+        ],
+        "changelog": "0.1.0 歐付寶超商代碼。取號後待繳費，付款通知才入帳。",
+        "compatibility": {
+          "core": "0.1",
+          "pluginSpec": "0.1"
+        },
+        "sha256": "1d111865e2e422ec91666d28e4cc897fb86de1ebed61594dd0b671ac80b4a271",
+        "featured": false,
+        "screenshots": [
+          {
+            "alt": "繳費資訊",
+            "caption": "待繳費",
             "frame": "checkout"
           }
         ]
@@ -269,5 +434,5 @@
       }
     ]
   },
-  "signature": "6V0XKuZtX7SGWAdH9cUk5z3P9Uk/BHffIPm9JEv8B20l9l3Pd/fXvmSIePEw3FEj9TvU6Ywu5SynazoZbtTECQ=="
+  "signature": "9X5jNdizf8H2a03/tzLXQuVRu6tRx8OoCM2A32xYSVDfQkfYxvT+5othlRPp0YhnL08ik195joEW4hBr7s35Dw=="
 }

@@ -17,5 +17,5 @@ const endpoints = {
 
 /** Official worker entry. The core calls this. The plugin cannot see the ledger. */
 export function createProvider(): PaymentProvider {
-  return createAioProvider({ pluginId: manifest.id, endpoints });
+  return createAioProvider({ pluginId: manifest.id, endpoints, choosePayment: "Credit" });
 }

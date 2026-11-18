@@ -9,6 +9,7 @@ import { createPrismaAuthStore } from "./auth/prisma-store.js";
 import { parseMasterKey } from "./crypto/master-key.js";
 import { createPrisma } from "./db.js";
 import { loadEnv } from "./env.js";
+import { expireDueOrders, startPaymentExpiry } from "./payments/expiry.js";
 import { createPrismaLedger } from "./payments/prisma-ledger.js";
 import { createOfficialCatalog, createPaymentRegistry } from "./plugins/catalog.js";
 import { createPrismaInstallations } from "./plugins/prisma-installations.js";
@@ -55,6 +56,20 @@ async function main(): Promise<void> {
 
   const chatHost = createChatHost({ catalog, installations, secrets, masterKey, bus });
 
+  const ledger = createPrismaLedger(prisma);
+  const stopExpiry = startPaymentExpiry(
+    () =>
+      expireDueOrders({
+        now: new Date(),
+        ledger,
+        providers,
+        secrets,
+        bus,
+        masterKey,
+      }).then(() => undefined),
+    5 * 60 * 1000,
+  );
+
   const app = createApp({
     envName: env.env,
     dashboardOrigin: env.dashboardOrigin,
@@ -68,7 +83,7 @@ async function main(): Promise<void> {
     secrets,
     installations,
     marketplace,
-    ledger: createPrismaLedger(prisma),
+    ledger,
     bus,
     auth,
     eventLog: "postgres",
@@ -133,6 +148,7 @@ async function main(): Promise<void> {
   const shutdown = () => {
     clearInterval(chatSync);
     clearInterval(registryCheck);
+    stopExpiry();
     stopRetention();
     chatHost.stop();
     void bus.close().finally(() => {

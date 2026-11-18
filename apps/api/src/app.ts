@@ -11,7 +11,8 @@ import { requireSession, sessionCookieSecure, type SessionEnv } from "./auth/ses
 import { isRecord, readJson } from "./http.js";
 import { handlePaymentCallback, settlePaymentNotification } from "./payments/callback.js";
 import { createDonationCheckout } from "./payments/checkout.js";
-import type { Ledger } from "./payments/ledger.js";
+import type { DonationState, Ledger } from "./payments/ledger.js";
+import { settlePaymentInfo } from "./payments/payment-info.js";
 import { validateDonationRequest } from "./payments/plan.js";
 import { paymentMethodReady } from "./payments/readiness.js";
 import { reconcileDonation } from "./payments/reconcile.js";
@@ -274,8 +275,10 @@ export function createApp(deps: AppDeps): Hono<SessionEnv> {
   );
 
   app.get("/api/donations", session, async (c) => {
+    const status = readStatusFilter(c.req.query("status"));
+    if (status === "invalid") return c.json({ error: "invalid_status" }, 422);
     try {
-      const donations = await deps.ledger.listRecent(50);
+      const donations = await deps.ledger.listRecent(50, status);
       return c.json({ donations });
     } catch {
       return c.json({ error: "ledger_unavailable" }, 503);
@@ -337,7 +340,12 @@ export function createApp(deps: AppDeps): Hono<SessionEnv> {
     try {
       const order = await deps.ledger.getById(id);
       if (order === null) return c.json({ error: "unknown_order" }, 404);
-      return c.json({ status: order.status, amountMinor: order.amountMinor, currency: order.currency });
+      return c.json({
+        status: order.status,
+        amountMinor: order.amountMinor,
+        currency: order.currency,
+        providerId: order.providerId,
+      });
     } catch {
       return c.json({ error: "ledger_unavailable" }, 503);
     }
@@ -411,6 +419,93 @@ export function createApp(deps: AppDeps): Hono<SessionEnv> {
       return c.json({ error: "event_log_unavailable" }, 503);
     }
   });
+
+  app.get(
+    "/api/donations/:id/instructions",
+    rateLimit({
+      windowMs: 60_000,
+      max: 60,
+      key: (c) => `instructions:${c.req.header("x-forwarded-for") ?? "local"}`,
+    }),
+    async (c) => {
+      c.header("cache-control", "no-store");
+      const id = c.req.param("id");
+      if (!isTradeNo(id)) return c.json({ error: "unknown_order" }, 404);
+      try {
+        const order = await deps.ledger.getById(id);
+        if (order === null) return c.json({ error: "unknown_order" }, 404);
+        return c.json({
+          status: order.status,
+          amountMinor: order.amountMinor,
+          currency: order.currency,
+          providerId: order.providerId,
+          expiresAt: order.expiresAt,
+          bankCode: order.bankCode,
+          payCode: order.payCode,
+          barcodes: order.barcodes,
+        });
+      } catch {
+        return c.json({ error: "ledger_unavailable" }, 503);
+      }
+    },
+  );
+
+  app.post(
+    "/api/payments/:pluginId/payment-info",
+    rateLimit({
+      windowMs: callbackLimit.windowMs,
+      max: callbackLimit.max,
+      key: (c) => `payment-info:${c.req.param("pluginId")}:${c.req.header("x-forwarded-for") ?? "local"}`,
+    }),
+    async (c) => {
+      const result = await settlePaymentInfo({
+        pluginId: c.req.param("pluginId"),
+        rawBody: await c.req.text(),
+        headers: headerRecord(c.req.raw.headers),
+        catalog: deps.catalog,
+        providers: deps.providers,
+        secrets: deps.secrets,
+        ledger: deps.ledger,
+        bus: deps.bus,
+        masterKey: deps.masterKey,
+      });
+      return new Response(result.http.body, {
+        status: result.http.status,
+        headers: { "content-type": result.http.contentType },
+      });
+    },
+  );
+
+  app.post(
+    "/api/payments/:pluginId/payment-redirect",
+    rateLimit({
+      windowMs: callbackLimit.windowMs,
+      max: callbackLimit.max,
+      key: (c) => `payment-redirect:${c.req.param("pluginId")}:${c.req.header("x-forwarded-for") ?? "local"}`,
+    }),
+    async (c) => {
+      const settled = await settlePaymentInfo({
+        pluginId: c.req.param("pluginId"),
+        rawBody: await c.req.text(),
+        headers: headerRecord(c.req.raw.headers),
+        catalog: deps.catalog,
+        providers: deps.providers,
+        secrets: deps.secrets,
+        ledger: deps.ledger,
+        bus: deps.bus,
+        masterKey: deps.masterKey,
+      });
+      if (settled.http.status >= 500 || settled.orderId === null || !isTradeNo(settled.orderId)) {
+        return new Response(settled.http.body, {
+          status: settled.http.status,
+          headers: { "content-type": settled.http.contentType },
+        });
+      }
+      const target = new URL("/donate/pay", deps.dashboardOrigin);
+      target.searchParams.set("order", settled.orderId);
+      return c.redirect(target.toString(), 303);
+    },
+  );
 
   app.post(
     "/api/payments/:pluginId/callback",
@@ -502,6 +597,21 @@ export function createApp(deps: AppDeps): Hono<SessionEnv> {
   );
 
   return app;
+}
+
+const DONATION_STATES = new Set<DonationState>(["created", "awaiting", "succeeded", "expired", "failed", "review"]);
+
+function readStatusFilter(value: string | undefined): DonationState | undefined | "invalid" {
+  if (value === undefined || value === "") return undefined;
+  return DONATION_STATES.has(value as DonationState) ? (value as DonationState) : "invalid";
+}
+
+function headerRecord(headers: Headers): Record<string, string> {
+  const record: Record<string, string> = {};
+  headers.forEach((value, key) => {
+    record[key] = value;
+  });
+  return record;
 }
 
 function readLimit(value: string | undefined): number {
