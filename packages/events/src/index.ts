@@ -7,7 +7,17 @@ export { CORE_PAYMENT_EVENTS } from "./events.js";
 
 export type {
   AnyS4nEvent,
+  ChatBadge,
+  ChatClearPayload,
+  ChatDeletePayload,
+  ChatDonationEmbed,
+  ChatEmoteFragment,
+  ChatFragment,
+  ChatMessageFlags,
   ChatMessagePayload,
+  ChatMessagePlatform,
+  ChatPlatform,
+  ChatTextFragment,
   CorePaymentEventName,
   DonationCreatedPayload,
   DonationFailedPayload,

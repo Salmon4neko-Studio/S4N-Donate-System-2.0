@@ -27,8 +27,17 @@ export interface SettingsField {
   /**
    * Core encrypts the value at rest and never returns it in plaintext.
    * This is an open annotation, not a standard JSON Schema keyword.
+   * A secret field cannot also declare `default` — the default would be echoed
+   * to the dashboard.
    */
   "x-s4n-secret"?: boolean;
+  /**
+   * Render the string as a textarea. Values stay a single string (newlines allowed).
+   * Not a standard JSON Schema keyword.
+   */
+  "x-s4n-multiline"?: boolean;
+  /** Shown and used when the operator has not stored a value. Not allowed on secrets. */
+  default?: string | number | boolean;
 }
 
 export interface SettingsSchema {
@@ -232,5 +241,38 @@ function parseField(value: unknown): SettingsField {
     }
     field.enum = value.enum as string[];
   }
+  if (value["x-s4n-multiline"] !== undefined) {
+    if (value["x-s4n-multiline"] !== true && value["x-s4n-multiline"] !== false) {
+      throw new ManifestError("x-s4n-multiline must be a boolean");
+    }
+    if (value["x-s4n-multiline"] === true && type !== "string") {
+      throw new ManifestError("x-s4n-multiline is only valid on string fields");
+    }
+    field["x-s4n-multiline"] = value["x-s4n-multiline"];
+  }
+  if (value.default !== undefined) {
+    if (!defaultMatches(value.default, field)) {
+      throw new ManifestError("settings field default is invalid");
+    }
+    if (field["x-s4n-secret"] === true) {
+      throw new ManifestError("secret fields cannot have a default");
+    }
+    field.default = value.default;
+  }
   return field;
+}
+
+function defaultMatches(value: unknown, field: SettingsField): value is string | number | boolean {
+  if (field.enum !== undefined) {
+    return typeof value === "string" && field.enum.includes(value);
+  }
+  if (field.type === "string") return typeof value === "string";
+  if (field.type === "boolean") return typeof value === "boolean";
+  if (field.type === "number" || field.type === "integer") {
+    if (typeof value !== "number" || !Number.isFinite(value)) return false;
+    if (field.type === "integer" && !Number.isInteger(value)) return false;
+    if (field.minimum !== undefined && value < field.minimum) return false;
+    return true;
+  }
+  return false;
 }

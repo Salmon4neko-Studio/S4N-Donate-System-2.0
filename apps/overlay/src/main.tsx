@@ -1,5 +1,6 @@
 import { StrictMode, useState } from "react";
 import { createRoot } from "react-dom/client";
+import { ChatOverlay } from "./chat-overlay";
 import { Overlay } from "./overlay";
 import "./index.css";
 
@@ -18,6 +19,9 @@ window.history.replaceState(null, "", `${cleaned.pathname}${cleaned.search}${cle
 
 function Root() {
   const [token] = useState(tokenFromUrl);
+  if (pluginId === "official.chat-overlay") {
+    return <ChatOverlay token={token} transparent={transparent} preview={preview} />;
+  }
   return <Overlay token={token} pluginId={pluginId} transparent={transparent} preview={preview} />;
 }
 

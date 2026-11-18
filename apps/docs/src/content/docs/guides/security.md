@@ -57,4 +57,8 @@ OBS 不帶登入 Cookie。疊層網址帶一組每個營運者一枚的權杖。
 
 這組網址等於通行憑證。不要提交到版本庫，也不要貼到會記錄網址的公開服務。
 
+贊助提醒與聊天疊層共用這一組權杖。網址上的 `plugin` 只選畫面，不攜帶平台憑證。Twitch 的 Client ID 與 Client Secret 若有填，跟綠界金鑰一樣密封在 `EncryptedPluginSetting`，附加驗證資料仍是 `s4n.plugin-setting:<pluginId>:<fieldKey>`。儀表板只看得到「已設定」或「未設定」。解密只發生在 API 程序裡，用來向 Twitch 換應用程式權杖並抓徽章；那個應用程式權杖不會寫進 OBS 網址、事件，或設定 API 的回應。
+
+沒有填 Client ID 時，聊天仍可用匿名 `justinfan` 讀取。送去 `irc-ws.chat.twitch.tv` 的 `PASS` 是 Twitch 公開的匿名密碼 `SCHMOOPIIE`，不是營運者的 OAuth 權杖，也不是 Client Secret。表情圖網址只接受 `https://static-cdn.jtvnw.net/`。聊天文字在疊層以文字節點繪製。
+
 還沒有內容安全政策。多個 API 實例也不會共用工作階段以外的即時狀態；工作階段本身在資料庫裡。

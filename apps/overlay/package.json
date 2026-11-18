@@ -13,6 +13,7 @@
     "@s4n/design-tokens": "workspace:*",
     "@s4n/events": "workspace:*",
     "@s4n/plugin-alerts": "workspace:*",
+    "@s4n/plugin-chat-overlay": "workspace:*",
     "react": "^19.2.0",
     "react-dom": "^19.2.0"
   },

@@ -11,6 +11,8 @@ export interface RedactedField {
   configured: boolean;
   enum: string[] | null;
   minimum: number | null;
+  multiline: boolean;
+  default: string | number | boolean | null;
   /** Present only for non-secret fields that have a stored value. */
   value?: string | number | boolean;
 }
@@ -58,6 +60,8 @@ export function redactSettings(
       required: required.has(key),
       enum: field.enum === undefined ? null : [...field.enum],
       minimum: field.minimum ?? null,
+      multiline: field["x-s4n-multiline"] === true,
+      default: field.default ?? null,
     };
     if (secret) {
       return { ...base, configured: configured.has(key) };

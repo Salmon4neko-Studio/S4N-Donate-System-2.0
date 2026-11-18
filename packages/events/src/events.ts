@@ -49,15 +49,95 @@ export interface DonationTestPayload {
   test: true;
 }
 
-export interface ChatMessagePayload {
-  messageId: string;
-  platform: "twitch" | "youtube";
-  channelId: string;
-  /** Untrusted. Chat connectors are not part of this skeleton. */
-  authorName: UntrustedText;
-  /** Untrusted. Do not render as HTML. */
+/** A platform connector. `s4n` is reserved for lines the core mixes in, such as donations. */
+export type ChatPlatform = "twitch" | "youtube";
+
+export type ChatMessagePlatform = ChatPlatform | "s4n";
+
+export interface ChatBadge {
+  /** Badge set id, for example `moderator` or `subscriber`. */
+  setId: string;
+  version: string;
+  /** Untrusted label. Render as text, never as HTML. */
+  title: UntrustedText;
+  /** HTTPS image on an allowlisted CDN. Omit when the cache has no image. */
+  imageUrl?: string;
+}
+
+export interface ChatTextFragment {
+  type: "text";
   text: UntrustedText;
-  sentAt: string;
+}
+
+export interface ChatEmoteFragment {
+  type: "emote";
+  /** Platform emote id. */
+  id: string;
+  /** Untrusted name as it appeared in the message. */
+  name: UntrustedText;
+  imageUrl?: string;
+}
+
+export type ChatFragment = ChatTextFragment | ChatEmoteFragment;
+
+export interface ChatMessageFlags {
+  isMod: boolean;
+  isBroadcaster: boolean;
+  isSubscriber: boolean;
+  isVip: boolean;
+}
+
+/** Present only when a donation is mixed into chat. Never a ledger write. */
+export interface ChatDonationEmbed {
+  donationId: string;
+  amountMinor: number;
+  currency: string;
+  /** True when the source event was `s4n.donation.test`. */
+  test: boolean;
+}
+
+/**
+ * One chat line, independent of the platform connector that produced it.
+ * A YouTube source emits this same shape. The display plugin does not import a source.
+ */
+export interface ChatMessagePayload {
+  platform: ChatMessagePlatform;
+  /** Login name, without a leading #. */
+  channel: string;
+  userId: string;
+  /** Platform login when it differs from the display name. Empty when unknown. */
+  login: string;
+  displayName: UntrustedText;
+  /** `#RRGGBB`, or null when the platform sent none. */
+  color: string | null;
+  badges: readonly ChatBadge[];
+  fragments: readonly ChatFragment[];
+  /** Plain text of the whole line. Untrusted. Do not render as HTML. */
+  text: UntrustedText;
+  /** ISO-8601 timestamp. */
+  timestamp: string;
+  messageId: string;
+  flags: ChatMessageFlags;
+  donation?: ChatDonationEmbed;
+}
+
+/** One message was removed (Twitch CLEARMSG, or the equivalent on another platform). */
+export interface ChatDeletePayload {
+  platform: ChatPlatform;
+  channel: string;
+  messageId: string;
+  userId?: string;
+}
+
+/**
+ * A ban, a timeout, or a full-channel clear (Twitch CLEARCHAT).
+ * Omit `userId` to clear the channel. `durationSeconds` is a timeout length.
+ */
+export interface ChatClearPayload {
+  platform: ChatPlatform;
+  channel: string;
+  userId?: string;
+  durationSeconds?: number;
 }
 
 export interface GoalUpdatedPayload {
@@ -89,6 +169,8 @@ export interface S4nEventMap {
   "s4n.donation.failed": DonationFailedPayload;
   "s4n.donation.test": DonationTestPayload;
   "s4n.chat.message": ChatMessagePayload;
+  "s4n.chat.delete": ChatDeletePayload;
+  "s4n.chat.clear": ChatClearPayload;
   "s4n.goal.updated": GoalUpdatedPayload;
   "s4n.tts.request": TtsRequestPayload;
   "s4n.media.now_playing": MediaNowPlayingPayload;

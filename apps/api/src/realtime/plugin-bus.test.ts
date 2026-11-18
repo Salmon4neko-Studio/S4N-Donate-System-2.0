@@ -28,12 +28,20 @@ test("plugins can emit a chat message through the SDK", () => {
     },
   });
   bus.emit("s4n.chat.message", {
-    messageId: "m",
     platform: "youtube",
-    channelId: "c",
-    authorName: asUntrustedText("author"),
+    channel: "c",
+    userId: "1",
+    login: "author",
+    displayName: asUntrustedText("author"),
+    color: null,
+    badges: [],
+    fragments: [{ type: "text", text: asUntrustedText("hello") }],
     text: asUntrustedText("hello"),
-    sentAt: "2026-01-01T00:00:00.000Z",
+    timestamp: "2026-01-01T00:00:00.000Z",
+    messageId: "m",
+    flags: { isMod: false, isBroadcaster: false, isSubscriber: false, isVip: false },
   });
-  assert.equal(published, "s4n.chat.message");
+  bus.emit("s4n.chat.delete", { platform: "youtube", channel: "c", messageId: "m" });
+  bus.emit("s4n.chat.clear", { platform: "youtube", channel: "c" });
+  assert.equal(published, "s4n.chat.clear");
 });

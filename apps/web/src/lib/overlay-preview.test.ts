@@ -93,6 +93,13 @@ test("missing plugin data still previews the issued url", () => {
   assert.equal(previewChoices([], "not valid").length, 0);
 });
 
+test("the chat overlay counts as its own scene", () => {
+  assert.equal(
+    choiceNeedsSceneNote({ id: "official.chat-overlay", label: "聊天疊層", pluginIds: ["official.chat-overlay"] }),
+    false,
+  );
+});
+
 test("unimplemented overlays are called out only when every layer lacks a scene", () => {
   assert.equal(
     choiceNeedsSceneNote({ id: "official.goals", label: "目標進度", pluginIds: ["official.goals"] }),

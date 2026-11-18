@@ -1,12 +1,15 @@
 import { manifest as alerts } from "@s4n/plugin-alerts";
+import { manifest as chatOverlay } from "@s4n/plugin-chat-overlay";
 import { createProvider as createEcpay, manifest as ecpay } from "@s4n/plugin-ecpay";
 import { manifest as goals } from "@s4n/plugin-goals";
 import { createProvider as createOpay, manifest as opay } from "@s4n/plugin-opay";
 import { manifest as ticker } from "@s4n/plugin-ticker";
+import { createTwitchChatSource, manifest as twitchChat } from "@s4n/plugin-twitch-chat";
 import { manifest as tts } from "@s4n/plugin-tts";
 import {
   assertManifestCoherent,
   assertPermissionsAllowed,
+  type ChatSource,
   type PaymentProvider,
   type PluginManifest,
 } from "@s4n/plugin-sdk";
@@ -15,6 +18,8 @@ import { OFFICIAL_PLUGIN_IDS, PAYMENT_PLUGIN_IDS, isOfficialPluginId } from "./o
 export interface LoadedPlugin {
   manifest: PluginManifest;
   createProvider?: () => PaymentProvider;
+  /** Platform chat connector. The display plugin is not one of these. */
+  createChatSource?: () => ChatSource;
 }
 
 const PAYMENT_IDS = new Set<string>(PAYMENT_PLUGIN_IDS);
@@ -24,6 +29,8 @@ export function createOfficialCatalog(): LoadedPlugin[] {
     { manifest: ecpay, createProvider: createEcpay },
     { manifest: opay, createProvider: createOpay },
     { manifest: alerts },
+    { manifest: chatOverlay },
+    { manifest: twitchChat, createChatSource: createTwitchChatSource },
     { manifest: goals },
     { manifest: ticker },
     { manifest: tts },
