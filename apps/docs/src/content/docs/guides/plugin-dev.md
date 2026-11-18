@@ -55,3 +55,37 @@ pnpm --filter @s4n/plugin-example-thanks typecheck
 - 贊助人名稱、留言、聊天文字是 `UntrustedText`。畫面要用文字節點，不要當成 HTML。
 - 事件至少送達一次。斷線補送可能再送同一則，用事件 `id` 排除重複。序號與保留期限見 [事件紀錄](/guides/events/)。
 - 不要把疊層權杖、Twitch Client Secret、HashKey 或 HashIV 放進網址、紀錄或事件。
+
+## 包裝、簽名、發佈到官方索引
+
+官方市集不執行任意下載的程式。一份官方外掛要出現在市集，必須同時滿足：
+
+1. `s4n-plugin.json` 與程式放在這個版本裡，id 在 `OFFICIAL_PLUGIN_IDS`。
+2. 金流還要在 `PAYMENT_PLUGIN_IDS`。目前只有 `official.ecpay` 與 `official.opay`。
+3. 索引 `apps/api/registry/official.json` 的簽章通過釘選的公鑰，而且該外掛的 `sha256` 等於清單的正規化 JSON。
+
+`apps/api/registry/listings.json` 只放分類、作者、是否精選、圖示、更新紀錄與示意畫面。名稱、版本、權限與摘要由簽名腳本從 `s4n-plugin.json` 讀入，避免兩份清單各寫各的。
+
+摘要是 SHA-256，輸入是把清單解析成 JSON 之後、鍵名排序、沒有空白的 UTF-8。檔案裡的鍵順序與換行不影響摘要。
+
+索引格式是 `s4n-registry-index` 第 1 版。簽章是 Ed25519，簽的是索引物件的同一種正規化 JSON，不是整個檔案的原文。信封長這樣：
+
+```json
+{ "index": { "format": "s4n-registry-index", "version": 1, "plugins": [] }, "signature": "<base64>" }
+```
+
+私鑰不進版本庫。在存放私鑰的機器上：
+
+```bash
+export S4N_REGISTRY_SIGNING_KEY="$(cat /path/to/signing-key.pem)"
+pnpm --filter @s4n/api exec tsx scripts/sign-registry.ts
+```
+
+`S4N_REGISTRY_SIGNING_KEY` 是 PKCS#8 PEM。公鑰寫在 `apps/api/src/plugins/marketplace/pinned-key.ts`。換一把鑰匙時，公鑰與新的 `official.json` 要在同一個審查過的提交裡一起換。只換索引、不換公鑰，而私鑰又不在手上，簽章不會通過。
+
+這個版本附上的公鑰，對應的私鑰沒有留在版本庫裡。下一次要發新的官方索引，請自行產生 Ed25519 鑰匙、換上公鑰、再跑上面的腳本。
+
+社群目錄留了 `RegistrySource`。v1 的社群來源是空的。之後若接上，讀到的位元組仍要用同一把公鑰驗證。金流一律拒絕。權限超出 `events.subscribe`、`overlay.slot`、`dashboard.settings` 的社群外掛也不能安裝。就算權限都在這組裡，這個版本也只記下安裝，不載入它的程式。
+
+示意畫面只用內建的分類圖，不接受外掛帶上的網址。
+

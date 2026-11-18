@@ -1,0 +1,90 @@
+[
+  {
+    "id": "official.alerts",
+    "category": "overlay",
+    "author": "S4N",
+    "featured": true,
+    "icon": "bell",
+    "changelog": "0.1.0 把贊助提醒放進官方市集。畫面、權限與設定和上一版相同。",
+    "screenshots": [
+      { "alt": "紙色提醒卡，左邊是橘色細線", "caption": "疊層上的贊助提醒", "frame": "overlay" }
+    ]
+  },
+  {
+    "id": "official.chat-overlay",
+    "category": "overlay",
+    "author": "S4N",
+    "featured": true,
+    "icon": "display",
+    "changelog": "0.1.0 顯示已經正規化的聊天。它不連到任何平台。",
+    "screenshots": [
+      { "alt": "聊天列與徽章", "caption": "OBS 裡的聊天疊層", "frame": "chat" }
+    ]
+  },
+  {
+    "id": "official.ecpay",
+    "category": "payment",
+    "author": "S4N",
+    "featured": true,
+    "icon": "credit-card",
+    "changelog": "0.1.0 綠界信用卡一次付清。商店代號與金鑰只以密文保存。",
+    "screenshots": [
+      { "alt": "贊助頁上的綠界結帳", "caption": "信用卡結帳", "frame": "checkout" }
+    ]
+  },
+  {
+    "id": "official.goals",
+    "category": "tool",
+    "author": "S4N",
+    "featured": false,
+    "icon": "bullseye",
+    "changelog": "0.0.0 目標條的佔位。還沒有計算進度。",
+    "screenshots": [
+      { "alt": "目標進度的佔位", "caption": "尚未計算進度", "frame": "tool" }
+    ]
+  },
+  {
+    "id": "official.opay",
+    "category": "payment",
+    "author": "S4N",
+    "featured": false,
+    "icon": "credit-card",
+    "changelog": "0.1.0 歐付寶信用卡一次付清。商店代號與金鑰只以密文保存。",
+    "screenshots": [
+      { "alt": "贊助頁上的歐付寶結帳", "caption": "信用卡結帳", "frame": "checkout" }
+    ]
+  },
+  {
+    "id": "official.ticker",
+    "category": "tool",
+    "author": "S4N",
+    "featured": false,
+    "icon": "scroll",
+    "changelog": "0.0.0 跑馬燈的佔位。還沒有捲動文字。",
+    "screenshots": [
+      { "alt": "跑馬燈的佔位", "caption": "尚未捲動", "frame": "tool" }
+    ]
+  },
+  {
+    "id": "official.tts",
+    "category": "tool",
+    "author": "S4N",
+    "featured": false,
+    "icon": "microphone",
+    "changelog": "0.0.0 語音的佔位。不會朗讀不受信任的文字。",
+    "screenshots": [
+      { "alt": "語音的佔位", "caption": "尚未合成", "frame": "tool" }
+    ]
+  },
+  {
+    "id": "official.twitch-chat",
+    "category": "chat-source",
+    "author": "S4N",
+    "featured": true,
+    "icon": "comments",
+    "changelog": "0.1.0 以匿名 justinfan 讀取 Twitch 聊天室。選填的 Client ID 與 Client Secret 只以密文保存。",
+    "screenshots": [
+      { "alt": "來自 Twitch 的聊天列", "caption": "聊天室來源", "frame": "chat" }
+    ]
+  }
+]

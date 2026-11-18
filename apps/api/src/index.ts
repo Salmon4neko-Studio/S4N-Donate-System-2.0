@@ -13,6 +13,7 @@ import { createPrismaLedger } from "./payments/prisma-ledger.js";
 import { createOfficialCatalog, createPaymentRegistry } from "./plugins/catalog.js";
 import { createPrismaInstallations } from "./plugins/prisma-installations.js";
 import { createPrismaSecretStore } from "./plugins/prisma-store.js";
+import { createBundledMarketplace } from "./plugins/marketplace/service.js";
 import { createChatHost } from "./chat/host.js";
 import { createDurableBus } from "./realtime/bus.js";
 import { mountDashboardSocket } from "./realtime/dashboard-socket.js";
@@ -50,6 +51,7 @@ async function main(): Promise<void> {
   const auth = createAuthService({ store: createPrismaAuthStore(prisma), masterKey });
   const installations = createPrismaInstallations(prisma);
   const secrets = createPrismaSecretStore(prisma);
+  const marketplace = createBundledMarketplace({ installations, secrets, bus });
 
   const chatHost = createChatHost({ catalog, installations, secrets, masterKey, bus });
 
@@ -65,6 +67,7 @@ async function main(): Promise<void> {
     providers,
     secrets,
     installations,
+    marketplace,
     ledger: createPrismaLedger(prisma),
     bus,
     auth,
@@ -89,6 +92,11 @@ async function main(): Promise<void> {
     void chatHost.sync();
   }, 3_000);
   chatSync.unref();
+  void marketplace.ready();
+  const registryCheck = setInterval(() => {
+    void marketplace.check();
+  }, 6 * 60 * 60 * 1000);
+  registryCheck.unref();
 
   const replayLimit = env.eventReplayLimit;
   mountOverlaySocket(app, {
@@ -123,6 +131,8 @@ async function main(): Promise<void> {
   );
 
   const shutdown = () => {
+    clearInterval(chatSync);
+    clearInterval(registryCheck);
     stopRetention();
     chatHost.stop();
     void bus.close().finally(() => {

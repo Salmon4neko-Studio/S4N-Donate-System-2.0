@@ -7,7 +7,7 @@
     "dev": "tsx watch src/index.ts",
     "start": "tsx src/index.ts",
     "typecheck": "tsc --noEmit",
-    "test": "prisma generate && tsx --test src/crypto/master-key.test.ts src/crypto/secret-box.test.ts src/auth/origin.test.ts src/auth/auth.test.ts src/plugins/manifests.test.ts src/plugins/permissions.test.ts src/plugins/settings.test.ts src/payments/ledger.test.ts src/payments/check-mac.test.ts src/payments/callback.test.ts src/payments/donations.test.ts src/payments/providers.test.ts src/payments/test-donation.test.ts src/env.test.ts src/realtime/plugin-bus.test.ts src/realtime/overlay.test.ts src/realtime/event-log.test.ts src/events.contract.test.ts src/chat/host.test.ts",
+    "test": "prisma generate && tsx --test src/crypto/master-key.test.ts src/crypto/secret-box.test.ts src/auth/origin.test.ts src/auth/auth.test.ts src/plugins/manifests.test.ts src/plugins/permissions.test.ts src/plugins/settings.test.ts src/plugins/marketplace/verify.test.ts src/plugins/marketplace/policy.test.ts src/plugins/marketplace/lifecycle.test.ts src/payments/ledger.test.ts src/payments/check-mac.test.ts src/payments/callback.test.ts src/payments/donations.test.ts src/payments/providers.test.ts src/payments/test-donation.test.ts src/env.test.ts src/realtime/plugin-bus.test.ts src/realtime/overlay.test.ts src/realtime/event-log.test.ts src/events.contract.test.ts src/chat/host.test.ts",
     "db:generate": "prisma generate",
     "db:migrate": "prisma migrate dev",
     "db:deploy": "prisma migrate deploy",

@@ -30,6 +30,8 @@ export interface SecretStore {
       secrets: Record<string, SealedSecret>;
     },
   ): Promise<void>;
+  /** Delete public settings and sealed secrets for one plugin. */
+  discard(pluginId: string): Promise<void>;
 }
 
 export class SettingsValidationError extends Error {

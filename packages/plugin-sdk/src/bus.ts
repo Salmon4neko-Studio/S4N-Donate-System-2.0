@@ -22,7 +22,11 @@ export interface PluginBus {
   emit<T extends PluginEmittableEventName>(type: T, payload: S4nEventMap[T]): void;
 }
 
-const NOT_PLUGIN_EMITTABLE = new Set<string>([...CORE_PAYMENT_EVENTS, "s4n.donation.test"]);
+const NOT_PLUGIN_EMITTABLE = new Set<string>([
+  ...CORE_PAYMENT_EVENTS,
+  "s4n.donation.test",
+  "s4n.plugin.changed",
+]);
 
 /**
  * Plugins subscribe and emit only through this object.

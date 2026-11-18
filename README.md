@@ -10,14 +10,14 @@
 - `@s4n/plugin-sdk`：外掛規格 0.1、權限，以及不能寫帳的付款介面
 - 官方外掛清單：綠界 ECPay、歐付寶 O'Pay 的信用卡結帳，加上提醒、Twitch 聊天來源、聊天疊層，以及目標、跑馬燈、語音的佔位
 - API：Argon2id 登入、AES-256-GCM 密文設定、`/api/payments/:pluginId/callback`、帶權杖的疊層 WebSocket
-- 儀表板（初次設定、外掛開關、帳本、測試贊助）、贊助頁，以及贊助提醒疊層
+- 儀表板（初次設定、外掛市集、帳本、測試贊助）、贊助頁，以及贊助提醒疊層
 - Starlight 文件，以及 Docker Compose
 
 ## 這個骨架故意沒做
 
 - ATM、超商代碼，以及其他付款方式
 - YouTube 聊天（Twitch 聊天疊層已有。下一個來源沿用同一份事件）
-- 外掛市集、目標計算、跑馬燈、語音合成
+- 目標計算、跑馬燈、語音合成
 - 多個 API 實例共用的登入限流（事件紀錄已在 PostgreSQL）
 
 畫面若寫著尚未實作，那就是還沒有。不要把空狀態讀成「今天沒有贊助」。
@@ -113,7 +113,8 @@ plugins/example-thanks  可編譯的社群疊層範例（未進官方目錄）
 - 儀表板與公開贊助頁以 Tocas UI 5 為主，紙色、橘色、靛藍對到它的 CSS 變數。實心按鈕底色是 `#f28500`，字是 `#1a1512`（對比 7.01:1）。淺底小字用 `#995400`。Tocas 沒有的版面（側欄在手機上的橫向導覽、OBS 預覽畫布）用自訂元件補上。OBS 疊層的提醒卡維持紙色，左邊線用 `#f28500`。
 - 儀表板預設淺色，側欄可以切換 Tocas 暗色。公開贊助頁維持淺色。字體是本機自託管的 jf open 粉圓 2.1（justfont，SIL OFL 1.1，https://github.com/justfont/open-huninn-font/releases/tag/v2.1）。官方 `jf-openhuninn-2.1.ttf` 轉成 WOFF2，放在 `packages/design-tokens/fonts/`，旁邊是 `OFL.txt`。12,260 個字形都保留，沒有再裁切。內文與標題同一個家族，`font-display: swap`，不連 Google Fonts 或其他字型 CDN。
 - Twitch 聊天由來源外掛 `official.twitch-chat` 連到 `wss://irc-ws.chat.twitch.tv`，用匿名 `justinfan`。選填的 Client ID / Client Secret 走既有的 AES-256-GCM 密文欄位，不放進 OBS 網址。顯示外掛 `official.chat-overlay` 只訂閱正規化事件，之後的 YouTube 來源不必改它。測試贊助可以混進聊天，但仍然不寫帳本。
+- 外掛市集的官方索引用 Ed25519 簽名，公鑰釘在 `apps/api/src/plugins/marketplace/pinned-key.ts`。私鑰不在版本庫。套件摘要是 `s4n-plugin.json` 的 SHA-256。金流只允許綠界與歐付寶。社群外掛只有疊層與儀表板那組權限可以記下安裝，而且不會執行程式。安裝與權限變更寫進 `s4n.plugin.changed`，不含密文。
 
 ## English
 
-The dashboard and public donate pages use Tocas UI, themed with the paper, orange, and indigo tokens. Body and headings share self-hosted jf open 粉圓 2.1 (justfont, SIL OFL 1.1; https://github.com/justfont/open-huninn-font/releases/tag/v2.1). The OBS overlay stays on its own styles and the same family. Operators can sign in, enable plugins, and preview a test donation on the alerts overlay. Twitch chat is read anonymously on the server and shown by a separate chat overlay; optional Twitch credentials stay encrypted and never go on the OBS URL. YouTube chat is not in this version. ECPay and O'Pay can open a credit-card checkout; the ledger amount is the server order, and a test donation is still not written to the ledger. Set `S4N_PUBLIC_BASE_URL` so provider callbacks are not built from an internal host. Login needs PostgreSQL. Donation and chat events are appended there too, so an overlay can replay from the last sequence after a restart; delivery is at-least-once and clients dedupe by event id. The login rate limit and the Twitch badge cache stay in one process. See the Traditional Chinese sections above for ports, setup, and the decisions this tree had to make.
+The dashboard and public donate pages use Tocas UI, themed with the paper, orange, and indigo tokens. Body and headings share self-hosted jf open 粉圓 2.1 (justfont, SIL OFL 1.1; https://github.com/justfont/open-huninn-font/releases/tag/v2.1). The OBS overlay stays on its own styles and the same family. Operators can sign in, install official plugins from a signed registry, and preview a test donation on the alerts overlay. Payment plugins stay official-only. Twitch chat is read anonymously on the server and shown by a separate chat overlay; optional Twitch credentials stay encrypted and never go on the OBS URL. YouTube chat is not in this version. ECPay and O'Pay can open a credit-card checkout; the ledger amount is the server order, and a test donation is still not written to the ledger. Set `S4N_PUBLIC_BASE_URL` so provider callbacks are not built from an internal host. Login needs PostgreSQL. Donation, chat, and plugin-audit events are appended there too, so an overlay can replay from the last sequence after a restart; delivery is at-least-once and clients dedupe by event id. Plugin audit events are not forwarded to OBS. The login rate limit and the Twitch badge cache stay in one process. See the Traditional Chinese sections above for ports, setup, and the decisions this tree had to make.

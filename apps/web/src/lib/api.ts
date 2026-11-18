@@ -71,6 +71,54 @@ export interface PluginSummary {
   official: boolean;
   enabled: boolean;
   settingsFields: PluginField[];
+  category: string | null;
+  author: string | null;
+  latestVersion: string;
+  updateAvailable: boolean;
+  pinned: boolean;
+  addedPermissions: string[];
+  previousVersion: string | null;
+  source: string;
+}
+
+export interface MarketplaceScreenshot {
+  alt: string;
+  caption: string;
+  frame: "checkout" | "overlay" | "chat" | "tool";
+}
+
+export interface MarketplaceListing {
+  id: string;
+  name: string;
+  version: string;
+  installedVersion: string | null;
+  description: string;
+  category: "payment" | "overlay" | "chat-source" | "tool";
+  author: string;
+  official: boolean;
+  featured: boolean;
+  icon: string;
+  kind: string[];
+  permissions: string[];
+  addedPermissions: string[];
+  changelog: string;
+  compatibility: { core: string; pluginSpec: string };
+  screenshots: MarketplaceScreenshot[];
+  source: "official" | "community";
+  installed: boolean;
+  enabled: boolean;
+  pinned: boolean;
+  updateAvailable: boolean;
+  previousVersion: string | null;
+  installable: boolean;
+  blockReason: string | null;
+  runtime: "bundled" | "metadata" | "none";
+}
+
+export interface MarketplaceResponse {
+  checkedAt: string | null;
+  verified: boolean;
+  plugins: MarketplaceListing[];
 }
 
 export interface SettingsFieldState extends PluginField {

@@ -17,6 +17,7 @@ export function overlayPluginFor(event: AnyS4nEvent): string | null {
     case "s4n.chat.clear":
       return "official.chat-overlay";
     case "s4n.media.now_playing":
+    case "s4n.plugin.changed":
       return null;
     default: {
       const unexpected: never = event;

@@ -28,6 +28,7 @@ const typeLabel: Record<string, string> = {
   "s4n.goal.updated": "目標",
   "s4n.tts.request": "語音",
   "s4n.media.now_playing": "播放",
+  "s4n.plugin.changed": "外掛",
 };
 
 export function EventLog({ refreshKey }: { refreshKey: number }) {

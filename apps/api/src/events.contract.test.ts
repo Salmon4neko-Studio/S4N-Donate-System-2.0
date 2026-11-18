@@ -75,6 +75,17 @@ const samples = {
     title: "track",
     requestedBy: asUntrustedText("donor"),
   },
+  "s4n.plugin.changed": {
+    action: "install",
+    pluginId: "official.alerts",
+    version: "0.1.0",
+    previousVersion: null,
+    permissions: ["events.subscribe", "overlay.slot"],
+    addedPermissions: [],
+    removedPermissions: [],
+    source: "official",
+    dataKept: null,
+  },
 } satisfies { [T in keyof S4nEventMap]: S4nEventMap[T] };
 
 test("event samples cover the shared catalog", () => {
