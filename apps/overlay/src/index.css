@@ -76,9 +76,28 @@ body[data-transparent="1"] {
   border-radius: 0.9rem;
   background: var(--s4n-color-paper-raised);
   color: var(--s4n-color-ink);
-  padding: 0.45rem 0.8rem;
-  font-size: 1.15rem;
+  padding: 0.4rem 0.85rem;
+  font-size: 1.75rem;
   line-height: 1.45;
+}
+
+/* One inline flow, like Twitch chat. Tailwind preflight sets img { display: block }. */
+.chat-line {
+  white-space: normal;
+}
+
+.chat-line .chat-name,
+.chat-line .chat-body {
+  display: inline;
+  vertical-align: middle;
+}
+
+.chat-line .chat-badge,
+.chat-line .chat-emote,
+.chat-line .chat-badge-fallback {
+  display: inline-block;
+  max-width: none;
+  vertical-align: middle;
 }
 
 .chat-kicker {
@@ -102,23 +121,26 @@ body[data-transparent="1"] {
   margin: 0;
 }
 
-.chat-badge,
-.chat-emote {
-  height: 1.25em;
+.chat-line .chat-badge,
+.chat-line .chat-badge-fallback {
+  height: 18px;
   width: auto;
-  margin-right: 0.2rem;
-  vertical-align: -0.22em;
+  margin-right: 0.28rem;
+}
+
+.chat-line .chat-emote {
+  height: 1.75em;
+  width: auto;
+  margin: 0 0.12em;
 }
 
 .chat-badge-fallback {
-  display: inline-block;
-  margin-right: 0.3rem;
   padding: 0 0.4rem;
   border-radius: 999px;
   background: #f28500;
   color: #1a1512;
-  font-size: 0.75rem;
-  line-height: 1.4;
+  font-size: 0.7rem;
+  line-height: 18px;
 }
 
 .chat-waiting {
