@@ -7,6 +7,7 @@ import {
   type ChatLineView,
   type ChatOverlaySettings,
 } from "@s4n/plugin-chat-overlay";
+import { noteEvent, readCursor, readSeen } from "./cursor";
 import { formatTwd } from "./money";
 
 type Connection = "connecting" | "open" | "reconnecting" | "denied";
@@ -32,19 +33,29 @@ export function ChatOverlay({
     let socket: WebSocket | null = null;
     let timer = 0;
     let closed = false;
+    let seen = readSeen("official.chat-overlay");
+    let cursor = readCursor("official.chat-overlay");
 
     const connect = () => {
       setConnection((current) => (current === "connecting" ? "connecting" : "reconnecting"));
-      socket = new WebSocket(socketUrl(token));
+      socket = new WebSocket(socketUrl(token, cursor));
       socket.addEventListener("open", () => setConnection("open"));
       socket.addEventListener("message", (message) => {
         if (typeof message.data !== "string") return;
         const next = readSocketMessage(message.data);
         if (next.kind === "settings") {
           setSettings(parseChatOverlaySettings(next.settings));
+          if (next.sequence !== null) {
+            const noted = noteEvent("official.chat-overlay", seen, "", next.sequence, cursor);
+            cursor = noted.cursor;
+          }
           return;
         }
         if (next.kind === "event") {
+          const noted = noteEvent("official.chat-overlay", seen, next.id, next.sequence, cursor);
+          seen = noted.seen;
+          cursor = noted.cursor;
+          if (!noted.fresh) return;
           setLines((current) => reduceChatLines(current, next.event, settingsRef.current, Date.now()));
         }
       });
@@ -174,7 +185,7 @@ function EmoteView({ name, imageUrl }: { name: string; imageUrl: string | null }
   return <span>{name}</span>;
 }
 
-function socketUrl(token: string): string {
+function socketUrl(token: string, since: string | null): string {
   const httpUrl = import.meta.env.VITE_API_URL ?? "http://localhost:8787";
   const url = new URL(httpUrl);
   url.protocol = url.protocol === "https:" ? "wss:" : "ws:";
@@ -183,14 +194,15 @@ function socketUrl(token: string): string {
   url.hash = "";
   url.searchParams.set("token", token);
   url.searchParams.set("plugin", "official.chat-overlay");
+  if (since !== null) url.searchParams.set("since", since);
   return url.toString();
 }
 
 function readSocketMessage(
   raw: string,
 ):
-  | { kind: "settings"; settings: Record<string, unknown> }
-  | { kind: "event"; event: NonNullable<ReturnType<typeof readChatWireEvent>> }
+  | { kind: "settings"; settings: Record<string, unknown>; sequence: string | null }
+  | { kind: "event"; id: string; sequence: string | null; event: NonNullable<ReturnType<typeof readChatWireEvent>> }
   | { kind: "ignore" } {
   let parsed: unknown;
   try {
@@ -200,11 +212,21 @@ function readSocketMessage(
   }
   if (!isRecord(parsed)) return { kind: "ignore" };
   if (parsed.channel === "system") {
-    return { kind: "settings", settings: isRecord(parsed.settings) ? parsed.settings : {} };
+    return {
+      kind: "settings",
+      settings: isRecord(parsed.settings) ? parsed.settings : {},
+      sequence: typeof parsed.sequence === "string" ? parsed.sequence : null,
+    };
   }
   if (parsed.channel !== "event" || !isRecord(parsed.event)) return { kind: "ignore" };
   const event = readChatWireEvent(parsed.event);
-  return event === null ? { kind: "ignore" } : { kind: "event", event };
+  if (event === null || typeof parsed.event.id !== "string") return { kind: "ignore" };
+  return {
+    kind: "event",
+    id: parsed.event.id,
+    sequence: typeof parsed.event.sequence === "string" ? parsed.event.sequence : null,
+    event,
+  };
 }
 
 function isRecord(value: unknown): value is Record<string, unknown> {

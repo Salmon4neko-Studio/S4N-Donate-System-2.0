@@ -78,15 +78,19 @@ export async function createDonationCheckout(options: {
       },
       { secrets, settings },
     );
-    options.bus.publish("s4n.donation.created", {
-      donationId: order.id,
-      providerId: order.providerId,
-      amountMinor: order.amountMinor,
-      currency: order.currency,
-      donorName: order.donorName,
-      message: order.message,
-      createdAt: new Date().toISOString(),
-    });
+    try {
+      await options.bus.publish("s4n.donation.created", {
+        donationId: order.id,
+        providerId: order.providerId,
+        amountMinor: order.amountMinor,
+        currency: order.currency,
+        donorName: order.donorName,
+        message: order.message,
+        createdAt: new Date().toISOString(),
+      });
+    } catch {
+      // The checkout form is already built. A missing created-event is not an alert.
+    }
     return {
       status: 201,
       body: {
@@ -103,11 +107,15 @@ export async function createDonationCheckout(options: {
     } catch {
       return { status: 503, body: { error: "ledger_unavailable" } };
     }
-    options.bus.publish("s4n.donation.failed", {
-      donationId: order.id,
-      providerId: order.providerId,
-      reason: "unknown",
-    });
+    try {
+      await options.bus.publish("s4n.donation.failed", {
+        donationId: order.id,
+        providerId: order.providerId,
+        reason: "unknown",
+      });
+    } catch {
+      // The order is already marked failed. The response below still reports the failure.
+    }
     if (error instanceof PaymentNotImplemented) {
       return { status: 501, body: { error: "payment_not_implemented", pluginId: provider.pluginId } };
     }

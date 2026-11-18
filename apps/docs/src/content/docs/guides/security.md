@@ -61,4 +61,12 @@ OBS 不帶登入 Cookie。疊層網址帶一組每個營運者一枚的權杖。
 
 沒有填 Client ID 時，聊天仍可用匿名 `justinfan` 讀取。送去 `irc-ws.chat.twitch.tv` 的 `PASS` 是 Twitch 公開的匿名密碼 `SCHMOOPIIE`，不是營運者的 OAuth 權杖，也不是 Client Secret。表情圖網址只接受 `https://static-cdn.jtvnw.net/`。聊天文字在疊層以文字節點繪製。
 
-還沒有內容安全政策。多個 API 實例也不會共用工作階段以外的即時狀態；工作階段本身在資料庫裡。
+## 事件紀錄
+
+`EventLog` 跟 `Donation` 是兩張表。測試贊助只進事件紀錄。寫入前會拒絕名稱像 `hashKey`、`clientSecret`、`password`、`token` 這類的欄位，錯誤訊息只指出欄位名稱，不帶值。
+
+疊層仍用雜湊過的疊層權杖，不改用工作階段 Cookie。工作台的即時連線才使用 `s4n_session`。送給瀏覽器的是事件本身或一行摘要，不是外掛密文。
+
+同一筆贊助的同一種事件只保留一列。金流重複通知時，疊層不會因為第二列再響一次。細節與多程序的 `LISTEN`/`NOTIFY` 見 [事件紀錄](/guides/events/)。
+
+還沒有內容安全政策。登入限流與 Twitch 徽章快取仍在單一程序的記憶體裡。工作階段與事件紀錄在資料庫裡，多個 API 程序看得到同一條紀錄。

@@ -60,11 +60,15 @@ export async function reconcileDonation(options: {
     try {
       const wrote = await options.ledger.markFailed(order.id, queried.providerRef || null);
       if (wrote === "updated") {
-        options.bus.publish("s4n.donation.failed", {
-          donationId: order.id,
-          providerId: order.providerId,
-          reason: "declined",
-        });
+        try {
+          await options.bus.publish("s4n.donation.failed", {
+            donationId: order.id,
+            providerId: order.providerId,
+            reason: "declined",
+          });
+        } catch {
+          return { status: 503, body: { error: "event_log_unavailable" } };
+        }
       }
     } catch {
       return { status: 503, body: { error: "ledger_unavailable" } };
@@ -88,14 +92,18 @@ export async function reconcileDonation(options: {
     return { status: 503, body: { error: "ledger_unavailable" } };
   }
 
-  options.bus.publish("s4n.donation.succeeded", {
-    donationId: order.id,
-    providerId: order.providerId,
-    providerRef: queried.providerRef,
-    amountMinor: order.amountMinor,
-    currency: order.currency,
-    donorName: order.donorName,
-    message: order.message,
-  });
+  try {
+    await options.bus.publish("s4n.donation.succeeded", {
+      donationId: order.id,
+      providerId: order.providerId,
+      providerRef: queried.providerRef,
+      amountMinor: order.amountMinor,
+      currency: order.currency,
+      donorName: order.donorName,
+      message: order.message,
+    });
+  } catch {
+    return { status: 503, body: { error: "event_log_unavailable" } };
+  }
   return { status: 200, body: { status: "recorded", donationId: order.id } };
 }

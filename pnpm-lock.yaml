@@ -167,6 +167,9 @@ importers:
       '@s4n/design-tokens':
         specifier: workspace:*
         version: link:../../packages/design-tokens
+      '@s4n/events':
+        specifier: workspace:*
+        version: link:../../packages/events
       react:
         specifier: ^19.2.0
         version: 19.3.1
@@ -261,6 +264,25 @@ importers:
       '@types/node':
         specifier: ^22.19.0
         version: 22.20.5
+      typescript:
+        specifier: 'catalog:'
+        version: 5.9.3
+
+  plugins/example-thanks:
+    dependencies:
+      '@s4n/events':
+        specifier: workspace:*
+        version: link:../../packages/events
+      '@s4n/plugin-sdk':
+        specifier: workspace:*
+        version: link:../../packages/plugin-sdk
+    devDependencies:
+      '@types/node':
+        specifier: ^22.19.0
+        version: 22.20.5
+      tsx:
+        specifier: ^4.23.15
+        version: 4.23.15
       typescript:
         specifier: 'catalog:'
         version: 5.9.3

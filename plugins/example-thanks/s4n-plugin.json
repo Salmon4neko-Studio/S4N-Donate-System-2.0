@@ -1,0 +1,26 @@
+{
+  "id": "community.thanks",
+  "name": "感謝小卡",
+  "version": "0.1.0",
+  "api": "0.1",
+  "description": "示範用的社群疊層。訂閱贊助事件，並用事件 id 排除重複。沒有進官方目錄。",
+  "kind": ["overlay", "dashboard"],
+  "permissions": ["events.subscribe", "overlay.slot", "dashboard.settings"],
+  "entry": {
+    "overlay": "./src/overlay.ts",
+    "dashboard": "./src/overlay.ts"
+  },
+  "settingsSchema": {
+    "type": "object",
+    "additionalProperties": false,
+    "properties": {
+      "durationMs": {
+        "type": "integer",
+        "title": "顯示時間（毫秒）",
+        "description": "小卡留在畫面上的時間。",
+        "minimum": 1000,
+        "default": 8000
+      }
+    }
+  }
+}

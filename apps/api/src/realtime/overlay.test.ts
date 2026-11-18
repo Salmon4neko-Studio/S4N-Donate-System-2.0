@@ -288,13 +288,13 @@ function closeCode(url: string): Promise<number> {
   });
 }
 
-test("the core bus used by overlays stays in one process", () => {
+test("the in-memory bus still delivers inside the publishing process", async () => {
   const bus = createCoreBus();
   let seen = 0;
   bus.subscribe(() => {
     seen += 1;
   });
-  bus.publish("s4n.donation.test", {
+  await bus.publish("s4n.donation.test", {
     donationId: "test_local",
     providerId: "s4n.test",
     amountMinor: 1,
@@ -304,4 +304,5 @@ test("the core bus used by overlays stays in one process", () => {
     test: true,
   });
   assert.equal(seen, 1);
+  await bus.close();
 });

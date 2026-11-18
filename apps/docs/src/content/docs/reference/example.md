@@ -3,20 +3,20 @@ title: 範例外掛
 description: 一份社群疊層清單，以及官方綠界清單的密文欄位。
 ---
 
-社群外掛不在這次載入的官方清單裡。下面這份清單是規格範例：只有疊層與儀表板設定，沒有密鑰，也沒有付款。
+可編譯、可測試的社群範例是 `plugins/example-thanks`（`@s4n/plugin-example-thanks`）。它只有疊層與儀表板設定，沒有密鑰，也沒有付款，而且沒有放進官方目錄。做法見 [外掛開發](/guides/plugin-dev/)。清單如下。
 
 ```json
 {
-  "id": "community.thanks-card",
+  "id": "community.thanks",
   "name": "感謝小卡",
   "version": "0.1.0",
   "api": "0.1",
-  "description": "收到贊助事件後顯示一張小卡。名稱與留言必須先消毒。",
+  "description": "示範用的社群疊層。訂閱贊助事件，並用事件 id 排除重複。沒有進官方目錄。",
   "kind": ["overlay", "dashboard"],
   "permissions": ["events.subscribe", "overlay.slot", "dashboard.settings"],
   "entry": {
     "overlay": "./src/overlay.ts",
-    "dashboard": "./src/settings.ts"
+    "dashboard": "./src/overlay.ts"
   },
   "settingsSchema": {
     "type": "object",
@@ -25,7 +25,8 @@ description: 一份社群疊層清單，以及官方綠界清單的密文欄位�
       "durationMs": {
         "type": "integer",
         "title": "顯示時間（毫秒）",
-        "minimum": 1000
+        "minimum": 1000,
+        "default": 8000
       }
     }
   }

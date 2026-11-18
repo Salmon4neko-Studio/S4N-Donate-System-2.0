@@ -139,3 +139,12 @@ test("preview and donation lines survive the wire reader, and foreign image URLs
   assert.equal(shown?.donation?.test, false);
   assert.equal(shown?.parts[0]?.type === "text" ? shown.parts[0].text : "", "＊＊");
 });
+
+test("a replayed chat line with the same message id is not shown twice", () => {
+  const payload = line();
+  const event = { type: "s4n.chat.message" as const, payload };
+  const once = reduceChatLines([], event, settings, Date.parse("2026-01-01T00:00:00.000Z"));
+  const twice = reduceChatLines(once, event, settings, Date.parse("2026-01-01T00:00:00.000Z"));
+  assert.equal(twice.length, 1);
+  assert.equal(twice[0]?.messageId, "m1");
+});

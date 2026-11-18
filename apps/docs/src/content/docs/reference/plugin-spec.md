@@ -3,7 +3,7 @@ title: 外掛規格 0.1
 description: s4n-plugin.json、權限、密文欄位，以及外掛可以收發的事件。
 ---
 
-每個外掛有一份 `s4n-plugin.json`。`api` 目前只接受 `0.1`。
+每個外掛有一份 `s4n-plugin.json`。`api` 目前只接受 `0.1`。怎麼寫、怎麼測，見 [外掛開發](/guides/plugin-dev/) 與 [外掛 SDK](/reference/plugin-sdk/)。可編譯的範例是 `plugins/example-thanks`。
 
 | 欄位 | 說明 |
 | --- | --- |
@@ -52,6 +52,8 @@ Twitch 來源需要 `events.emit`、`secrets` 與 `network`。頻道名稱是一
 ## 事件
 
 外掛只能透過 `@s4n/plugin-sdk` 的 `createPluginBus` 訂閱與發送。
+
+這些事件會寫進 PostgreSQL 的事件紀錄。每一則有單調的 `sequence` 與自己的 `id`。送達是至少一次：斷線的客戶端帶著最後的序號重連，伺服器依序補上，客戶端用 `id` 排除重複。外掛的 `emit` 不能假設對方只會收到一次。保留期限、重播上限與升級見 [事件紀錄](/guides/events/)。
 
 核心保留事件，外掛不能發送：
 

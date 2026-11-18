@@ -1,3 +1,5 @@
+export { acceptEventId, nextCursor } from "./dedupe.js";
+
 export { asUntrustedText } from "./untrusted.js";
 export type { UntrustedText } from "./untrusted.js";
 

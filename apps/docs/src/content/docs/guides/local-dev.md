@@ -57,4 +57,4 @@ pnpm typecheck
 pnpm test
 ```
 
-`pnpm typecheck` 與 `pnpm test` 應該通過。登入、密文、權限、疊層權杖與測試贊助都在 API 測試裡。事件匯流排與登入限流是單一程序的記憶體實作。
+`pnpm typecheck` 與 `pnpm test` 應該通過。登入、密文、權限、疊層權杖與測試贊助都在 API 測試裡。事件紀錄的重送、順序、去重、重啟與保留期限也在其中；連得到已遷移的 PostgreSQL 時，會再測一次 `LISTEN`/`NOTIFY`。沒有資料庫時那一個測試會略過，其餘仍通過。登入限流仍是單一程序的記憶體計數。

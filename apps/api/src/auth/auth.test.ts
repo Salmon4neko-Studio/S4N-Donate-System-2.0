@@ -116,6 +116,7 @@ test("dashboard routes require a session and the public donate route does not", 
     "/api/plugins",
     "/api/plugins/official.ecpay/settings",
     "/api/donations",
+    "/api/events",
     "/api/overlay",
   ];
   for (const path of paths) {

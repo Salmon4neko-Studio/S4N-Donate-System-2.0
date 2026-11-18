@@ -24,7 +24,7 @@ export function createChatHost(deps: ChatHostDeps): { sync(): Promise<void>; sto
   const sources = new Map<string, ChatSource>();
   const pluginBus = createPluginBus({
     publish(type, payload) {
-      deps.bus.publish(type, payload);
+      void deps.bus.publish(type, payload).catch(() => undefined);
     },
     subscribe(type, handler) {
       return deps.bus.subscribe((event) => {
@@ -57,7 +57,7 @@ export function createChatHost(deps: ChatHostDeps): { sync(): Promise<void>; sto
         await deps.secrets.readPublicSettings(CHAT_OVERLAY_PLUGIN_ID),
       );
       if (!settings.mixDonations) return;
-      deps.bus.publish("s4n.chat.message", donationAsChatMessage(payload, occurredAt));
+      void deps.bus.publish("s4n.chat.message", donationAsChatMessage(payload, occurredAt)).catch(() => undefined);
     } catch {
       // A settings read failure must not block the original donation event.
     }

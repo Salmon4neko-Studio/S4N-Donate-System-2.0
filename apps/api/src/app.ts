@@ -25,6 +25,7 @@ import {
   type SecretStore,
 } from "./plugins/settings.js";
 import type { CoreBus } from "./realtime/bus.js";
+import { toEventLogEntry } from "./realtime/summary.js";
 import { CHAT_OVERLAY_PLUGIN_ID, ALERTS_PLUGIN_ID, overlayPageUrl } from "./realtime/overlay-url.js";
 import { previewChatMessage } from "@s4n/plugin-chat-overlay";
 
@@ -43,6 +44,10 @@ export interface AppDeps {
   ledger: Ledger;
   bus: CoreBus;
   auth: AuthService;
+  /** `postgres` once the API is writing the shared event log. Tests stay on `memory`. */
+  eventLog?: "memory" | "postgres";
+  eventRetentionDays?: number;
+  eventChatRetentionHours?: number;
   pingDatabase: () => Promise<"up" | "down" | "unconfigured">;
   callbackRateLimit?: { windowMs: number; max: number };
   loginRateLimit?: { windowMs: number; max: number };
@@ -92,8 +97,27 @@ export function createApp(deps: AppDeps): Hono<SessionEnv> {
       status: "ok",
       database,
       realtime: "websocket",
+      eventLog: deps.eventLog ?? "memory",
       payments: deps.providers.ids(),
     });
+  });
+
+  app.get("/api/events", session, async (c) => {
+    const limit = readLimit(c.req.query("limit"));
+    try {
+      const [head, events] = await Promise.all([deps.bus.head(), deps.bus.readRecent(limit)]);
+      return c.json({
+        head: head.toString(),
+        retention: {
+          defaultDays: deps.eventRetentionDays ?? 7,
+          chatHours: deps.eventChatRetentionHours ?? 24,
+        },
+        eventLog: deps.eventLog ?? "memory",
+        events: events.map(toEventLogEntry),
+      });
+    } catch {
+      return c.json({ error: "event_log_unavailable" }, 503);
+    }
   });
 
   app.get("/api/plugins", session, async (c) => {
@@ -208,16 +232,20 @@ export function createApp(deps: AppDeps): Hono<SessionEnv> {
     if (!body.ok) return c.json({ error: "invalid_json" }, 422);
     const parsed = validateDonationRequest(testDonationBody(body.value));
     if (!parsed.ok) return c.json({ error: "invalid_donation", issues: parsed.issues }, 422);
-    const event = deps.bus.publish("s4n.donation.test", {
-      donationId: `test_${randomUUID()}`,
-      providerId: "s4n.test",
-      amountMinor: parsed.value.amountMinor,
-      currency: "TWD",
-      donorName: asUntrustedText(parsed.value.donorName),
-      message: asUntrustedText(parsed.value.message),
-      test: true,
-    });
-    return c.json({ test: true, eventId: event.id });
+    try {
+      const event = await deps.bus.publish("s4n.donation.test", {
+        donationId: `test_${randomUUID()}`,
+        providerId: "s4n.test",
+        amountMinor: parsed.value.amountMinor,
+        currency: "TWD",
+        donorName: asUntrustedText(parsed.value.donorName),
+        message: asUntrustedText(parsed.value.message),
+        test: true,
+      });
+      return c.json({ test: true, eventId: event.id });
+    } catch {
+      return c.json({ error: "event_log_unavailable" }, 503);
+    }
   });
 
   app.get("/api/donate/options", async (c) => {
@@ -313,16 +341,20 @@ export function createApp(deps: AppDeps): Hono<SessionEnv> {
     if (!body.ok) return c.json({ error: "invalid_json" }, 422);
     const parsed = readTestChat(body.value);
     if (parsed === null) return c.json({ error: "invalid_chat" }, 422);
-    const event = deps.bus.publish(
-      "s4n.chat.message",
-      previewChatMessage({
-        displayName: parsed.displayName,
-        text: parsed.text,
-        now: new Date().toISOString(),
-        messageId: `preview-${randomUUID()}`,
-      }),
-    );
-    return c.json({ test: true, eventId: event.id });
+    try {
+      const event = await deps.bus.publish(
+        "s4n.chat.message",
+        previewChatMessage({
+          displayName: parsed.displayName,
+          text: parsed.text,
+          now: new Date().toISOString(),
+          messageId: `preview-${randomUUID()}`,
+        }),
+      );
+      return c.json({ test: true, eventId: event.id });
+    } catch {
+      return c.json({ error: "event_log_unavailable" }, 503);
+    }
   });
 
   app.post(
@@ -415,6 +447,14 @@ export function createApp(deps: AppDeps): Hono<SessionEnv> {
   );
 
   return app;
+}
+
+function readLimit(value: string | undefined): number {
+  if (value === undefined || value === "") return 30;
+  if (!/^[1-9][0-9]*$/.test(value)) return 30;
+  const parsed = Number(value);
+  if (!Number.isInteger(parsed) || parsed < 1) return 30;
+  return Math.min(parsed, 100);
 }
 
 function testDonationBody(value: unknown): unknown {

@@ -1,5 +1,6 @@
 import { useEffect, useState, type FormEvent } from "react";
 import { Link } from "react-router";
+import { EventLog } from "@/components/event-log";
 import { buttonClass, Field, Note, TextArea, TextInput } from "@/components/fields";
 import { api, type HealthResponse } from "@/lib/api";
 import { sendTestDonation, testDonationErrorMessage } from "@/lib/test-donation";
@@ -17,6 +18,7 @@ export function DashboardPage() {
   const [amount, setAmount] = useState(300);
   const [message, setMessage] = useState("這首歌我很喜歡");
   const [testState, setTestState] = useState<TestState>({ status: "idle" });
+  const [eventRefresh, setEventRefresh] = useState(0);
 
   useEffect(() => {
     const controller = new AbortController();
@@ -35,6 +37,7 @@ export function DashboardPage() {
     try {
       await sendTestDonation({ donorName, amountMinor: amount, message });
       setTestState({ status: "sent" });
+      setEventRefresh((current) => current + 1);
     } catch (error) {
       setTestState({ status: "error", message: testDonationErrorMessage(error) });
     }
@@ -58,7 +61,7 @@ export function DashboardPage() {
             <span className="ts-icon is-flask-icon" aria-hidden="true" />
             測試贊助
           </div>
-          <p className="ts-text is-description">送給已啟用的贊助提醒。畫面上會標成測試，帳本維持空白。</p>
+          <p className="ts-text is-description">送給已啟用的贊助提醒。畫面上會標成測試，帳本維持空白，事件紀錄會留下這一筆。</p>
           <form onSubmit={onTest} className="ts-grid is-2-columns s4n-form-grid">
             <div className="column">
               <Field id="test-name" label="顯示名稱">
@@ -95,6 +98,8 @@ export function DashboardPage() {
           </form>
         </div>
       </section>
+
+      <EventLog refreshKey={eventRefresh} />
 
       <section className="ts-grid is-3-columns s4n-cards">
         <article className="column ts-box is-raised is-top-indicated">
@@ -176,7 +181,9 @@ function HealthLine({ state }: { state: LoadState }) {
       <span className="ts-badge is-accent">核心已回應</span>
       <span className="ts-badge is-outlined">{database}</span>
       <span className="ts-badge is-outlined">付款外掛 {state.health.payments.length}</span>
-      <span className="ts-badge is-outlined">即時通道已接上</span>
+      <span className="ts-badge is-outlined">
+        {state.health.eventLog === "postgres" ? "事件紀錄在資料庫" : "事件紀錄在記憶體"}
+      </span>
     </div>
   );
 }
