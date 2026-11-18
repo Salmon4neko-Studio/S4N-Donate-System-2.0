@@ -1,5 +1,6 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { alertDurationMs, readDonationAlert, type DonationAlert } from "@s4n/plugin-alerts";
+import { noteEvent, readCursor, readSeen } from "./cursor";
 import { formatTwd } from "./money";
 
 type Connection = "connecting" | "open" | "reconnecting" | "denied";
@@ -18,6 +19,7 @@ export function Overlay({
   const [connection, setConnection] = useState<Connection>(token === "" ? "denied" : "connecting");
   const [alert, setAlert] = useState<DonationAlert | null>(null);
   const [durationMs, setDurationMs] = useState(12_000);
+  const queueRef = useRef<DonationAlert[]>([]);
   const showChrome = !transparent || preview;
 
   useEffect(() => {
@@ -25,16 +27,30 @@ export function Overlay({
     let socket: WebSocket | null = null;
     let timer = 0;
     let closed = false;
+    let seen = readSeen(pluginId);
+    let cursor = readCursor(pluginId);
 
     const connect = () => {
       setConnection((current) => (current === "connecting" ? "connecting" : "reconnecting"));
-      socket = new WebSocket(socketUrl(token, pluginId));
+      socket = new WebSocket(socketUrl(token, pluginId, cursor));
       socket.addEventListener("open", () => setConnection("open"));
       socket.addEventListener("message", (message) => {
         if (typeof message.data !== "string") return;
         const next = readSocketMessage(message.data);
-        if (next.kind === "settings") setDurationMs(next.durationMs);
-        if (next.kind === "alert") setAlert(next.alert);
+        if (next.kind === "settings") {
+          setDurationMs(next.durationMs);
+          if (next.sequence !== null) {
+            const noted = noteEvent(pluginId, seen, "", next.sequence, cursor);
+            cursor = noted.cursor;
+          }
+          return;
+        }
+        if (next.kind === "alert") {
+          const noted = noteEvent(pluginId, seen, next.alert.id, next.sequence, cursor);
+          seen = noted.seen;
+          cursor = noted.cursor;
+          if (noted.fresh) enqueue(next.alert);
+        }
       });
       socket.addEventListener("close", (event) => {
         if (closed) return;
@@ -55,9 +71,21 @@ export function Overlay({
     };
   }, [pluginId, token]);
 
+  function enqueue(next: DonationAlert) {
+    setAlert((current) => {
+      if (current === null && queueRef.current.length === 0) return next;
+      if (queueRef.current.length >= 50) queueRef.current.shift();
+      queueRef.current.push(next);
+      return current;
+    });
+  }
+
   useEffect(() => {
     if (alert === null) return;
-    const timer = window.setTimeout(() => setAlert(null), durationMs);
+    const timer = window.setTimeout(() => {
+      const next = queueRef.current.shift() ?? null;
+      setAlert(next);
+    }, durationMs);
     return () => window.clearTimeout(timer);
   }, [alert, durationMs]);
 
@@ -108,7 +136,7 @@ function AlertCard({ alert }: { alert: DonationAlert }) {
   );
 }
 
-function socketUrl(token: string, pluginId: string): string {
+function socketUrl(token: string, pluginId: string, since: string | null): string {
   const httpUrl = import.meta.env.VITE_API_URL ?? "http://localhost:8787";
   const url = new URL(httpUrl);
   url.protocol = url.protocol === "https:" ? "wss:" : "ws:";
@@ -117,12 +145,13 @@ function socketUrl(token: string, pluginId: string): string {
   url.hash = "";
   url.searchParams.set("token", token);
   url.searchParams.set("plugin", pluginId);
+  if (since !== null) url.searchParams.set("since", since);
   return url.toString();
 }
 
 function readSocketMessage(
   raw: string,
-): { kind: "settings"; durationMs: number } | { kind: "alert"; alert: DonationAlert } | { kind: "ignore" } {
+): { kind: "settings"; durationMs: number; sequence: string | null } | { kind: "alert"; alert: DonationAlert; sequence: string | null } | { kind: "ignore" } {
   let parsed: unknown;
   try {
     parsed = JSON.parse(raw) as unknown;
@@ -132,7 +161,11 @@ function readSocketMessage(
   if (!isRecord(parsed)) return { kind: "ignore" };
   if (parsed.channel === "system") {
     const settings = isRecord(parsed.settings) ? parsed.settings : {};
-    return { kind: "settings", durationMs: alertDurationMs(settings) };
+    return {
+      kind: "settings",
+      durationMs: alertDurationMs(settings),
+      sequence: typeof parsed.sequence === "string" ? parsed.sequence : null,
+    };
   }
   if (parsed.channel !== "event" || !isRecord(parsed.event)) return { kind: "ignore" };
   const event = parsed.event;
@@ -140,7 +173,8 @@ function readSocketMessage(
     return { kind: "ignore" };
   }
   const alert = readDonationAlert(event as unknown as Parameters<typeof readDonationAlert>[0]);
-  return alert === null ? { kind: "ignore" } : { kind: "alert", alert };
+  if (alert === null) return { kind: "ignore" };
+  return { kind: "alert", alert, sequence: typeof event.sequence === "string" ? event.sequence : null };
 }
 
 function isRecord(value: unknown): value is Record<string, unknown> {

@@ -80,4 +80,8 @@ test("a test donation is marked as a test and does not touch the paid ledger", {
   assert.equal(list.status, 200);
   assert.deepEqual(listed.donations, []);
   assert.equal((await inner.listRecent(10)).length, 0);
+  const stored = await bus.readAfter(0n, 10);
+  assert.equal(stored.length, 1);
+  assert.equal(stored[0]?.type, "s4n.donation.test");
+  assert.equal(stored[0]?.id, body.eventId);
 });

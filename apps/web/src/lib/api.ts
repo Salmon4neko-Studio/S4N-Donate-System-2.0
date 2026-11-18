@@ -44,6 +44,7 @@ export interface HealthResponse {
   status: string;
   database: "up" | "down" | "unconfigured";
   realtime: string;
+  eventLog: "memory" | "postgres";
   payments: string[];
 }
 
@@ -87,6 +88,21 @@ export interface DonationRow {
   donorName: string;
   message: string;
   createdAt: string;
+}
+
+export interface EventLogEntry {
+  sequence: string;
+  id: string;
+  type: string;
+  occurredAt: string;
+  summary: string;
+}
+
+export interface EventLogResponse {
+  head: string;
+  retention: { defaultDays: number; chatHours: number };
+  eventLog: "memory" | "postgres";
+  events: EventLogEntry[];
 }
 
 export interface OverlayLink {

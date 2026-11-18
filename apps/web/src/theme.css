@@ -535,3 +535,19 @@ p .ts-text.is-link,
     animation: s4n-rise var(--s4n-motion-calm) var(--s4n-ease-out);
   }
 }
+
+.s4n-event-scroll {
+  overflow-x: auto;
+  margin-top: 0.75rem;
+}
+
+.s4n-event-scroll .ts-table {
+  min-width: 40rem;
+}
+
+@media (max-width: 720px) {
+  .s4n-event-scroll .ts-table {
+    min-width: 0;
+    width: 100%;
+  }
+}

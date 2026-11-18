@@ -3,7 +3,7 @@ import type { CoreBus } from "../realtime/bus.js";
 import { decryptPluginSecrets } from "../plugins/secrets.js";
 import type { SecretStore } from "../plugins/settings.js";
 import type { LoadedPlugin, PaymentRegistry } from "../plugins/catalog.js";
-import { decideVerifiedPayment, type Ledger } from "./ledger.js";
+import { decideVerifiedPayment, type Ledger, type LedgerOrder } from "./ledger.js";
 
 export interface CallbackResult {
   status: number;
@@ -114,6 +114,10 @@ export async function settlePaymentNotification(options: {
   });
 
   if (decision.action === "duplicate") {
+    if (order !== null && order.status === "succeeded" && verification.outcome !== "failed") {
+      const published = await publishSucceeded(options.bus, order, verification.providerRef);
+      if (!published) return reject(order.id, 503, { error: "event_log_unavailable" }, provider);
+    }
     return accept(verification.orderId, { status: "duplicate", donationId: verification.orderId }, provider);
   }
   if (decision.action === "missing_order") {
@@ -146,11 +150,15 @@ export async function settlePaymentNotification(options: {
     if (wrote === "lost_race") {
       return accept(order.id, { status: "duplicate", donationId: order.id }, provider);
     }
-    options.bus.publish("s4n.donation.failed", {
-      donationId: order.id,
-      providerId: order.providerId,
-      reason: "declined",
-    });
+    try {
+      await options.bus.publish("s4n.donation.failed", {
+        donationId: order.id,
+        providerId: order.providerId,
+        reason: "declined",
+      });
+    } catch {
+      return reject(order.id, 503, { error: "event_log_unavailable" }, provider);
+    }
     return accept(order.id, { status: "failed", donationId: order.id }, provider);
   }
 
@@ -164,26 +172,40 @@ export async function settlePaymentNotification(options: {
   if (wrote === "lost_race") {
     const again = await options.ledger.getById(order.id);
     if (again?.status === "succeeded" && again.providerRef === verification.providerRef) {
+      const published = await publishSucceeded(options.bus, again, verification.providerRef);
+      if (!published) return reject(order.id, 503, { error: "event_log_unavailable" }, provider);
       return accept(order.id, { status: "duplicate", donationId: order.id }, provider);
     }
     return reject(order.id, 409, { error: "provider_mismatch" }, provider);
   }
 
-  options.bus.publish("s4n.donation.succeeded", {
-    donationId: order.id,
-    providerId: order.providerId,
-    providerRef: verification.providerRef,
-    amountMinor: order.amountMinor,
-    currency: order.currency,
-    donorName: order.donorName,
-    message: order.message,
-  });
+  const published = await publishSucceeded(options.bus, order, verification.providerRef);
+  if (!published) return reject(order.id, 503, { error: "event_log_unavailable" }, provider);
 
   return {
     orderId: order.id,
     recordedPaid: true,
     http: accept(order.id, { status: "recorded", donationId: order.id }, provider).http,
   };
+}
+
+async function publishSucceeded(bus: CoreBus, order: LedgerOrder, providerRef: string): Promise<boolean> {
+  const ref = order.providerRef ?? providerRef;
+  if (ref.length === 0) return false;
+  try {
+    await bus.publish("s4n.donation.succeeded", {
+      donationId: order.id,
+      providerId: order.providerId,
+      providerRef: ref,
+      amountMinor: order.amountMinor,
+      currency: order.currency,
+      donorName: order.donorName,
+      message: order.message,
+    });
+    return true;
+  } catch {
+    return false;
+  }
 }
 
 function accept(

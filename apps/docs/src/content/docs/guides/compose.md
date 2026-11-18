@@ -32,4 +32,4 @@ Compose 的資料庫密碼是 `s4n_dev_password`。主金鑰若沒有從環境�
 3. 把 `S4N_DASHBOARD_ORIGIN` 改成真正的儀表板來源
 4. 把 `S4N_PUBLIC_BASE_URL` 設成綠界與歐付寶打得到的 https 來源，不要帶路徑或自訂埠
 
-登入已經接上，細節見 [安全性](/guides/security/)。金鑰輪替、正式憑證，以及多個 API 實例共用的限流與事件匯流排，仍然沒有。
+登入已經接上，細節見 [安全性](/guides/security/)。事件紀錄跟帳本用同一顆 PostgreSQL，多個 API 程序用 `LISTEN`/`NOTIFY` 共用，見 [事件紀錄](/guides/events/)。金鑰輪替、正式憑證，以及多個 API 實例共用的登入限流，仍然沒有。

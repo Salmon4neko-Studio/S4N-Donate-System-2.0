@@ -9,6 +9,9 @@ test("development defaults the public callback origin and donation bounds", () =
   assert.equal(env.publicBaseUrl, "http://127.0.0.1:8787");
   assert.equal(env.donationMin, 30);
   assert.equal(env.donationMax, 20_000);
+  assert.equal(env.eventRetentionDays, 7);
+  assert.equal(env.eventChatRetentionHours, 24);
+  assert.equal(env.eventReplayLimit, 200);
 });
 
 test("production requires a bare public origin", () => {
@@ -34,6 +37,13 @@ test("production requires a bare public origin", () => {
     DATABASE_URL: "postgresql://s4n:s4n@localhost:5432/s4n",
   });
   assert.equal(env.publicBaseUrl, "https://donate.example");
+});
+
+test("event retention rejects zero and chat can be shorter than the default", () => {
+  assert.throws(() => loadEnv({ ...master, S4N_EVENT_RETENTION_DAYS: "0" }), /S4N_EVENT_RETENTION_DAYS/);
+  const env = loadEnv({ ...master, S4N_EVENT_RETENTION_DAYS: "7", S4N_EVENT_CHAT_RETENTION_HOURS: "6" });
+  assert.equal(env.eventRetentionDays, 7);
+  assert.equal(env.eventChatRetentionHours, 6);
 });
 
 test("donation bounds must be ordered integers", () => {

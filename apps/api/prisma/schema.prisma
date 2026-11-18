@@ -82,3 +82,20 @@ enum DonationStatus {
   succeeded
   failed
 }
+
+/// Append-only delivery log. This is not the donation ledger.
+/// `s4n.donation.test` is stored here and must never create a Donation row.
+/// `donationId` is a dedupe key for `s4n.donation.*` only. It is not a foreign key.
+/// Retention is the only delete. `sequence` is never reused.
+model EventLog {
+  sequence   BigInt   @id @default(autoincrement())
+  eventId    String   @unique
+  type       String
+  donationId String?
+  payload    Json
+  createdAt  DateTime
+
+  @@unique([type, donationId])
+  @@index([createdAt])
+  @@index([type, createdAt])
+}

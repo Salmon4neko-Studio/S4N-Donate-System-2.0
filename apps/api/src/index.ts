@@ -14,8 +14,11 @@ import { createOfficialCatalog, createPaymentRegistry } from "./plugins/catalog.
 import { createPrismaInstallations } from "./plugins/prisma-installations.js";
 import { createPrismaSecretStore } from "./plugins/prisma-store.js";
 import { createChatHost } from "./chat/host.js";
-import { createCoreBus } from "./realtime/bus.js";
+import { createDurableBus } from "./realtime/bus.js";
+import { mountDashboardSocket } from "./realtime/dashboard-socket.js";
+import { createPostgresEventStore } from "./realtime/postgres-store.js";
 import { mountOverlaySocket } from "./realtime/overlay-socket.js";
+import { startEventRetention } from "./realtime/retention.js";
 
 const root = resolve(import.meta.dirname, "../../..");
 const envPath = resolve(root, ".env");
@@ -27,69 +30,112 @@ if (existsSync(envPath)) {
   console.warn("Loaded .env.example because .env is missing.");
 }
 
-const env = loadEnv();
-const masterKey = parseMasterKey(env.masterKey, env.env);
-const catalog = createOfficialCatalog();
-const providers = createPaymentRegistry(catalog);
-const bus = createCoreBus();
-const prisma = createPrisma(env.databaseUrl);
-const auth = createAuthService({ store: createPrismaAuthStore(prisma), masterKey });
-const installations = createPrismaInstallations(prisma);
-const secrets = createPrismaSecretStore(prisma);
+async function main(): Promise<void> {
+  const env = loadEnv();
+  const masterKey = parseMasterKey(env.masterKey, env.env);
+  const catalog = createOfficialCatalog();
+  const providers = createPaymentRegistry(catalog);
+  const prisma = createPrisma(env.databaseUrl);
+  const eventStore = createPostgresEventStore(prisma, env.databaseUrl);
+  const bus = createDurableBus(eventStore);
+  await bus.start();
+  const stopRetention = startEventRetention(
+    eventStore,
+    {
+      chatMs: env.eventChatRetentionHours * 3_600_000,
+      defaultMs: env.eventRetentionDays * 86_400_000,
+    },
+    env.eventCleanupIntervalMinutes * 60_000,
+  );
+  const auth = createAuthService({ store: createPrismaAuthStore(prisma), masterKey });
+  const installations = createPrismaInstallations(prisma);
+  const secrets = createPrismaSecretStore(prisma);
 
-const chatHost = createChatHost({ catalog, installations, secrets, masterKey, bus });
+  const chatHost = createChatHost({ catalog, installations, secrets, masterKey, bus });
 
-const app = createApp({
-  envName: env.env,
-  dashboardOrigin: env.dashboardOrigin,
-  overlayOrigin: env.overlayOrigin,
-  publicBaseUrl: env.publicBaseUrl,
-  donationMin: env.donationMin,
-  donationMax: env.donationMax,
-  masterKey,
-  catalog,
-  providers,
-  secrets,
-  installations,
-  ledger: createPrismaLedger(prisma),
-  bus,
-  auth,
-  onPluginsChanged: () => {
-    void chatHost.sync();
-  },
-  pingDatabase: async () => {
-    try {
-      await prisma.$queryRaw`SELECT 1`;
-      return "up";
-    } catch {
-      return "down";
-    }
-  },
-});
+  const app = createApp({
+    envName: env.env,
+    dashboardOrigin: env.dashboardOrigin,
+    overlayOrigin: env.overlayOrigin,
+    publicBaseUrl: env.publicBaseUrl,
+    donationMin: env.donationMin,
+    donationMax: env.donationMax,
+    masterKey,
+    catalog,
+    providers,
+    secrets,
+    installations,
+    ledger: createPrismaLedger(prisma),
+    bus,
+    auth,
+    eventLog: "postgres",
+    eventRetentionDays: env.eventRetentionDays,
+    eventChatRetentionHours: env.eventChatRetentionHours,
+    onPluginsChanged: () => {
+      void chatHost.sync();
+    },
+    pingDatabase: async () => {
+      try {
+        await prisma.$queryRaw`SELECT 1`;
+        return "up";
+      } catch {
+        return "down";
+      }
+    },
+  });
 
-void chatHost.sync();
-const chatSync = setInterval(() => {
   void chatHost.sync();
-}, 3_000);
-chatSync.unref();
+  const chatSync = setInterval(() => {
+    void chatHost.sync();
+  }, 3_000);
+  chatSync.unref();
 
-mountOverlaySocket(app, {
-  bus,
-  catalog,
-  tokenValid: (token) => auth.overlayTokenValid(token),
-  pluginEnabled: async (pluginId) => (await installations.enabledIds()).has(pluginId),
-  readPublicSettings: (pluginId) => secrets.readPublicSettings(pluginId),
+  const replayLimit = env.eventReplayLimit;
+  mountOverlaySocket(app, {
+    bus,
+    catalog,
+    replayLimit,
+    tokenValid: (token) => auth.overlayTokenValid(token),
+    pluginEnabled: async (pluginId) => (await installations.enabledIds()).has(pluginId),
+    readPublicSettings: (pluginId) => secrets.readPublicSettings(pluginId),
+  });
+  mountDashboardSocket(app, {
+    bus,
+    replayLimit,
+    sessionValid: async (sessionId) => {
+      if (sessionId === undefined) return false;
+      const found = await auth.authenticate(sessionId);
+      return found !== null;
+    },
+  });
+
+  const sockets = new WebSocketServer({ noServer: true });
+  const server = serve(
+    {
+      fetch: app.fetch,
+      port: env.port,
+      hostname: "0.0.0.0",
+      websocket: { server: sockets },
+    },
+    (info) => {
+      console.log(`S4N API listening on http://127.0.0.1:${info.port}`);
+    },
+  );
+
+  const shutdown = () => {
+    stopRetention();
+    chatHost.stop();
+    void bus.close().finally(() => {
+      void eventStore.close().finally(() => {
+        server.close();
+      });
+    });
+  };
+  process.once("SIGINT", shutdown);
+  process.once("SIGTERM", shutdown);
+}
+
+main().catch((error: unknown) => {
+  console.error(error instanceof Error ? error.message : "S4N API failed to start");
+  process.exit(1);
 });
-
-const sockets = new WebSocketServer({ noServer: true });
-serve(
-  {
-    fetch: app.fetch,
-    port: env.port,
-    hostname: "0.0.0.0",
-    websocket: { server: sockets },
-  },
-  (info) => {
-    console.log(`S4N API listening on http://127.0.0.1:${info.port}`);
-  },
-);

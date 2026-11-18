@@ -11,6 +11,13 @@ export interface ApiEnv {
   donationMin: number;
   donationMax: number;
   port: number;
+  /** How long non-chat events stay in the log. */
+  eventRetentionDays: number;
+  /** How long chat events stay in the log. Can be shorter than the default. */
+  eventChatRetentionHours: number;
+  eventCleanupIntervalMinutes: number;
+  /** Matching events sent to one reconnecting client. */
+  eventReplayLimit: number;
 }
 
 const LOCAL_DATABASE_URL = "postgresql://s4n:s4n_dev_password@localhost:5432/s4n";
@@ -39,6 +46,20 @@ export function loadEnv(source: NodeJS.ProcessEnv = process.env): ApiEnv {
   if (!Number.isInteger(port) || port < 1 || port > 65535) {
     throw new Error("PORT is invalid");
   }
+  const eventRetentionDays = parseBound(source.S4N_EVENT_RETENTION_DAYS, 7, "S4N_EVENT_RETENTION_DAYS", 365);
+  const eventChatRetentionHours = parseBound(
+    source.S4N_EVENT_CHAT_RETENTION_HOURS,
+    24,
+    "S4N_EVENT_CHAT_RETENTION_HOURS",
+    24 * 365,
+  );
+  const eventCleanupIntervalMinutes = parseBound(
+    source.S4N_EVENT_CLEANUP_INTERVAL_MINUTES,
+    15,
+    "S4N_EVENT_CLEANUP_INTERVAL_MINUTES",
+    24 * 60,
+  );
+  const eventReplayLimit = parseBound(source.S4N_EVENT_REPLAY_LIMIT, 200, "S4N_EVENT_REPLAY_LIMIT", 2_000);
 
   return {
     env,
@@ -50,6 +71,10 @@ export function loadEnv(source: NodeJS.ProcessEnv = process.env): ApiEnv {
     donationMin,
     donationMax,
     port,
+    eventRetentionDays,
+    eventChatRetentionHours,
+    eventCleanupIntervalMinutes,
+    eventReplayLimit,
   };
 }
 
@@ -64,11 +89,11 @@ function parsePublicBase(value: string): string {
   return origin;
 }
 
-function parseBound(value: string | undefined, fallback: number, name: string): number {
+function parseBound(value: string | undefined, fallback: number, name: string, max = 10_000_000): number {
   if (value === undefined || value.trim() === "") return fallback;
   if (!/^[1-9][0-9]*$/.test(value.trim())) throw new Error(`${name} is invalid`);
   const parsed = Number(value);
-  if (!Number.isSafeInteger(parsed) || parsed < 1 || parsed > 10_000_000) {
+  if (!Number.isSafeInteger(parsed) || parsed < 1 || parsed > max) {
     throw new Error(`${name} is invalid`);
   }
   return parsed;

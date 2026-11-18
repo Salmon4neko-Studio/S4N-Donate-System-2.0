@@ -167,6 +167,9 @@ importers:
       '@s4n/design-tokens':
         specifier: workspace:*
         version: link:../../packages/design-tokens
+      '@s4n/events':
+        specifier: workspace:*
+        version: link:../../packages/events
       react:
         specifier: ^19.2.0
         version: 19.3.1

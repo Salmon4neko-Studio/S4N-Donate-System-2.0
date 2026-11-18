@@ -22,6 +22,11 @@ const GLOBAL_URL = "https://api.twitch.tv/helix/chat/badges/global";
 /**
  * In-memory Helix badge cache. Images are kept only when they are on
  * static-cdn.jtvnw.net. The client secret is sent only to the token endpoint.
+ *
+ * This cache stays in the API process on purpose. It holds badge titles, CDN
+ * URLs, and a short-lived app token. After a restart the overlay falls back to
+ * text until the next refresh (default one hour). Moving it to Postgres would
+ * mean storing that token, so it is not part of the durable event log.
  */
 export function createBadgeCache(options: {
   fetchImpl?: typeof fetch;

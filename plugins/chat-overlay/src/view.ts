@@ -121,6 +121,7 @@ export function reduceChatLines(
   }
   const line = presentChatMessage(event.payload, settings);
   if (line === null) return live;
+  if (live.some((item) => item.messageId === line.messageId)) return live;
   return capLines([...live, line], settings.maxLines);
 }
 
