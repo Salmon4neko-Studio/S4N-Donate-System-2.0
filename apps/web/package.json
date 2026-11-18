@@ -11,8 +11,6 @@
     "test": "node --experimental-strip-types --test src/lib/overlay-preview.test.ts"
   },
   "dependencies": {
-    "@fontsource/noto-sans-tc": "^5.3.1",
-    "@fontsource/noto-serif-tc": "^5.3.1",
     "@s4n/design-tokens": "workspace:*",
     "react": "^19.2.0",
     "react-dom": "^19.2.0",

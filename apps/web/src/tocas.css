@@ -67,6 +67,8 @@
 @import "tocas/src/colors.css";
 
 html {
+  --ts-font-family: var(--s4n-font-sans);
+
   --ts-breakpoint-mobile-min: 0px;
   --ts-breakpoint-mobile-max: 767.98px;
   --ts-breakpoint-tablet-min: 768px;

@@ -1,0 +1,16 @@
+/*
+ * jf open 粉圓 2.1 (jf-openhuninn-2.1), justfont, SIL OFL 1.1.
+ * Source: https://github.com/justfont/open-huninn-font/releases/tag/v2.1
+ * The file is the official jf-openhuninn-2.1.ttf converted to WOFF2.
+ * Glyphs are unchanged (12,260; not a subset). License: ./fonts/OFL.txt
+ *
+ * One static Regular master. The weight range pins every requested weight
+ * to that master so browsers do not synthesize a bold.
+ */
+@font-face {
+  font-family: "jf open 粉圓";
+  src: url("./fonts/jf-openhuninn-2.1.woff2") format("woff2");
+  font-weight: 100 900;
+  font-style: normal;
+  font-display: swap;
+}
