@@ -83,7 +83,7 @@ pnpm --filter @s4n/api exec tsx scripts/sign-registry.ts
 
 `S4N_REGISTRY_SIGNING_KEY` 是 PKCS#8 PEM。公鑰寫在 `apps/api/src/plugins/marketplace/pinned-key.ts`。換一把鑰匙時，公鑰與新的 `official.json` 要在同一個審查過的提交裡一起換。只換索引、不換公鑰，而私鑰又不在手上，簽章不會通過。
 
-這個版本附上的公鑰，對應的私鑰沒有留在版本庫裡。目標、跑馬燈與提示音改清單時，索引是用建置環境裡臨時產生的 Ed25519 鑰匙簽的，那把私鑰沒有保存。**正式上線前請自行產生鑰匙、換上 `pinned-key.ts`、再跑簽名腳本。** 不要沿用這次提交裡的公鑰當作正式信任根。
+官方清單已用擁有者的正式 Ed25519 金鑰簽署，並釘選公鑰。私鑰不在版本庫。
 
 社群目錄留了 `RegistrySource`。v1 的社群來源是空的。之後若接上，讀到的位元組仍要用同一把公鑰驗證。金流一律拒絕。權限超出 `events.subscribe`、`overlay.slot`、`dashboard.settings` 的社群外掛也不能安裝。就算權限都在這組裡，這個版本也只記下安裝，不載入它的程式。
 
