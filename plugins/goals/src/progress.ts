@@ -9,13 +9,8 @@ export const DEFAULT_GOAL_TARGET = 1000;
 export interface GoalAppearance {
   title: string;
   targetMinor: number;
-  /** ISO-8601, or null when every paid donation counts. */
+  /** ISO-8601, or null when every booked donation counts. */
   since: string | null;
-  /**
-   * True counts only booked payments (`succeeded`).
-   * False also counts `review`: a verified notice that was not booked.
-   */
-  creditedOnly: boolean;
   textColor: string;
   primaryColor: string;
   secondaryColor: string;
@@ -33,15 +28,17 @@ export const DEFAULT_GOAL_APPEARANCE: GoalAppearance = {
   title: DEFAULT_GOAL_TITLE,
   targetMinor: DEFAULT_GOAL_TARGET,
   since: null,
-  creditedOnly: true,
   textColor: "#1a1512",
   primaryColor: "#f28500",
   secondaryColor: "#f4efe8",
 };
 
-/** Statuses that count toward a goal. Test donations are never ledger rows. */
-export function goalStatuses(creditedOnly: boolean): readonly string[] {
-  return creditedOnly ? ["succeeded"] : ["succeeded", "review"];
+/**
+ * Only booked payments count. 待人工處理 and every unpaid state stay out.
+ * A stored `creditedOnly` flag is ignored.
+ */
+export function goalStatuses(): readonly ["succeeded"] {
+  return ["succeeded"];
 }
 
 export function parseGoalSettings(settings: Record<string, unknown>): GoalAppearance {
@@ -49,7 +46,6 @@ export function parseGoalSettings(settings: Record<string, unknown>): GoalAppear
     title: readTitle(settings.title),
     targetMinor: readTarget(settings.targetMinor),
     since: readSince(settings.since),
-    creditedOnly: readCreditedOnly(settings.creditedOnly),
     textColor: readColor(settings.textColor, DEFAULT_GOAL_APPEARANCE.textColor),
     primaryColor: readColor(settings.primaryColor, DEFAULT_GOAL_APPEARANCE.primaryColor),
     secondaryColor: readColor(settings.secondaryColor, DEFAULT_GOAL_APPEARANCE.secondaryColor),
@@ -57,11 +53,11 @@ export function parseGoalSettings(settings: Record<string, unknown>): GoalAppear
 }
 
 /**
- * Sum of paid ledger rows. `creditedOnly` keeps 待人工處理 out.
+ * Sum of booked ledger rows (`succeeded` only).
  * Rows before `since` are skipped. Amounts that are not TWD are skipped.
  */
-export function sumGoalProgress(rows: readonly GoalRow[], appearance: Pick<GoalAppearance, "creditedOnly" | "since">): number {
-  const allowed = new Set(goalStatuses(appearance.creditedOnly));
+export function sumGoalProgress(rows: readonly GoalRow[], appearance: Pick<GoalAppearance, "since">): number {
+  const allowed = new Set<string>(goalStatuses());
   const parsedSince = appearance.since === null ? Number.NaN : Date.parse(appearance.since);
   const sinceMs = Number.isNaN(parsedSince) ? null : parsedSince;
   let total = 0;
@@ -110,11 +106,6 @@ function readSince(value: unknown): string | null {
   const parsed = Date.parse(value);
   if (Number.isNaN(parsed)) return null;
   return new Date(parsed).toISOString();
-}
-
-function readCreditedOnly(value: unknown): boolean {
-  if (typeof value === "boolean") return value;
-  return true;
 }
 
 function readColor(value: unknown, fallback: string): string {

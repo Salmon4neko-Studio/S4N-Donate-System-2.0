@@ -8,6 +8,7 @@ import {
   type ChatOverlaySettings,
 } from "@s4n/plugin-chat-overlay";
 import { noteEvent, readCursor, readSeen } from "./cursor";
+import { overlayStatusLine } from "./status";
 import { formatTwd } from "./money";
 
 type Connection = "connecting" | "open" | "reconnecting" | "denied";
@@ -26,7 +27,7 @@ export function ChatOverlay({
   const [lines, setLines] = useState<ChatLineView[]>([]);
   const settingsRef = useRef(settings);
   settingsRef.current = settings;
-  const showHint = preview || !transparent;
+  const statusLine = overlayStatusLine({ preview, kind: "chat", connection, idle: lines.length === 0 });
 
   useEffect(() => {
     if (token === "") return;
@@ -86,19 +87,9 @@ export function ChatOverlay({
     return () => window.clearInterval(timer);
   }, [settings]);
 
-  const connectionLabel =
-    connection === "open" ? "已連線" : connection === "reconnecting" ? "重新連線中" : connection === "denied" ? "權杖無效" : "連線中";
-
   return (
     <main className="chat-overlay">
-      <p className="sr-only" role="status">
-        {connectionLabel}
-      </p>
-      {showHint && lines.length === 0 ? (
-        <p className="chat-waiting">
-          {connection === "denied" ? "這個網址的權杖無效。請從工作台複製新的疊層網址。" : `聊天疊層${connectionLabel}。等待訊息。`}
-        </p>
-      ) : null}
+      {statusLine ? <p className="chat-waiting">{statusLine}</p> : null}
       <ol className="chat-lines" aria-live="polite">
         {lines.map((line) =>
           line.donation ? <DonationLine key={line.messageId} line={line} /> : <ChatLine key={line.messageId} line={line} />,

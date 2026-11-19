@@ -8,6 +8,7 @@ import {
   type DonationAlert,
 } from "@s4n/plugin-alerts";
 import { noteEvent, readCursor, readSeen } from "./cursor";
+import { overlayStatusLine } from "./status";
 
 const PLUGIN_ID = "official.alerts";
 type Connection = "connecting" | "open" | "reconnecting" | "denied";
@@ -27,7 +28,7 @@ export function Overlay({
   const [appearance, setAppearance] = useState<AlertAppearance>(() => parseAlertAppearance({}));
   const [reducedMotion, setReducedMotion] = useState(false);
   const queueRef = useRef<DonationAlert[]>([]);
-  const showHint = preview || !transparent;
+  const statusLine = overlayStatusLine({ preview, kind: "alerts", connection, idle: alert === null });
 
   useEffect(() => {
     const media = window.matchMedia("(prefers-reduced-motion: reduce)");
@@ -121,18 +122,15 @@ export function Overlay({
     return () => window.clearTimeout(timer);
   }, [alert, phase, reducedMotion]);
 
-  const connectionLabel =
-    connection === "open" ? "已連線" : connection === "reconnecting" ? "重新連線中" : connection === "denied" ? "權杖無效" : "連線中";
   const copy = alert === null ? null : renderAlertCopy(alert, appearance);
   const motion = phase === "out" ? appearance.exitAnimation : appearance.enterAnimation;
 
   return (
     <div className="alert-layer">
-      <p className="sr-only" role="status">
-        {connectionLabel}
-      </p>
-      {showHint && alert === null ? (
-        <p className="overlay-hint">{connection === "denied" ? "權杖無效。" : `贊助提醒${connectionLabel}。等待贊助。`}</p>
+      {statusLine ? (
+        <p className="overlay-hint" role="status">
+          {statusLine}
+        </p>
       ) : null}
       {alert && copy ? (
         <article

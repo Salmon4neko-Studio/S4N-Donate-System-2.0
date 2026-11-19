@@ -95,7 +95,7 @@
     "author": "S4N",
     "featured": false,
     "icon": "bullseye",
-    "changelog": "0.1.0 依帳本已付款計算進度，可設起算時間與顏色，並在共用畫布占一個版位。",
+    "changelog": "0.1.1 進度只算已入帳。待人工處理與其他未入帳狀態不算。",
     "screenshots": [
       {
         "alt": "目標名稱、金額與進度條",

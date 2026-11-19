@@ -1,15 +1,16 @@
 import { useEffect, useState, type CSSProperties } from "react";
 import { goalAchieved, goalPercent, parseGoalSettings } from "@s4n/plugin-goals";
 import { noteEvent, readCursor, readSeen } from "./cursor";
+import { overlayStatusLine, type OverlayConnection } from "./status";
 import { formatTwd } from "./money";
 
 const PLUGIN_ID = "official.goals";
 
 export function GoalOverlay({ token, transparent, preview }: { token: string; transparent: boolean; preview: boolean }) {
-  const [connection, setConnection] = useState(token === "" ? "denied" : "connecting");
+  const [connection, setConnection] = useState<OverlayConnection>(token === "" ? "denied" : "connecting");
   const [settings, setSettings] = useState<Record<string, unknown>>({});
   const [reducedMotion, setReducedMotion] = useState(false);
-  const showHint = preview || !transparent;
+  const statusLine = overlayStatusLine({ preview, kind: "goals", connection });
   const appearance = parseGoalSettings(settings);
   const currentMinor = readCurrent(settings.currentMinor);
   const percent = goalPercent(currentMinor, appearance.targetMinor);
@@ -78,8 +79,6 @@ export function GoalOverlay({ token, transparent, preview }: { token: string; tr
     };
   }, [token]);
 
-  const connectionLabel =
-    connection === "open" ? "已連線" : connection === "reconnecting" ? "重新連線中" : connection === "denied" ? "權杖無效" : "連線中";
   const style = {
     "--goal-text": appearance.textColor,
     "--goal-primary": appearance.primaryColor,
@@ -88,11 +87,8 @@ export function GoalOverlay({ token, transparent, preview }: { token: string; tr
 
   return (
     <div className="goal-layer" style={style}>
-      <p className="sr-only" role="status">
-        {connectionLabel}
-        {achieved ? "目標達成" : ""}
-      </p>
-      {showHint && connection !== "open" ? <p className="overlay-hint">目標進度{connectionLabel}。</p> : null}
+      {statusLine ? <p className="overlay-hint">{statusLine}</p> : null}
+      <p className="sr-only">{achieved ? "目標達成" : ""}</p>
       <article className={achieved && !reducedMotion ? "goal-card is-achieved" : "goal-card"}>
         <div className="goal-row">
           <h2 className="goal-title">{appearance.title}</h2>

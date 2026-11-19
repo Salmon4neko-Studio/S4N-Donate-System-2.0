@@ -3,7 +3,7 @@ import type { PluginManifest } from "@s4n/plugin-sdk";
 export const manifest = {
   id: "official.goals",
   name: "目標進度",
-  version: "0.1.0",
+  version: "0.1.1",
   api: "0.1",
   description: "在疊層顯示目標名稱、目前與目標金額，以及百分比進度條。進度由帳本的已付款贊助計算。",
   kind: ["overlay", "dashboard"],
@@ -35,16 +35,10 @@ export const manifest = {
       since: {
         type: "string",
         title: "起算時間",
-        description: "只計算這個時間之後入帳的贊助。留空表示從帳本最早的已付款開始。重設為現在會把之前的金額清出這次目標。",
+        description: "只計算這個時間之後入帳的贊助。留空表示從帳本最早的已入帳開始。重設為現在會把之前的金額清出這次目標。",
         "x-s4n-datetime": true,
         default: "",
         maxLength: 40,
-      },
-      creditedOnly: {
-        type: "boolean",
-        title: "只計已入帳",
-        description: "開啟時只加總已付款。關閉時，待人工處理（過期後才收到、沒有入帳）也會計入。測試贊助永遠不算。",
-        default: true,
       },
       textColor: {
         type: "string",

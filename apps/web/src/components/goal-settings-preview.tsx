@@ -33,6 +33,5 @@ export function GoalSettingsPreview({ drafts }: { drafts: Record<string, string>
 function draftsToSettings(drafts: Record<string, string>): Record<string, unknown> {
   const settings: Record<string, unknown> = { ...drafts };
   if (/^\d+$/.test(drafts.targetMinor ?? "")) settings.targetMinor = Number(drafts.targetMinor);
-  settings.creditedOnly = drafts.creditedOnly === "true";
   return settings;
 }

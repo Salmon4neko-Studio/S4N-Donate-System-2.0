@@ -4,7 +4,8 @@ import { asUntrustedText } from "@s4n/events";
 import { createMemoryLedger } from "../payments/memory-ledger.js";
 import type { LedgerOrder } from "../payments/ledger.js";
 import { createTestApp, setupOperator, TEST_ORIGIN } from "../test/fixture.js";
-import { decorateOverlaySettings, publishGoalProgress } from "./overlay-state.js";
+import { decorateOverlaySettings, forgetRetiredGoalSetting, publishGoalProgress } from "./overlay-state.js";
+import { createMemorySecretStore } from "../plugins/memory-store.js";
 
 function order(id: string, amount: number, status: LedgerOrder["status"]): LedgerOrder {
   return {
@@ -31,8 +32,9 @@ test("goal progress and the ticker line come from the paid ledger", async () => 
     order("late", 80, "review"),
     order("open", 40, "created"),
   ]);
-  const credited = await decorateOverlaySettings("official.goals", { targetMinor: 1000, creditedOnly: true }, ledger);
+  const credited = await decorateOverlaySettings("official.goals", { targetMinor: 1000, creditedOnly: false }, ledger);
   assert.equal(credited.currentMinor, 300);
+  assert.equal("creditedOnly" in credited, false);
   const wider = await decorateOverlaySettings("official.goals", { creditedOnly: false, since: "2099-01-01T00:00:00.000Z" }, ledger);
   assert.equal(wider.currentMinor, 0);
   const ticker = await decorateOverlaySettings(
@@ -79,6 +81,19 @@ test("a booked donation publishes the goal total on the existing bus", async () 
   assert.equal(goal.payload.currentMinor, 120);
   assert.equal(goal.payload.targetMinor, 500);
   assert.equal(goal.payload.title, "新麥克風");
+
+  const secrets = createMemorySecretStore();
+  await secrets.write("official.goals", {
+    version: "0.1.0",
+    publicSettings: { title: "舊目標", creditedOnly: false, targetMinor: 1000 },
+    secrets: {},
+  });
+  await forgetRetiredGoalSetting(secrets, "0.1.1");
+  const kept = await secrets.readPublicSettings("official.goals");
+  assert.equal(kept.title, "舊目標");
+  assert.equal(kept.targetMinor, 1000);
+  assert.equal("creditedOnly" in kept, false);
+  await forgetRetiredGoalSetting(secrets, "0.1.1");
 
   const saved = await fixture.app.request("/api/plugins/official.goals/settings", {
     method: "PUT",

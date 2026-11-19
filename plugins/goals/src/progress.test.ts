@@ -9,7 +9,7 @@ const paid = (amount: number, updatedAt: string, status = "succeeded", currency 
   updatedAt,
 });
 
-test("a goal sums paid donations and skips everything that was not booked", () => {
+test("a goal sums booked donations and skips review and every unpaid state", () => {
   const rows = [
     paid(100, "2026-11-01T00:00:00.000Z"),
     paid(40, "2026-11-02T00:00:00.000Z", "awaiting"),
@@ -19,8 +19,7 @@ test("a goal sums paid donations and skips everything that was not booked", () =
     paid(30, "2026-11-03T00:00:00.000Z", "review"),
     paid(500, "2026-11-04T00:00:00.000Z", "succeeded", "USD"),
   ];
-  assert.equal(sumGoalProgress(rows, { creditedOnly: true, since: null }), 100);
-  assert.equal(sumGoalProgress(rows, { creditedOnly: false, since: null }), 130);
+  assert.equal(sumGoalProgress(rows, { since: null }), 100);
 });
 
 test("the start time drops donations booked before it", () => {
@@ -30,15 +29,16 @@ test("the start time drops donations booked before it", () => {
     paid(25, "2026-11-19T08:00:00.000Z", "review"),
   ];
   const since = "2026-11-19T00:00:00.000Z";
-  assert.equal(sumGoalProgress(rows, { creditedOnly: true, since }), 50);
-  assert.equal(sumGoalProgress(rows, { creditedOnly: false, since }), 75);
-  assert.equal(sumGoalProgress(rows, { creditedOnly: true, since: "not-a-date" }), 250);
+  assert.equal(sumGoalProgress(rows, { since }), 50);
+  assert.equal(sumGoalProgress(rows, { since: "not-a-date" }), 250);
 });
 
-test("a missing credited switch counts only booked payments", () => {
-  const parsed = parseGoalSettings({});
-  assert.equal(parsed.creditedOnly, true);
-  assert.equal(parsed.title, "本月目標");
+test("a stored creditedOnly flag does not change the total", () => {
+  const rows = [paid(100, "2026-11-01T00:00:00.000Z"), paid(30, "2026-11-03T00:00:00.000Z", "review")];
+  const parsed = parseGoalSettings({ creditedOnly: false, title: "本月目標" });
+  assert.equal("creditedOnly" in parsed, false);
+  assert.equal(sumGoalProgress(rows, parsed), 100);
+  assert.equal(parseGoalSettings({}).title, "本月目標");
   assert.equal(parsed.targetMinor, 1000);
   assert.equal(parsed.since, null);
   assert.equal(parsed.primaryColor, "#f28500");
@@ -55,7 +55,7 @@ test("goal text drops hidden characters and the bar caps at 100 percent", () => 
   });
   assert.equal(parsed.title, "新麥克風");
   assert.equal(parsed.since, "2026-11-19T01:02:03.000Z");
-  assert.equal(parsed.creditedOnly, false);
+  assert.equal("creditedOnly" in parsed, false);
   assert.equal(parsed.textColor, "#aabbcc");
   assert.equal(parsed.primaryColor, "#f28500");
   assert.equal(goalPercent(40, 100), 40);

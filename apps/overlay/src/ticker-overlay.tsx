@@ -1,15 +1,16 @@
 import { useEffect, useState, type CSSProperties } from "react";
 import { parseTickerSettings, tickerDurationSec } from "@s4n/plugin-ticker";
+import { overlayStatusLine, type OverlayConnection } from "./status";
 
 const PLUGIN_ID = "official.ticker";
 
 export function TickerOverlay({ token, transparent, preview }: { token: string; transparent: boolean; preview: boolean }) {
-  const [connection, setConnection] = useState(token === "" ? "denied" : "connecting");
+  const [connection, setConnection] = useState<OverlayConnection>(token === "" ? "denied" : "connecting");
   const [settings, setSettings] = useState<Record<string, unknown>>({});
   const [reducedMotion, setReducedMotion] = useState(false);
-  const showHint = preview || !transparent;
   const appearance = parseTickerSettings(settings);
   const line = typeof settings.marquee === "string" ? settings.marquee : "";
+  const statusLine = overlayStatusLine({ preview, kind: "ticker", connection, idle: line === "" });
   const duration = tickerDurationSec(line, appearance.speed);
 
   useEffect(() => {
@@ -54,8 +55,6 @@ export function TickerOverlay({ token, transparent, preview }: { token: string; 
     };
   }, [token]);
 
-  const connectionLabel =
-    connection === "open" ? "已連線" : connection === "reconnecting" ? "重新連線中" : connection === "denied" ? "權杖無效" : "連線中";
   const style = {
     "--ticker-text": appearance.textColor,
     "--ticker-primary": appearance.primaryColor,
@@ -65,11 +64,8 @@ export function TickerOverlay({ token, transparent, preview }: { token: string; 
 
   return (
     <div className={`ticker-layer ${appearance.direction === "right" ? "is-right" : "is-left"}`} style={style}>
-      <p className="sr-only" role="status">
-        {connectionLabel}
-        {line}
-      </p>
-      {showHint && line === "" ? <p className="overlay-hint">跑馬燈{connectionLabel}。還沒有文字。</p> : null}
+      {statusLine ? <p className="overlay-hint">{statusLine}</p> : null}
+      {line !== "" ? <p className="sr-only">{line}</p> : null}
       {line !== "" ? (
         <div className={reducedMotion ? "ticker-viewport is-still" : "ticker-viewport"}>
           <p className="ticker-track">

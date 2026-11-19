@@ -63,7 +63,8 @@ test("ECPay and O'Pay declare secret merchant fields and the other plugins do no
   assert.equal(chatOverlay.overlaySlot?.x, 0.66);
   assert.equal(goals.overlaySlot?.y, 0.04);
   assert.equal(ticker.overlaySlot?.y, 0.22);
-  assert.equal(goals.version, "0.1.0");
+  assert.equal(goals.version, "0.1.1");
+  assert.equal("creditedOnly" in goals.settingsSchema.properties, false);
   assert.equal(ticker.version, "0.1.0");
   assert.equal(alerts.version, "0.3.0");
   const secretOnly = parseManifest({
