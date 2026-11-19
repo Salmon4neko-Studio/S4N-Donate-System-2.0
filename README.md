@@ -64,11 +64,15 @@ pnpm test
 
 ## Docker Compose
 
+本機：
+
 ```bash
 docker compose up --build
 ```
 
-服務是 `postgres`、`api`、`web`、`overlay`、`docs`。資料庫密碼 `s4n_dev_password` 與全零的 `S4N_MASTER_KEY` 只給本機。`S4N_ENV=production` 會拒絕那把金鑰。映像是骨架用的，不是收斂過的正式映像。
+服務是 `postgres`、`api`、`web`、`overlay`、`docs`。資料庫密碼 `s4n_dev_password` 與全零的 `S4N_MASTER_KEY` 只給本機。`S4N_ENV=production` 會拒絕那把金鑰。web、overlay、docs 在容器裡聽 8080。瀏覽器打頁面自己的 `/api` 與 `/ws`。
+
+正式環境用 `compose.prod.yaml`：Caddy 終止 TLS，儀表板與 API 同一個網域，疊層用另一個主機名，Postgres 不發布埠。步驟、備份與金流通知網址寫在文件站的「正式環境」。CI 在拉取要求上跑型別檢查與測試（含 PostgreSQL 的 `LISTEN`），推上 `main` 或 `v*` 標籤時把映像推到 `ghcr.io/salmon4neko-studio/s4n-api`、`s4n-web`、`s4n-overlay`、`s4n-docs`。
 
 ## 目錄
 
@@ -103,7 +107,9 @@ plugins/example-thanks  可編譯的社群疊層範例（未進官方目錄）
 - 密文欄位的標記是 JSON Schema 的 `x-s4n-secret: true`。加密的附加資料綁住外掛 id 與欄位名。
 - 官方外掛是明確允許清單，不是 `official.` 前綴。
 - TWD 的最小單位訂為 1 元，因為綠界與歐付寶收整數元。贊助金額的上下限是 `S4N_DONATION_MIN_TWD` 與 `S4N_DONATION_MAX_TWD`，預設 30 與 20000。
-- 付款通知與瀏覽器導回的網址用 `S4N_PUBLIC_BASE_URL`。正式環境必填。本機沒設時是 `http://127.0.0.1:8787`。
+- 付款通知與瀏覽器導回的網址用 `S4N_PUBLIC_BASE_URL`。正式環境必填。本機沒設時是 `http://127.0.0.1:8787`。正式站由 Caddy 把這個來源上的 `/api` 轉到 API。
+- 正式環境的疊層用獨立主機名（`S4N_OVERLAY_HOST`），不放在儀表板的 `/overlay`。儀表板自己有這個路徑，預覽 iframe 也要跟登入頁不同來源。兩個主機名都轉發 `/api` 與 `/ws`，所以前端用相對路徑，不把 `localhost:8787` 寫進映像。
+- `S4N_TRUST_PROXY=1` 時，限流用 `X-Forwarded-For` 的最後一跳，要求網址改用邊緣代理的 scheme 與 host。正式 Compose 會打開它，而且不發布 API 埠。
 - 綠界與歐付寶只做信用卡一次付清。檢查碼依兩家目前的 AIO 附錄（SHA-256、EncryptType=1）。正式站不把模擬付款入帳。
 - 儀表板的跨站請求防護是來源允許清單，加上 `SameSite=Lax` 的 `s4n_session`。密碼雜湊用 `hash-wasm` 的 Argon2id，參數在 `apps/api/src/auth/constants.ts`，沒有另裝原生模組。`Secure` 只在 `S4N_ENV=production` 打開。
 - 事件寫在 PostgreSQL 的 `EventLog`，用 `LISTEN`/`NOTIFY` 讓多個 API 程序看見同一條紀錄。客戶端帶最後的序號重連，至少送達一次，並用事件 id 排除重複。預設保留 7 天，聊天 24 小時。測試贊助進事件紀錄，不進帳本。登入限流仍在單一程序的記憶體裡。Twitch 徽章快取也是，因為裡面有短暫的應用程式權杖。
@@ -116,4 +122,4 @@ plugins/example-thanks  可編譯的社群疊層範例（未進官方目錄）
 
 ## English
 
-The dashboard and public donate pages use Tocas UI, themed with the paper, orange, and indigo tokens. Body and headings share self-hosted jf open 粉圓 2.1 (justfont, SIL OFL 1.1; https://github.com/justfont/open-huninn-font/releases/tag/v2.1). The OBS overlay stays on its own styles and the same family. Operators can sign in, install official plugins from a signed registry, and preview a test donation on the alerts overlay. Payment plugins stay official-only. Twitch chat is read anonymously on the server and shown by a separate chat overlay; optional Twitch credentials stay encrypted and never go on the OBS URL. YouTube chat is not in this version. ECPay and O'Pay can open a credit-card checkout; the ledger amount is the server order, and a test donation is still not written to the ledger. Set `S4N_PUBLIC_BASE_URL` so provider callbacks are not built from an internal host. Login needs PostgreSQL. Donation, chat, and plugin-audit events are appended there too, so an overlay can replay from the last sequence after a restart; delivery is at-least-once and clients dedupe by event id. Plugin audit events are not forwarded to OBS. The login rate limit and the Twitch badge cache stay in one process. See the Traditional Chinese sections above for ports, setup, and the decisions this tree had to make.
+The dashboard and public donate pages use Tocas UI, themed with the paper, orange, and indigo tokens. Body and headings share self-hosted jf open 粉圓 2.1 (justfont, SIL OFL 1.1; https://github.com/justfont/open-huninn-font/releases/tag/v2.1). The OBS overlay stays on its own styles and the same family. Operators can sign in, install official plugins from a signed registry, and preview a test donation on the alerts overlay. Payment plugins stay official-only. Twitch chat is read anonymously on the server and shown by a separate chat overlay; optional Twitch credentials stay encrypted and never go on the OBS URL. YouTube chat is not in this version. ECPay and O'Pay can open a credit-card checkout; the ledger amount is the server order, and a test donation is still not written to the ledger. Set `S4N_PUBLIC_BASE_URL` so provider callbacks are not built from an internal host. Production uses `compose.prod.yaml`: Caddy, the overlay on its own hostname, Postgres unpublished, and images on `ghcr.io/salmon4neko-studio`. The Traditional Chinese production guide has the checklist. Login needs PostgreSQL. Donation, chat, and plugin-audit events are appended there too, so an overlay can replay from the last sequence after a restart; delivery is at-least-once and clients dedupe by event id. Plugin audit events are not forwarded to OBS. The login rate limit and the Twitch badge cache stay in one process. See the Traditional Chinese sections above for ports, setup, and the decisions this tree had to make.

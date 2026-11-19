@@ -1,8 +1,7 @@
+import { apiOrigin } from "./api-origin";
+
 function apiUrl(path: string): URL {
-  const base = import.meta.env.DEV
-    ? window.location.origin
-    : (import.meta.env.VITE_API_URL ?? "http://localhost:8787");
-  return new URL(path, base);
+  return new URL(path, apiOrigin());
 }
 
 export class ApiError extends Error {

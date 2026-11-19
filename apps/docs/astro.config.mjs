@@ -24,6 +24,8 @@ export default defineConfig({
             { label: "事件紀錄", slug: "guides/events" },
             { label: "綠界與歐付寶", slug: "guides/payments" },
             { label: "Docker Compose", slug: "guides/compose" },
+            { label: "正式環境", slug: "guides/production" },
+            { label: "CI 與映像", slug: "guides/ci" },
             { label: "安全性", slug: "guides/security" },
             { label: "外掛開發", slug: "guides/plugin-dev" },
           ],

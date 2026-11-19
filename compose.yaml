@@ -1,3 +1,8 @@
+# 本機開發用。密碼與全零主金鑰只給這台機器。
+# 正式環境用 compose.prod.yaml，不要把這份暴露到網際網路。
+# web、overlay、docs 的 nginx 以非 root 聽 8080，主機埠維持 5180、5181、4321。
+# 瀏覽器打到頁面自己的 /api 與 /ws，由 nginx 轉到 api，映像不再寫死 localhost:8787。
+
 services:
   postgres:
     image: postgres:16-alpine
@@ -51,10 +56,8 @@ services:
     build:
       context: .
       dockerfile: apps/web/Dockerfile
-      args:
-        VITE_API_URL: http://localhost:8787
     ports:
-      - "5180:80"
+      - "5180:8080"
     depends_on:
       api:
         condition: service_healthy
@@ -63,10 +66,8 @@ services:
     build:
       context: .
       dockerfile: apps/overlay/Dockerfile
-      args:
-        VITE_API_URL: http://localhost:8787
     ports:
-      - "5181:80"
+      - "5181:8080"
     depends_on:
       api:
         condition: service_healthy
@@ -76,7 +77,7 @@ services:
       context: .
       dockerfile: apps/docs/Dockerfile
     ports:
-      - "4321:80"
+      - "4321:8080"
 
 volumes:
   s4n_postgres:

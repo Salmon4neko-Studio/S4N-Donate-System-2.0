@@ -46,6 +46,14 @@ test("event retention rejects zero and chat can be shorter than the default", ()
   assert.equal(env.eventChatRetentionHours, 6);
 });
 
+test("trust proxy is off unless explicitly enabled", () => {
+  assert.equal(loadEnv({ ...master }).trustProxy, false);
+  assert.equal(loadEnv({ ...master, S4N_TRUST_PROXY: "1" }).trustProxy, true);
+  assert.equal(loadEnv({ ...master, S4N_TRUST_PROXY: "true" }).trustProxy, true);
+  assert.equal(loadEnv({ ...master, S4N_TRUST_PROXY: "0" }).trustProxy, false);
+  assert.throws(() => loadEnv({ ...master, S4N_TRUST_PROXY: "yes" }), /S4N_TRUST_PROXY/);
+});
+
 test("donation bounds must be ordered integers", () => {
   assert.throws(
     () => loadEnv({ ...master, S4N_DONATION_MIN_TWD: "100", S4N_DONATION_MAX_TWD: "50" }),
