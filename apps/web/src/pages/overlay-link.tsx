@@ -136,8 +136,8 @@ export function OverlayLinkPage() {
       ) : null}
 
       <ol className="ts-list is-ordered">
-        <li className="item">在外掛庫啟用「贊助提醒」。聊天另啟用「Twitch 聊天」與「聊天疊層」。</li>
-        <li className="item">Twitch 聊天填頻道名稱。不填 Client ID 也能用匿名 justinfan 讀取。密文只顯示已設定或未設定。</li>
+        <li className="item">在外掛頁啟用「贊助提醒」。聊天另啟用「Twitch 聊天」與「聊天疊層」。顯示時間與聊天選項在側欄的外掛選單。</li>
+        <li className="item">Twitch 的頻道名稱在側欄的 Twitch 聊天。Client ID 與 Client Secret 在外掛頁，只顯示已設定或未設定。不填也能用匿名 justinfan 讀取。</li>
         <li className="item">OBS 新增來源，選擇瀏覽器。贊助提醒與聊天疊層各放一條網址。</li>
         <li className="item">寬度與高度跟預覽畫布相同，例如 1280×720，並勾選透明背景。OBS 不要加上 preview 參數。</li>
         <li className="item">

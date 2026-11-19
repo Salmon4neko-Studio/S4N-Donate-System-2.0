@@ -14,7 +14,7 @@ S4N_DONATION_MAX_TWD=20000
 
 ## 要填的欄位
 
-每個金流外掛的欄位都一樣。三個密文用 `S4N_MASTER_KEY` 做 AES-256-GCM。`environment` 不是密文。
+每個金流外掛的欄位都一樣。三個密文用 `S4N_MASTER_KEY` 做 AES-256-GCM，填在外掛頁，只顯示「已設定」或「未設定」。`environment` 不是密文，在側欄「外掛」裡該付款方式的設定頁（`/plugins/{id}/settings`）。外掛要先啟用，選單才會列出它。
 
 | 欄位 | 說明 |
 | --- | --- |
@@ -72,7 +72,7 @@ S4N_PUBLIC_BASE_URL=https://donate.example
 
 1. 到綠界加入會員，開通信用卡。
 2. 廠商後台的系統介接設定取得 MerchantID、HashKey、HashIV。
-3. 外掛庫啟用「綠界信用卡」，環境選測試站或正式站，儲存。
+3. 外掛頁啟用「綠界信用卡」，在同一頁儲存商店代號、HashKey、HashIV。側欄「外掛」裡的「綠界信用卡」再選測試站或正式站，儲存。
 
 測試站（文件上的公開資料，沒有 3D 驗證）：
 

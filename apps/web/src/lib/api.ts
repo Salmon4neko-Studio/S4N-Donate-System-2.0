@@ -71,6 +71,8 @@ export interface PluginSummary {
   official: boolean;
   enabled: boolean;
   settingsFields: PluginField[];
+  /** Enabled plugins with this flag appear under the sidebar 「外掛」 group. */
+  settingsNav: boolean;
   category: string | null;
   author: string | null;
   latestVersion: string;
@@ -124,6 +126,13 @@ export interface MarketplaceResponse {
 export interface SettingsFieldState extends PluginField {
   configured: boolean;
   value?: string | number | boolean;
+}
+
+export interface PluginSettingsResponse {
+  pluginId: string;
+  fields: SettingsFieldState[];
+  secretFields: SettingsFieldState[];
+  publicFields: SettingsFieldState[];
 }
 
 export interface DonationRow {

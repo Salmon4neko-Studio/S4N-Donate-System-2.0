@@ -91,7 +91,7 @@ export function DashboardPage() {
                 {testState.status === "sending" ? "送出中…" : "送出測試贊助"}
               </button>
               {testState.status === "sent" ? (
-                <Note>已送出測試事件。這筆不會進入帳本。請先在外掛庫啟用「贊助提醒」，疊層才看得到。</Note>
+                <Note>已送出測試事件。這筆不會進入帳本。請先在外掛頁啟用「贊助提醒」，疊層才看得到。</Note>
               ) : null}
               {testState.status === "error" ? <Note tone="danger">{testState.message}</Note> : null}
             </div>
@@ -144,11 +144,11 @@ export function DashboardPage() {
               <span className="ts-icon is-puzzle-piece-icon" aria-hidden="true" />
               外掛
             </div>
-            <p className="ts-text is-description">啟用、停用，以及密文設定。</p>
+            <p className="ts-text is-description">啟用、停用，以及密文。一般設定在側欄的外掛選單。</p>
             <p className="ts-text is-description">
               密文只會顯示已設定或尚未設定。
               <Link to="/plugins" className="ts-text is-link">
-                打開外掛庫
+                打開外掛
               </Link>
             </p>
           </div>

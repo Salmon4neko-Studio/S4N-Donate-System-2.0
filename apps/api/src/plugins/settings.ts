@@ -1,4 +1,11 @@
-import type { PluginManifest, SettingsField, SettingsSchema } from "@s4n/plugin-sdk";
+import {
+  isSecretField,
+  publicFieldKeys,
+  secretFieldKeys,
+  type PluginManifest,
+  type SettingsField,
+  type SettingsSchema,
+} from "@s4n/plugin-sdk";
 import { sealSecret, secretAad, type SealedSecret } from "../crypto/secret-box.js";
 
 export interface RedactedField {
@@ -52,7 +59,7 @@ export function redactSettings(
   const configured = new Set(configuredSecretKeys);
   const required = new Set(schema.required ?? []);
   return Object.entries(schema.properties).map(([key, field]) => {
-    const secret = field["x-s4n-secret"] === true;
+    const secret = isSecretField(field);
     const base = {
       key,
       title: field.title ?? null,
@@ -74,6 +81,19 @@ export function redactSettings(
     }
     return { ...base, configured: true, value };
   });
+}
+
+/** Same redacted list, split so callers do not re-decide which fields are secrets. */
+export function splitRedactedFields(fields: readonly RedactedField[]): {
+  fields: RedactedField[];
+  secretFields: RedactedField[];
+  publicFields: RedactedField[];
+} {
+  return {
+    fields: [...fields],
+    secretFields: fields.filter((field) => field.secret),
+    publicFields: fields.filter((field) => !field.secret),
+  };
 }
 
 export async function saveSettings(options: {
@@ -117,18 +137,23 @@ function partitionSettings(
   input: Record<string, unknown>,
 ): { publicSettings: Record<string, string | number | boolean>; secrets: Record<string, string> } {
   const issues: string[] = [];
-  const known = new Set(Object.keys(schema.properties));
+  const secretKeys = new Set(secretFieldKeys(schema));
+  const knownPublic = new Set(publicFieldKeys(schema));
+  const known = new Set([...secretKeys, ...knownPublic]);
   for (const key of Object.keys(input)) {
     if (!known.has(key)) issues.push(`unknown_field:${key}`);
   }
 
   const publicSettings = { ...currentPublic };
   const secrets: Record<string, string> = {};
+  let wroteSecret = false;
+  let wrotePublic = false;
 
   for (const [key, field] of Object.entries(schema.properties)) {
     if (!Object.prototype.hasOwnProperty.call(input, key)) continue;
     const value = input[key];
-    if (field["x-s4n-secret"] === true) {
+    if (secretKeys.has(key)) {
+      wroteSecret = true;
       if (typeof value !== "string" || value.trim() === "") {
         issues.push(`invalid_secret:${key}`);
         continue;
@@ -136,6 +161,8 @@ function partitionSettings(
       secrets[key] = value;
       continue;
     }
+    if (!knownPublic.has(key)) continue;
+    wrotePublic = true;
     if (!acceptsPublicValue(value, field)) {
       issues.push(`invalid_field:${key}`);
       continue;
@@ -143,16 +170,22 @@ function partitionSettings(
     publicSettings[key] = value;
   }
 
-  for (const key of schema.required ?? []) {
-    const field = schema.properties[key];
-    if (field === undefined) continue;
-    if (field["x-s4n-secret"] === true) {
+  // Each page saves only its own side. Required secrets are not demanded when
+  // the operator is saving a public field, and the reverse. A write that touches
+  // both sides (the previous combined form) still checks both.
+  if (wroteSecret) {
+    for (const key of schema.required ?? []) {
+      if (!secretKeys.has(key)) continue;
       if (secrets[key] === undefined && !configuredSecrets.has(key)) {
         issues.push(`missing_secret:${key}`);
       }
-      continue;
     }
-    if (publicSettings[key] === undefined) issues.push(`missing_field:${key}`);
+  }
+  if (wrotePublic) {
+    for (const key of schema.required ?? []) {
+      if (!knownPublic.has(key)) continue;
+      if (publicSettings[key] === undefined) issues.push(`missing_field:${key}`);
+    }
   }
 
   if (issues.length > 0) throw new SettingsValidationError(issues);

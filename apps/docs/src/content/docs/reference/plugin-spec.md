@@ -77,6 +77,6 @@ Twitch 來源需要 `events.emit`、`secrets` 與 `network`。頻道名稱是一
 
 ## 密文欄位
 
-在 `settingsSchema.properties` 的欄位上設 `x-s4n-secret: true`。核心加密後存進 `EncryptedPluginSetting`。儀表板只看得到欄位名稱與是否已設定。
+在 `settingsSchema.properties` 的欄位上設 `x-s4n-secret: true`。核心加密後存進 `EncryptedPluginSetting`。儀表板的外掛頁只看得到欄位名稱與是否已設定。沒有這個旗標的欄位是一般設定，出現在 `/plugins/:id/settings`。`@s4n/plugin-sdk` 的 `secretFieldKeys` 與 `publicFieldKeys` 依這個旗標分開，沒有第二個旗標。
 
 範例見 [範例外掛](/reference/example/)，完整檔案在 `plugins/ecpay/s4n-plugin.json` 與 `plugins/opay/s4n-plugin.json`。

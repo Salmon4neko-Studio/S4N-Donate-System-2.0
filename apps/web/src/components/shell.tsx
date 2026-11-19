@@ -1,18 +1,30 @@
 import { Link, NavLink, Outlet, useNavigate } from "react-router";
 import { buttonClass } from "@/components/fields";
+import { PluginNavGroup } from "@/components/plugin-nav";
 import { ThemeButton, useDashboardTheme } from "@/components/theme";
 import { useAuth } from "@/lib/auth";
+import { PluginNavProvider } from "@/lib/plugin-nav";
 
-const links = [
+const beforePlugins = [
   { to: "/", label: "概況", end: true, icon: "house" },
   { to: "/donations", label: "帳本", end: false, icon: "receipt" },
   { to: "/marketplace", label: "市集", end: false, icon: "store" },
-  { to: "/plugins", label: "外掛", end: false, icon: "puzzle-piece" },
+];
+
+const afterPlugins = [
   { to: "/overlay", label: "疊層", end: false, icon: "display" },
   { to: "/donate", label: "贊助頁", end: false, icon: "heart" },
 ];
 
 export function Shell() {
+  return (
+    <PluginNavProvider>
+      <ShellFrame />
+    </PluginNavProvider>
+  );
+}
+
+function ShellFrame() {
   const auth = useAuth();
   const navigate = useNavigate();
   const theme = useDashboardTheme();
@@ -31,7 +43,19 @@ export function Shell() {
           </span>
         </Link>
         <nav className="ts-app-sidebar is-accent" aria-label="主要">
-          {links.map((link) => (
+          {beforePlugins.map((link) => (
+            <NavLink
+              key={link.to}
+              to={link.to}
+              end={link.end}
+              className={({ isActive }) => (isActive ? "item is-active" : "item")}
+            >
+              <span className={`ts-icon is-${link.icon}-icon`} aria-hidden="true" />
+              {link.label}
+            </NavLink>
+          ))}
+          <PluginNavGroup />
+          {afterPlugins.map((link) => (
             <NavLink
               key={link.to}
               to={link.to}
