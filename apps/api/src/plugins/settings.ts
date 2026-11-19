@@ -19,8 +19,10 @@ export interface RedactedField {
   configured: boolean;
   enum: string[] | null;
   minimum: number | null;
+  maximum: number | null;
   multiline: boolean;
   color: boolean;
+  datetime: boolean;
   maxLength: number | null;
   default: string | number | boolean | null;
   /** Present only for non-secret fields that have a stored value. */
@@ -72,8 +74,10 @@ export function redactSettings(
       required: required.has(key),
       enum: field.enum === undefined ? null : [...field.enum],
       minimum: field.minimum ?? null,
+      maximum: field.maximum ?? null,
       multiline: field["x-s4n-multiline"] === true,
       color: field["x-s4n-color"] === true,
+      datetime: field["x-s4n-datetime"] === true,
       maxLength: field.maxLength ?? null,
       default: field.default ?? null,
     };
@@ -212,6 +216,7 @@ function acceptsPublicValue(value: unknown, field: SettingsField): value is stri
     if (typeof value !== "number" || !Number.isFinite(value)) return false;
     if (field.type === "integer" && !Number.isInteger(value)) return false;
     if (field.minimum !== undefined && value < field.minimum) return false;
+    if (field.maximum !== undefined && value > field.maximum) return false;
     return true;
   }
   return false;

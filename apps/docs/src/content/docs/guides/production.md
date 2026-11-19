@@ -128,6 +128,21 @@ docker compose -f compose.prod.yaml start api
 
 `deploy/restore.sh backups/s4n-20261119T040000Z.dump` 是同一件事。`pg_restore` 對「物件原本就不存在」有時會以結束代碼 1 離開，先看輸出再決定要不要重跑。還原不會找回 `.env` 裡的主金鑰。主金鑰與資料庫要一起留。
 
+贊助提醒的音效不在資料庫裡。API 以 `node` 使用者寫入 `/data/alert-sounds`，正式 Compose 把這個目錄掛在 volume `s4n_prod_alert_sounds`。映像裡先建好這個目錄並交給 `node`，新的 volume 會沿用這個擁有者，所以非 root 的 API 寫得進去。換容器不會清掉檔案。`pg_dump` 不含這些檔，要另外拷：
+
+```bash
+mkdir -p alert-sounds
+docker compose -f compose.prod.yaml cp api:/data/alert-sounds/. alert-sounds/
+```
+
+還原時先確定 API 沒在寫，再拷回去：
+
+```bash
+docker compose -f compose.prod.yaml cp alert-sounds/. api:/data/alert-sounds/
+```
+
+只有資料庫、沒有這個 volume 時，已上傳的提示音會變回靜音，設定頁可以再傳一次。
+
 ## 日誌
 
 Compose 使用 json-file，每個容器大約保留 5 個 10 MB 檔。

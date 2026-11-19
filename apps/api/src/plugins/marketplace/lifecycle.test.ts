@@ -310,7 +310,8 @@ test("the dashboard marketplace rejects a missing permission review", async () =
   assert.equal(listed.status, 200);
   const body = (await listed.json()) as { verified: boolean; plugins: Array<{ id: string; installed: boolean; category: string }> };
   assert.equal(body.verified, true);
-  assert.equal(body.plugins.length, 13);
+  assert.equal(body.plugins.length, 12);
+  assert.equal(body.plugins.some((item) => item.id === "official.tts"), false);
   const ecpay = body.plugins.find((item) => item.id === "official.ecpay");
   assert.equal(ecpay?.category, "payment");
   assert.equal(ecpay?.installed, true);

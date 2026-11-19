@@ -21,7 +21,9 @@ English. These docs are written in Traditional Chinese. A short English summary 
 - 測試贊助：送到疊層，不寫入帳本
 - 帳本：待付款、待繳費、已付款、已過期、待人工處理、失敗，可依狀態篩選
 - 贊助頁：綠界與歐付寶的信用卡、ATM 虛擬帳號、超商代碼、超商條碼
-- 贊助提醒：一條 OBS 網址上的共用畫布。範本、顏色與動畫在外掛設定
+- 贊助提醒：一條 OBS 網址上的共用畫布。範本、顏色、動畫與提示音在外掛設定
+- 目標進度：依帳本已付款計算，經 WebSocket 推到同一張畫布
+- 跑馬燈：純文字，可接最近的贊助，跟其他疊層共用畫布
 - Twitch 聊天疊層：跟贊助提醒放在同一條網址、同一張畫布。伺服器以匿名身分讀取聊天室
 - 型別化事件，含 `s4n.donation.test` 與付款成功、失敗。事件寫在 PostgreSQL，斷線可以依序號補上
 - 以 `S4N_MASTER_KEY` 做 AES-256-GCM 的密文儲存
@@ -30,7 +32,6 @@ English. These docs are written in Traditional Chinese. A short English summary 
 ## 還沒有的
 
 - YouTube 聊天連接器（Twitch 已有。下一個來源沿用同一份聊天事件，不必改聊天疊層）
-- 目標計算、跑馬燈、語音合成
 - 多個 API 實例共用的登入限流（事件紀錄已經在 PostgreSQL，見 [事件紀錄](/guides/events/)）
 
 下一步請看 [本機開發](/guides/local-dev/)，登入與 OBS 見 [登入、外掛與疊層](/guides/operator/)，事件怎麼留下來見 [事件紀錄](/guides/events/)，金流見 [綠界與歐付寶](/guides/payments/)。放到伺服器見 [正式環境](/guides/production/) 與 [CI 與映像](/guides/ci/)。

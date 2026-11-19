@@ -40,6 +40,8 @@ import {
   type OverlayLayoutStore,
 } from "./realtime/overlay-layout.js";
 import { previewChatMessage } from "@s4n/plugin-chat-overlay";
+import { registerAlertSoundRoutes } from "./alerts/routes.js";
+import type { AlertSoundStore } from "./alerts/sound.js";
 
 export interface AppDeps {
   envName: RuntimeEnv;
@@ -68,7 +70,8 @@ export interface AppDeps {
   /** Last X-Forwarded-For hop, and the public scheme on the request URL. */
   trustProxy?: boolean;
   /** Fired after a plugin is enabled or its settings are saved. */
-  onPluginsChanged?: () => void;
+  onPluginsChanged?: (pluginId?: string) => void;
+  alertSounds?: AlertSoundStore;
 }
 
 export function createApp(deps: AppDeps): Hono<SessionEnv> {
@@ -282,7 +285,7 @@ export function createApp(deps: AppDeps): Hono<SessionEnv> {
           masterKey: deps.masterKey,
           values: body.value.values,
         });
-        deps.onPluginsChanged?.();
+        deps.onPluginsChanged?.(plugin.manifest.id);
         return c.json({ pluginId: plugin.manifest.id, ...splitRedactedFields(fields) });
       } catch (error) {
         if (error instanceof SettingsValidationError) {
@@ -292,6 +295,17 @@ export function createApp(deps: AppDeps): Hono<SessionEnv> {
       }
     },
   );
+
+  const alerts = findPlugin(deps.catalog, "official.alerts");
+  registerAlertSoundRoutes(app, {
+    ...(deps.alertSounds !== undefined ? { alertSounds: deps.alertSounds } : {}),
+    secrets: deps.secrets,
+    marketplace: deps.marketplace,
+    session,
+    guard,
+    overlayOperatorId: (token) => deps.auth.overlayOperatorId(token),
+    version: alerts?.manifest.version ?? "0.3.0",
+  });
 
   app.get("/api/donations", session, async (c) => {
     const status = readStatusFilter(c.req.query("status"));
@@ -769,8 +783,10 @@ function describeFields(plugin: LoadedPlugin) {
     required: required.has(key),
     enum: field.enum ?? null,
     minimum: field.minimum ?? null,
+    maximum: field.maximum ?? null,
     multiline: field["x-s4n-multiline"] === true,
     color: field["x-s4n-color"] === true,
+    datetime: field["x-s4n-datetime"] === true,
     maxLength: field.maxLength ?? null,
     default: field.default ?? null,
   }));

@@ -9,6 +9,7 @@ import {
 } from "@s4n/plugin-alerts";
 import { apiOrigin } from "./api-origin";
 import { noteEvent, readCursor, readSeen } from "./cursor";
+import { overlayStatusLine } from "./status";
 
 const PLUGIN_ID = "official.alerts";
 type Connection = "connecting" | "open" | "reconnecting" | "denied";
@@ -28,7 +29,7 @@ export function Overlay({
   const [appearance, setAppearance] = useState<AlertAppearance>(() => parseAlertAppearance({}));
   const [reducedMotion, setReducedMotion] = useState(false);
   const queueRef = useRef<DonationAlert[]>([]);
-  const showHint = preview || !transparent;
+  const statusLine = overlayStatusLine({ preview, kind: "alerts", connection, idle: alert === null });
 
   useEffect(() => {
     const media = window.matchMedia("(prefers-reduced-motion: reduce)");
@@ -97,6 +98,16 @@ export function Overlay({
   }
 
   useEffect(() => {
+    if (alert === null || appearance.soundFile === "" || token === "") return;
+    const audio = new Audio(soundUrl(token));
+    audio.volume = appearance.volume / 100;
+    void audio.play().catch(() => undefined);
+    return () => {
+      audio.pause();
+    };
+  }, [alert, appearance.soundFile, appearance.volume, token]);
+
+  useEffect(() => {
     if (alert === null) return;
     setPhase("in");
     const timer = window.setTimeout(() => setPhase("out"), appearance.durationMs);
@@ -112,18 +123,15 @@ export function Overlay({
     return () => window.clearTimeout(timer);
   }, [alert, phase, reducedMotion]);
 
-  const connectionLabel =
-    connection === "open" ? "已連線" : connection === "reconnecting" ? "重新連線中" : connection === "denied" ? "權杖無效" : "連線中";
   const copy = alert === null ? null : renderAlertCopy(alert, appearance);
   const motion = phase === "out" ? appearance.exitAnimation : appearance.enterAnimation;
 
   return (
     <div className="alert-layer">
-      <p className="sr-only" role="status">
-        {connectionLabel}
-      </p>
-      {showHint && alert === null ? (
-        <p className="overlay-hint">{connection === "denied" ? "權杖無效。" : `贊助提醒${connectionLabel}。等待贊助。`}</p>
+      {statusLine ? (
+        <p className="overlay-hint" role="status">
+          {statusLine}
+        </p>
       ) : null}
       {alert && copy ? (
         <article
@@ -147,6 +155,16 @@ function alertStyle(appearance: AlertAppearance): CSSProperties {
     "--s4n-alert-title": appearance.titleColor,
     "--s4n-alert-body": appearance.bodyColor,
   } as CSSProperties;
+}
+
+function soundUrl(token: string): string {
+  const httpUrl = import.meta.env.VITE_API_URL ?? "http://localhost:8787";
+  const url = new URL(httpUrl);
+  url.pathname = "/api/overlay/alerts/sound";
+  url.search = "";
+  url.hash = "";
+  url.searchParams.set("token", token);
+  return url.toString();
 }
 
 function socketUrl(token: string, since: string | null): string {

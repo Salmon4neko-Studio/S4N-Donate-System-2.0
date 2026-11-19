@@ -1,9 +1,22 @@
 import { manifest } from "./manifest.js";
 
 export { manifest };
+export {
+  DEFAULT_GOAL_APPEARANCE,
+  DEFAULT_GOAL_TARGET,
+  DEFAULT_GOAL_TITLE,
+  GOAL_TITLE_MAX,
+  goalAchieved,
+  goalPercent,
+  goalStatuses,
+  parseGoalSettings,
+  plainGoalText,
+  sumGoalProgress,
+} from "./progress.js";
+export type { GoalAppearance, GoalRow } from "./progress.js";
 
-/** Declared overlay or worker slot. The shell does not load this module yet. */
+/** The overlay app renders the bar. Progress is computed by the core from the ledger. */
 export const slot = {
   pluginId: manifest.id,
-  implemented: false as const,
+  implemented: true as const,
 };

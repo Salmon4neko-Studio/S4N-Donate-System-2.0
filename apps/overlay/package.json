@@ -7,13 +7,16 @@
     "dev": "vite --host 0.0.0.0 --port 5181 --strictPort",
     "build": "tsc -p tsconfig.app.json --noEmit && vite build",
     "preview": "vite preview --host 0.0.0.0 --port 5181 --strictPort",
-    "typecheck": "tsc -p tsconfig.app.json --noEmit && tsc -p tsconfig.node.json --noEmit"
+    "typecheck": "tsc -p tsconfig.app.json --noEmit && tsc -p tsconfig.node.json --noEmit",
+    "test": "node --experimental-strip-types --test src/status.test.ts"
   },
   "dependencies": {
     "@s4n/design-tokens": "workspace:*",
     "@s4n/events": "workspace:*",
     "@s4n/plugin-alerts": "workspace:*",
     "@s4n/plugin-chat-overlay": "workspace:*",
+    "@s4n/plugin-goals": "workspace:*",
+    "@s4n/plugin-ticker": "workspace:*",
     "react": "^19.2.0",
     "react-dom": "^19.2.0"
   },

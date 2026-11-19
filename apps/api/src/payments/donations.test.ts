@@ -41,6 +41,12 @@ test("donation creation stops at the unimplemented provider and does not write t
       async listRecent() {
         return [];
       },
+      async sumPaid() {
+        return 0;
+      },
+      async listPaidRecent() {
+        return [];
+      },
     },
   });
 

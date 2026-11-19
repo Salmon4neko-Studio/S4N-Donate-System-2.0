@@ -82,6 +82,7 @@ export function mountOverlaySocket(app: Hono<SessionEnv>, deps: OverlaySocketDep
   }
 
   deps.bus.subscribe((event) => {
+    if (event.type === "s4n.donation.succeeded") void pushSettings();
     for (const client of clients) {
       if (client.replaying) {
         client.buffer.push(event);

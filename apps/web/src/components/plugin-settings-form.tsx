@@ -9,6 +9,8 @@ const enumLabel: Record<string, string> = {
   production: "正式站",
   slow: "慢",
   medium: "中",
+  left: "往左",
+  right: "往右",
   rise: "上升",
   fade: "淡化",
   "slide-left": "向左滑動",
@@ -154,6 +156,21 @@ export function PluginSettingsForm({
                 ))}
               </select>
             </div>
+          ) : field.datetime ? (
+            <div className="s4n-datetime-row">
+              <TextInput
+                id={`${pluginId}-${field.key}`}
+                type="datetime-local"
+                value={toDatetimeLocal(drafts[field.key] ?? "")}
+                onChange={(event) => changeDraft(field.key, fromDatetimeLocal(event.target.value))}
+              />
+              <button type="button" className={buttonClass({ variant: "outlined", size: "small" })} onClick={() => changeDraft(field.key, new Date().toISOString())}>
+                重設為現在
+              </button>
+              <button type="button" className={buttonClass({ variant: "outlined", size: "small" })} onClick={() => changeDraft(field.key, "")}>
+                從頭計算
+              </button>
+            </div>
           ) : field.type === "boolean" ? (
             <div className="ts-switch">
               <input
@@ -193,6 +210,7 @@ export function PluginSettingsForm({
               id={`${pluginId}-${field.key}`}
               type={field.secret ? "password" : field.type === "integer" || field.type === "number" ? "number" : "text"}
               min={field.minimum ?? undefined}
+              max={field.maximum ?? undefined}
               maxLength={field.secret ? undefined : (field.maxLength ?? undefined)}
               step={field.type === "integer" ? 1 : undefined}
               autoComplete={field.secret ? "off" : undefined}
@@ -222,6 +240,21 @@ function secretHint(description: string | null): string {
   if (text.includes("已設定") || text.includes("未設定")) return `${text}。`;
   if (text.endsWith("只會存成密文")) return `${text}，${status}。`;
   return `${text}。只會存成密文，${status}。`;
+}
+
+function toDatetimeLocal(value: string): string {
+  if (value.trim() === "") return "";
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return "";
+  const pad = (part: number) => String(part).padStart(2, "0");
+  return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}T${pad(date.getHours())}:${pad(date.getMinutes())}`;
+}
+
+function fromDatetimeLocal(value: string): string {
+  if (value.trim() === "") return "";
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return "";
+  return date.toISOString();
 }
 
 function colorInputValue(value: string): string {

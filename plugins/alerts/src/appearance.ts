@@ -25,6 +25,7 @@ export const DEFAULT_ALERT_APPEARANCE = {
   secondaryColor: "#fbf8f3",
   enterAnimation: "rise",
   exitAnimation: "fade",
+  volume: 80,
 } as const;
 
 const KNOWN = new Set<string>(ALERT_TEMPLATE_NAMES);
@@ -40,6 +41,10 @@ export interface AlertAppearance {
   secondaryColor: string;
   enterAnimation: AlertMotion;
   exitAnimation: AlertMotion;
+  /** 0–100. Playback stays silent when no sound file is configured. */
+  volume: number;
+  /** Random stored name, or empty when the operator has not uploaded a sound. */
+  soundFile: string;
 }
 
 /**
@@ -86,7 +91,16 @@ export function parseAlertAppearance(settings: Record<string, unknown>): AlertAp
     secondaryColor: readColor(settings.secondaryColor, DEFAULT_ALERT_APPEARANCE.secondaryColor),
     enterAnimation: readMotion(settings.enterAnimation, DEFAULT_ALERT_APPEARANCE.enterAnimation),
     exitAnimation: readMotion(settings.exitAnimation, DEFAULT_ALERT_APPEARANCE.exitAnimation),
+    volume: readVolume(settings.volume),
+    soundFile: readSoundFile(settings.soundFile),
   };
+}
+
+/** Stored alert sounds use a random hex name. Anything else is ignored. */
+export const ALERT_SOUND_NAME = /^[a-f0-9]{32}\.(mp3|ogg|wav)$/;
+
+export function isAlertSoundName(value: string): boolean {
+  return ALERT_SOUND_NAME.test(value);
 }
 
 export function renderAlertCopy(alert: DonationAlert, appearance: AlertAppearance): { title: string; body: string } {
@@ -118,4 +132,14 @@ function readColor(value: unknown, fallback: string): string {
 function readMotion(value: unknown, fallback: AlertMotion): AlertMotion {
   if (typeof value === "string" && isAlertMotion(value)) return value;
   return fallback;
+}
+
+function readVolume(value: unknown): number {
+  if (typeof value !== "number" || !Number.isInteger(value) || value < 0 || value > 100) return 80;
+  return value;
+}
+
+function readSoundFile(value: unknown): string {
+  if (typeof value !== "string" || !isAlertSoundName(value)) return "";
+  return value;
 }

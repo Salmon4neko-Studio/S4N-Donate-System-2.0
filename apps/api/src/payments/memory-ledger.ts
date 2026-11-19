@@ -3,11 +3,17 @@ import { sameAwaitSlip, type AwaitSlip, type DonationState, type Ledger, type Le
 export function createMemoryLedger(seed: readonly LedgerOrder[] = []): Ledger {
   const rows = new Map<string, LedgerOrder>(seed.map((order) => [order.id, normalize(order)]));
   const createdAt = new Map<string, string>();
+  const updatedAt = new Map<string, string>();
   let clock = Date.parse("2026-01-01T00:00:00.000Z");
   for (const order of seed) {
-    createdAt.set(order.id, new Date(clock).toISOString());
+    const stamp = new Date(clock).toISOString();
+    createdAt.set(order.id, stamp);
+    updatedAt.set(order.id, stamp);
     clock += 1000;
   }
+  const touch = (id: string) => {
+    updatedAt.set(id, new Date().toISOString());
+  };
   return {
     async create(order) {
       if (rows.has(order.id)) throw new Error("duplicate_order");
@@ -21,7 +27,9 @@ export function createMemoryLedger(seed: readonly LedgerOrder[] = []): Ledger {
         paymentType: null,
         reviewNotice: null,
       });
-      createdAt.set(order.id, new Date().toISOString());
+      const stamp = new Date().toISOString();
+      createdAt.set(order.id, stamp);
+      updatedAt.set(order.id, stamp);
     },
     async getById(id) {
       const row = rows.get(id);
@@ -38,6 +46,7 @@ export function createMemoryLedger(seed: readonly LedgerOrder[] = []): Ledger {
       if (row === undefined || !canPay(row.status)) return "lost_race";
       row.status = "succeeded";
       row.providerRef = providerRef;
+      touch(id);
       return "updated";
     },
     async markNeedsReview(id, input) {
@@ -48,6 +57,7 @@ export function createMemoryLedger(seed: readonly LedgerOrder[] = []): Ledger {
       row.status = "review";
       if (row.providerRef === null) row.providerRef = input.providerRef;
       row.reviewNotice = { ...input.notice };
+      touch(id);
       return "updated";
     },
     async markFailed(id, providerRef) {
@@ -55,6 +65,7 @@ export function createMemoryLedger(seed: readonly LedgerOrder[] = []): Ledger {
       if (row === undefined || (row.status !== "created" && row.status !== "awaiting")) return "lost_race";
       row.status = "failed";
       if (providerRef) row.providerRef = providerRef;
+      touch(id);
       return "updated";
     },
     async markAwaiting(id, slip) {
@@ -64,12 +75,14 @@ export function createMemoryLedger(seed: readonly LedgerOrder[] = []): Ledger {
       if (row.status !== "created") return "lost_race";
       applySlip(row, slip);
       row.status = "awaiting";
+      touch(id);
       return "updated";
     },
     async markExpired(id) {
       const row = rows.get(id);
       if (row === undefined || (row.status !== "created" && row.status !== "awaiting")) return "lost_race";
       row.status = "expired";
+      touch(id);
       return "updated";
     },
     async listDue(now, limit) {
@@ -105,6 +118,46 @@ export function createMemoryLedger(seed: readonly LedgerOrder[] = []): Ledger {
         }));
       listed.sort((a, b) => (a.createdAt < b.createdAt ? 1 : a.createdAt > b.createdAt ? -1 : 0));
       return listed.slice(0, take);
+    },
+    async sumPaid(input) {
+      const allowed = new Set(input.statuses);
+      const sinceMs = input.since === null ? null : Date.parse(input.since);
+      let total = 0;
+      for (const row of rows.values()) {
+        if (!allowed.has(row.status) || row.currency !== input.currency) continue;
+        if (sinceMs !== null && !Number.isNaN(sinceMs)) {
+          const updated = Date.parse(updatedAt.get(row.id) ?? "");
+          if (Number.isNaN(updated) || updated < sinceMs) continue;
+        }
+        total += row.amountMinor;
+      }
+      return total;
+    },
+    async listPaidRecent(limit, currency) {
+      const take = Math.min(20, Math.max(1, Math.floor(limit)));
+      const listed = [...rows.values()]
+        .filter((row) => row.status === "succeeded" && row.currency === currency)
+        .map((row) => ({
+          row,
+          updated: updatedAt.get(row.id) ?? "",
+        }));
+      listed.sort((a, b) => (a.updated < b.updated ? 1 : a.updated > b.updated ? -1 : 0));
+      return listed.slice(0, take).map(({ row }) => ({
+        id: row.id,
+        providerId: row.providerId,
+        providerRef: row.providerRef,
+        amountMinor: row.amountMinor,
+        currency: row.currency,
+        status: row.status,
+        donorName: row.donorName,
+        message: row.message,
+        createdAt: createdAt.get(row.id) ?? new Date(0).toISOString(),
+        expiresAt: row.expiresAt,
+        bankCode: row.bankCode,
+        payCode: row.payCode,
+        barcodes: copyBarcodes(row.barcodes),
+        reviewNotice: row.reviewNotice === null ? null : { ...row.reviewNotice },
+      }));
     },
   };
 }

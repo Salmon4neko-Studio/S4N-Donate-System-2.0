@@ -22,6 +22,8 @@ import { mountDashboardSocket } from "./realtime/dashboard-socket.js";
 import { createPostgresEventStore } from "./realtime/postgres-store.js";
 import { mountOverlaySocket } from "./realtime/overlay-socket.js";
 import { createPrismaOverlayLayoutStore } from "./realtime/prisma-overlay-layout.js";
+import { decorateOverlaySettings, forgetRetiredGoalSetting, publishGoalProgress } from "./realtime/overlay-state.js";
+import { createAlertSoundStore } from "./alerts/sound.js";
 import { startEventRetention } from "./realtime/retention.js";
 
 const envCandidates = [
@@ -62,6 +64,30 @@ async function main(): Promise<void> {
   const chatHost = createChatHost({ catalog, installations, secrets, masterKey, bus });
 
   const ledger = createPrismaLedger(prisma);
+  const alertSoundDir =
+    process.env.S4N_ALERT_SOUND_DIR ??
+    resolve(process.env.S4N_REPO_ROOT ?? resolve(import.meta.dirname, "../../.."), "data/alert-sounds");
+  const alertSounds = createAlertSoundStore(alertSoundDir);
+  try {
+    await secrets.discard("official.tts");
+    await installations.remove("official.tts");
+  } catch {
+    console.warn("retired official.tts cleanup skipped");
+  }
+  try {
+    const goals = catalog.find((plugin) => plugin.manifest.id === "official.goals");
+    await forgetRetiredGoalSetting(secrets, goals?.manifest.version ?? "0.1.1");
+  } catch {
+    console.warn("retired goal setting cleanup skipped");
+  }
+  const refreshGoal = () => {
+    setImmediate(() => {
+      void publishGoalProgress({ ledger, secrets, installations, bus }).catch(() => undefined);
+    });
+  };
+  bus.subscribe((event) => {
+    if (event.type === "s4n.donation.succeeded") refreshGoal();
+  });
   const stopExpiry = startPaymentExpiry(
     () =>
       expireDueOrders({
@@ -92,12 +118,14 @@ async function main(): Promise<void> {
     bus,
     auth,
     layouts: createPrismaOverlayLayoutStore(prisma),
+    alertSounds,
     eventLog: "postgres",
     eventRetentionDays: env.eventRetentionDays,
     eventChatRetentionHours: env.eventChatRetentionHours,
     trustProxy: env.trustProxy,
-    onPluginsChanged: () => {
+    onPluginsChanged: (pluginId) => {
       void chatHost.sync();
+      if (pluginId === "official.goals") refreshGoal();
     },
     pingDatabase: async () => {
       try {
@@ -127,7 +155,8 @@ async function main(): Promise<void> {
     replayLimit,
     tokenValid: (token) => auth.overlayTokenValid(token),
     pluginEnabled: async (pluginId) => (await installations.enabledIds()).has(pluginId),
-    readPublicSettings: (pluginId) => secrets.readPublicSettings(pluginId),
+    readPublicSettings: async (pluginId) =>
+      decorateOverlaySettings(pluginId, await secrets.readPublicSettings(pluginId), ledger),
   });
   mountDashboardSocket(app, {
     bus,

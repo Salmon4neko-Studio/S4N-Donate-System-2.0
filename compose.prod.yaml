@@ -47,6 +47,8 @@ services:
       S4N_OVERLAY_ORIGIN: ${S4N_OVERLAY_ORIGIN:?請在 .env 設定 S4N_OVERLAY_ORIGIN}
       S4N_PUBLIC_BASE_URL: ${S4N_PUBLIC_BASE_URL:?請在 .env 設定 S4N_PUBLIC_BASE_URL}
       PORT: "8787"
+    volumes:
+      - s4n_alert_sounds:/data/alert-sounds
     depends_on:
       postgres:
         condition: service_healthy
@@ -190,3 +192,5 @@ volumes:
     name: s4n_prod_caddy_config
   s4n_backups:
     name: s4n_prod_backups
+  s4n_alert_sounds:
+    name: s4n_prod_alert_sounds

@@ -46,6 +46,12 @@ test("a test donation is marked as a test and does not touch the paid ledger", {
       async listRecent(limit, status) {
         return inner.listRecent(limit, status);
       },
+      async sumPaid(input) {
+        return inner.sumPaid(input);
+      },
+      async listPaidRecent(limit, currency) {
+        return inner.listPaidRecent(limit, currency);
+      },
     },
   });
   const cookie = await setupOperator(app);

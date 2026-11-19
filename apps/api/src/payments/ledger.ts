@@ -82,6 +82,13 @@ export interface Ledger {
   listDue(now: Date, limit: number): Promise<LedgerOrder[]>;
   /** Newest first. Does not create rows. `status` limits the list when set. */
   listRecent(limit: number, status?: DonationState): Promise<ListedDonation[]>;
+  /**
+   * Sum of amounts whose status is in `statuses` and whose last update is at or after `since`.
+   * `since` null counts the whole ledger. Currency must match.
+   */
+  sumPaid(input: { statuses: readonly DonationState[]; since: string | null; currency: string }): Promise<number>;
+  /** Booked payments, newest update first. */
+  listPaidRecent(limit: number, currency: string): Promise<ListedDonation[]>;
 }
 
 /**

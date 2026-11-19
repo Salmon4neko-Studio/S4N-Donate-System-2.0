@@ -8,7 +8,8 @@ test("overlay layout keeps ratios when the canvas size changes", async () => {
   const cookie = await setupOperator(fixture.app);
   await fixture.installations.setEnabled("official.alerts", true, "0.2.0");
   await fixture.installations.setEnabled("official.chat-overlay", true, "0.2.0");
-  await fixture.installations.setEnabled("official.goals", true, "0.0.0");
+  await fixture.installations.setEnabled("official.goals", true, "0.1.0");
+  await fixture.installations.setEnabled("official.ticker", true, "0.1.0");
 
   const headers = { origin: TEST_ORIGIN, cookie, "content-type": "application/json" };
   const empty = await fixture.app.request("/api/overlay", { headers: { cookie } });
@@ -21,7 +22,7 @@ test("overlay layout keeps ratios when the canvas size changes", async () => {
   assert.equal(emptyBody.canvas.height, 1080);
   assert.deepEqual(
     emptyBody.slots.map((slot) => slot.pluginId),
-    ["official.alerts", "official.chat-overlay"],
+    ["official.alerts", "official.chat-overlay", "official.goals", "official.ticker"],
   );
   const alertDefault = emptyBody.slots.find((slot) => slot.pluginId === "official.alerts");
   assert.equal(alertDefault?.x, 0.04);
@@ -68,7 +69,8 @@ test("overlay layout keeps ratios when the canvas size changes", async () => {
   const chat = resizedBody.slots.find((slot) => slot.pluginId === "official.chat-overlay");
   assert.equal(chat?.x, 0.62);
   assert.equal(chat?.height, 0.9);
-  assert.equal(resizedBody.slots.some((slot) => slot.pluginId === "official.goals"), false);
+  assert.equal(resizedBody.slots.find((slot) => slot.pluginId === "official.goals")?.y, 0.04);
+  assert.equal(resizedBody.slots.find((slot) => slot.pluginId === "official.ticker")?.height, 0.12);
 
   const rejected = await fixture.app.request("/api/overlay/layout", {
     method: "PUT",
@@ -86,7 +88,7 @@ test("overlay layout keeps ratios when the canvas size changes", async () => {
     body: JSON.stringify({
       width: 1280,
       height: 720,
-      slots: { "official.goals": { x: 0.1, y: 0.1, width: 0.2, height: 0.2 } },
+      slots: { "official.ecpay": { x: 0.1, y: 0.1, width: 0.2, height: 0.2 } },
     }),
   });
   assert.equal(unknown.status, 422);

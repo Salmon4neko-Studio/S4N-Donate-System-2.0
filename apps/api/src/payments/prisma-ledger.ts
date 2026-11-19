@@ -103,6 +103,27 @@ export function createPrismaLedger(prisma: PrismaClient): Ledger {
       });
       return rows.map(toListed);
     },
+    async sumPaid(input) {
+      const since = input.since === null ? null : new Date(input.since);
+      const result = await prisma.donation.aggregate({
+        where: {
+          status: { in: input.statuses.map(toPrismaStatus) },
+          currency: input.currency,
+          ...(since !== null && !Number.isNaN(since.getTime()) ? { updatedAt: { gte: since } } : {}),
+        },
+        _sum: { amountMinor: true },
+      });
+      return result._sum.amountMinor ?? 0;
+    },
+    async listPaidRecent(limit, currency) {
+      const take = Math.min(20, Math.max(1, Math.floor(limit)));
+      const rows = await prisma.donation.findMany({
+        where: { status: DonationStatus.succeeded, currency },
+        orderBy: { updatedAt: "desc" },
+        take,
+      });
+      return rows.map(toListed);
+    },
   };
 }
 

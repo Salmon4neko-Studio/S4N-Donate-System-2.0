@@ -30,6 +30,9 @@ RUN apt-get update \
 
 WORKDIR /app
 COPY --from=build --chown=node:node /out /app
+# Named volume is first filled from this directory, so `node` can write alert sounds.
+RUN mkdir -p /data/alert-sounds && chown node:node /data/alert-sounds
+ENV S4N_ALERT_SOUND_DIR=/data/alert-sounds
 USER node
 EXPOSE 8787
 CMD ["sh", "/app/docker-entrypoint.sh"]

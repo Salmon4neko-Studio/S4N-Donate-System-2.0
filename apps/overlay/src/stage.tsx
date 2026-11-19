@@ -1,7 +1,10 @@
 import { useEffect, useState, type CSSProperties } from "react";
 import { apiOrigin } from "./api-origin";
 import { ChatOverlay } from "./chat-overlay";
+import { GoalOverlay } from "./goal-overlay";
 import { Overlay } from "./overlay";
+import { overlayStatusLine } from "./status";
+import { TickerOverlay } from "./ticker-overlay";
 
 export interface SceneSlot {
   pluginId: string;
@@ -28,7 +31,8 @@ export function OverlayStage({
 }) {
   const [scene, setScene] = useState<SceneView | null>(null);
   const [denied, setDenied] = useState(token === "");
-  const showHint = preview || !transparent;
+  const deniedLine = overlayStatusLine({ preview, kind: "stage-denied" });
+  const emptyLine = overlayStatusLine({ preview, kind: "stage-empty" });
 
   useEffect(() => {
     if (token === "") return;
@@ -66,17 +70,21 @@ export function OverlayStage({
 
   return (
     <div className="overlay-stage">
-      {showHint && denied ? <p className="overlay-hint">這個網址的權杖無效。請從工作台複製新的疊層網址。</p> : null}
-      {showHint && !denied && scene !== null && scene.slots.length === 0 ? (
-        <p className="overlay-hint">還沒有啟用需要疊層的外掛。請啟用贊助提醒或聊天疊層。</p>
-      ) : null}
+      {denied && deniedLine ? <p className="overlay-hint">{deniedLine}</p> : null}
+      {!denied && scene !== null && scene.slots.length === 0 && emptyLine ? <p className="overlay-hint">{emptyLine}</p> : null}
       {scene?.slots.map((slot) => (
         <section key={slot.pluginId} className="overlay-slot" style={slotStyle(slot)} data-plugin={slot.pluginId}>
           {slot.pluginId === "official.alerts" ? <Overlay token={token} transparent={transparent} preview={preview} /> : null}
           {slot.pluginId === "official.chat-overlay" ? (
             <ChatOverlay token={token} transparent={transparent} preview={preview} />
           ) : null}
-          {slot.pluginId !== "official.alerts" && slot.pluginId !== "official.chat-overlay" && preview ? (
+          {slot.pluginId === "official.goals" ? <GoalOverlay token={token} transparent={transparent} preview={preview} /> : null}
+          {slot.pluginId === "official.ticker" ? <TickerOverlay token={token} transparent={transparent} preview={preview} /> : null}
+          {slot.pluginId !== "official.alerts" &&
+          slot.pluginId !== "official.chat-overlay" &&
+          slot.pluginId !== "official.goals" &&
+          slot.pluginId !== "official.ticker" &&
+          preview ? (
             <p className="overlay-hint">{slot.name}</p>
           ) : null}
         </section>

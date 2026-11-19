@@ -322,7 +322,7 @@ export function OverlayPreviewPanel({
 
         {pageUrl === null ? <p className="ts-text is-description">先產生疊層網址，這裡才會載入 OBS 用的同一個疊層。</p> : null}
         {slots.length === 0 ? (
-          <p className="ts-text is-description">啟用贊助提醒或聊天疊層後，畫布上會出現可拖曳的區塊。</p>
+          <p className="ts-text is-description">啟用贊助提醒、聊天疊層、目標或跑馬燈後，畫布上會出現可拖曳的區塊。</p>
         ) : (
           <p className="ts-text is-description">橘色區塊是各外掛的位置。拖動後按儲存位置。右下角可以調整大小。</p>
         )}

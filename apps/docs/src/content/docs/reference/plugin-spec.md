@@ -41,7 +41,7 @@ Twitch 來源需要 `events.emit`、`secrets` 與 `network`。頻道名稱是一
 | `events.emit` | 所有外掛 | 透過 SDK 發送事件，但不能偽造核心付款事件 |
 | `overlay.slot` | 所有外掛 | 宣告疊層版位。要排進共用畫布，清單還要有 `overlaySlot` 矩形 |
 | `dashboard.settings` | 所有外掛 | 儀表板上的設定 |
-| `tts.speak` | 所有外掛 | 請求語音。這次沒有合成器 |
+| `tts.speak` | 所有外掛 | 舊的權限名稱。沒有語音外掛 |
 | `payments.read` | 所有外掛 | 唯讀付款資料。這次沒有讀取 API |
 | `payments.provider` | 僅官方 | 註冊付款提供者、建立付款、驗證回呼。不能寫帳 |
 | `secrets` | 僅官方 | 設定裡可以有密文欄位 |
@@ -68,12 +68,12 @@ Twitch 來源需要 `events.emit`、`secrets` 與 `network`。頻道名稱是一
 - `s4n.chat.delete`
 - `s4n.chat.clear`
 - `s4n.goal.updated`
-- `s4n.tts.request`
+- `s4n.tts.request`（舊事件。沒有外掛會朗讀，疊層也不接收）
 - `s4n.media.now_playing`
 
 `s4n.chat.message` 是與平台無關的一則訊息：`platform`（`twitch`、`youtube`，或核心混入的 `s4n`）、`channel`、`userId`、`login`、`displayName`、`color`、`badges`、`fragments`（`text` 或 `emote`）、`text`、`timestamp`、`messageId`，以及 `flags`（`isMod`、`isBroadcaster`、`isSubscriber`、`isVip`）。混入的贊助才帶 `donation`。`s4n.chat.delete` 拿掉一則（Twitch 的 CLEARMSG）。`s4n.chat.clear` 是封鎖、超時或清空頻道（CLEARCHAT）；有 `userId` 時只拿掉那個人，有 `durationSeconds` 時是超時。
 
-贊助人名稱、留言、聊天內容、語音文字與點播者名稱都是不受信任文字。金額以最小貨幣單位的整數表示。這個骨架把 TWD 的 1 單位訂為新台幣 1 元，因為綠界與歐付寶的金額是整數元。
+贊助人名稱、留言、聊天內容與點播者名稱都是不受信任文字。跑馬燈與目標名稱也只當純文字。金額以最小貨幣單位的整數表示。這個骨架把 TWD 的 1 單位訂為新台幣 1 元，因為綠界與歐付寶的金額是整數元。
 
 ## 密文欄位
 

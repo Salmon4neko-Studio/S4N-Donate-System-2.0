@@ -10,7 +10,7 @@ export const permissionCopy: Record<string, { label: string; detail: string }> =
   "events.emit": { label: "發送事件", detail: "可以送出事件，但不能偽造贊助入帳。" },
   "overlay.slot": { label: "疊層版位", detail: "可以在 OBS 佔一個畫面。" },
   "dashboard.settings": { label: "儀表板設定", detail: "可以在儀表板保存這個外掛的設定。" },
-  "tts.speak": { label: "語音", detail: "可以請求朗讀。這個版本還沒有合成器。" },
+  "tts.speak": { label: "語音", detail: "沒有語音外掛。這個權限不會再被使用。" },
   "payments.read": { label: "讀取付款", detail: "可以讀取付款資料。這個版本沒有讀取 API。" },
   "payments.provider": { label: "付款提供者", detail: "可以建立付款並驗證回呼。仍然不能寫帳。" },
   secrets: { label: "密鑰", detail: "設定裡可以有密文。畫面只會顯示已設定或未設定。" },
