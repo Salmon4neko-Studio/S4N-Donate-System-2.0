@@ -8,7 +8,7 @@ import { rateLimit } from "./auth/rate-limit.js";
 import { registerAuthRoutes } from "./auth/routes.js";
 import type { AuthService } from "./auth/service.js";
 import { requireSession, sessionCookieSecure, type SessionEnv } from "./auth/session.js";
-import { isRecord, readJson } from "./http.js";
+import { clientKey, isRecord, readJson } from "./http.js";
 import { handlePaymentCallback, settlePaymentNotification } from "./payments/callback.js";
 import { createDonationCheckout } from "./payments/checkout.js";
 import type { DonationState, Ledger } from "./payments/ledger.js";
@@ -67,6 +67,8 @@ export interface AppDeps {
   pingDatabase: () => Promise<"up" | "down" | "unconfigured">;
   callbackRateLimit?: { windowMs: number; max: number };
   loginRateLimit?: { windowMs: number; max: number };
+  /** Last X-Forwarded-For hop, and the public scheme on the request URL. */
+  trustProxy?: boolean;
   /** Fired after a plugin is enabled or its settings are saved. */
   onPluginsChanged?: (pluginId?: string) => void;
   alertSounds?: AlertSoundStore;
@@ -83,6 +85,8 @@ export function createApp(deps: AppDeps): Hono<SessionEnv> {
     rotateAfterMs: deps.auth.rotateAfterMs,
   });
   const guard = originGuard(dashboardOrigins);
+  const trustProxy = deps.trustProxy === true;
+  const caller = (header: string | undefined) => clientKey(header, trustProxy);
 
   app.use("*", async (c, next) => {
     c.header("x-content-type-options", "nosniff");
@@ -105,6 +109,7 @@ export function createApp(deps: AppDeps): Hono<SessionEnv> {
     auth: deps.auth,
     allowedOrigins: dashboardOrigins,
     secureCookie,
+    trustProxy,
     ...(deps.loginRateLimit ? { loginRateLimit: deps.loginRateLimit } : {}),
   });
 
@@ -214,6 +219,7 @@ export function createApp(deps: AppDeps): Hono<SessionEnv> {
     guard,
     catalog: deps.catalog,
     installations: deps.installations,
+    trustProxy,
     ...(deps.onPluginsChanged !== undefined ? { onPluginsChanged: deps.onPluginsChanged } : {}),
   });
 
@@ -249,7 +255,7 @@ export function createApp(deps: AppDeps): Hono<SessionEnv> {
     rateLimit({
       windowMs: 60_000,
       max: 30,
-      key: (c) => `settings:${c.req.param("id")}:${c.req.header("x-forwarded-for") ?? "local"}`,
+      key: (c) => `settings:${c.req.param("id")}:${caller(c.req.header("x-forwarded-for"))}`,
     }),
     async (c) => {
       const plugin = findPlugin(deps.catalog, c.req.param("id"));
@@ -358,7 +364,7 @@ export function createApp(deps: AppDeps): Hono<SessionEnv> {
     rateLimit({
       windowMs: 60_000,
       max: 60,
-      key: (c) => `status:${c.req.header("x-forwarded-for") ?? "local"}`,
+      key: (c) => `status:${caller(c.req.header("x-forwarded-for"))}`,
     }),
     async (c) => {
     c.header("cache-control", "no-store");
@@ -385,7 +391,7 @@ export function createApp(deps: AppDeps): Hono<SessionEnv> {
     rateLimit({
       windowMs: 60_000,
       max: 20,
-      key: (c) => `donate:${c.req.header("x-forwarded-for") ?? "local"}`,
+      key: (c) => `donate:${caller(c.req.header("x-forwarded-for"))}`,
     }),
     async (c) => {
       c.header("cache-control", "no-store");
@@ -490,7 +496,7 @@ export function createApp(deps: AppDeps): Hono<SessionEnv> {
     rateLimit({
       windowMs: 60_000,
       max: 60,
-      key: (c) => `instructions:${c.req.header("x-forwarded-for") ?? "local"}`,
+      key: (c) => `instructions:${caller(c.req.header("x-forwarded-for"))}`,
     }),
     async (c) => {
       c.header("cache-control", "no-store");
@@ -520,7 +526,7 @@ export function createApp(deps: AppDeps): Hono<SessionEnv> {
     rateLimit({
       windowMs: callbackLimit.windowMs,
       max: callbackLimit.max,
-      key: (c) => `payment-info:${c.req.param("pluginId")}:${c.req.header("x-forwarded-for") ?? "local"}`,
+      key: (c) => `payment-info:${c.req.param("pluginId")}:${caller(c.req.header("x-forwarded-for"))}`,
     }),
     async (c) => {
       const result = await settlePaymentInfo({
@@ -546,7 +552,7 @@ export function createApp(deps: AppDeps): Hono<SessionEnv> {
     rateLimit({
       windowMs: callbackLimit.windowMs,
       max: callbackLimit.max,
-      key: (c) => `payment-redirect:${c.req.param("pluginId")}:${c.req.header("x-forwarded-for") ?? "local"}`,
+      key: (c) => `payment-redirect:${c.req.param("pluginId")}:${caller(c.req.header("x-forwarded-for"))}`,
     }),
     async (c) => {
       const settled = await settlePaymentInfo({
@@ -578,7 +584,7 @@ export function createApp(deps: AppDeps): Hono<SessionEnv> {
       windowMs: callbackLimit.windowMs,
       max: callbackLimit.max,
       key: (c) =>
-        `callback:${c.req.param("pluginId")}:${c.req.header("x-forwarded-for") ?? "local"}`,
+        `callback:${c.req.param("pluginId")}:${caller(c.req.header("x-forwarded-for"))}`,
     }),
     async (c) => {
       const headers: Record<string, string> = {};
@@ -608,7 +614,7 @@ export function createApp(deps: AppDeps): Hono<SessionEnv> {
     rateLimit({
       windowMs: callbackLimit.windowMs,
       max: callbackLimit.max,
-      key: (c) => `return:${c.req.param("pluginId")}:${c.req.header("x-forwarded-for") ?? "local"}`,
+      key: (c) => `return:${c.req.param("pluginId")}:${caller(c.req.header("x-forwarded-for"))}`,
     }),
     async (c) => {
       const headers: Record<string, string> = {};
@@ -641,7 +647,7 @@ export function createApp(deps: AppDeps): Hono<SessionEnv> {
     rateLimit({
       windowMs: 60_000,
       max: 10,
-      key: (c) => `reconcile:${c.req.param("pluginId")}:${c.req.header("x-forwarded-for") ?? "local"}`,
+      key: (c) => `reconcile:${c.req.param("pluginId")}:${caller(c.req.header("x-forwarded-for"))}`,
     }),
     async (c) => {
       const body = await readJson(c.req.raw);

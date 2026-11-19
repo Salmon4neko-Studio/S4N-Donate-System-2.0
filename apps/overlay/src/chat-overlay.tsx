@@ -7,6 +7,7 @@ import {
   type ChatLineView,
   type ChatOverlaySettings,
 } from "@s4n/plugin-chat-overlay";
+import { apiOrigin } from "./api-origin";
 import { noteEvent, readCursor, readSeen } from "./cursor";
 import { overlayStatusLine } from "./status";
 import { formatTwd } from "./money";
@@ -177,8 +178,7 @@ function EmoteView({ name, imageUrl }: { name: string; imageUrl: string | null }
 }
 
 function socketUrl(token: string, since: string | null): string {
-  const httpUrl = import.meta.env.VITE_API_URL ?? "http://localhost:8787";
-  const url = new URL(httpUrl);
+  const url = new URL(apiOrigin());
   url.protocol = url.protocol === "https:" ? "wss:" : "ws:";
   url.pathname = "/ws/overlay";
   url.search = "";

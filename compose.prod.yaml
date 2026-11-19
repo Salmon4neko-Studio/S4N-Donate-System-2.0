@@ -1,0 +1,196 @@
+# 正式環境。所有密鑰與網域都從 .env 來，缺一個就拒絕啟動。
+# 專案名稱與 volume 跟開發用的 compose.yaml 分開，避免接到開發資料庫。
+# Postgres 不發布埠。Caddy 是唯一對外的入口。
+
+name: s4n-prod
+
+x-restart: &restart
+  restart: unless-stopped
+
+x-logging: &logging
+  logging:
+    driver: json-file
+    options:
+      max-size: "10m"
+      max-file: "5"
+
+services:
+  postgres:
+    <<: [*restart, *logging]
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:?請在 .env 設定 POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?請在 .env 設定 POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB:?請在 .env 設定 POSTGRES_DB}
+    volumes:
+      - s4n_postgres:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U \"$$POSTGRES_USER\" -d \"$$POSTGRES_DB\""]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+    networks:
+      - s4n
+
+  api:
+    <<: [*restart, *logging]
+    image: ghcr.io/salmon4neko-studio/s4n-api:${S4N_IMAGE_TAG:?請在 .env 設定 S4N_IMAGE_TAG}
+    build:
+      context: .
+      dockerfile: apps/api/Dockerfile
+    environment:
+      DATABASE_URL: postgresql://${POSTGRES_USER:?請在 .env 設定 POSTGRES_USER}:${POSTGRES_PASSWORD:?請在 .env 設定 POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB:?請在 .env 設定 POSTGRES_DB}
+      S4N_MASTER_KEY: ${S4N_MASTER_KEY:?請在 .env 設定 S4N_MASTER_KEY}
+      S4N_ENV: production
+      S4N_TRUST_PROXY: "1"
+      S4N_DASHBOARD_ORIGIN: ${S4N_DASHBOARD_ORIGIN:?請在 .env 設定 S4N_DASHBOARD_ORIGIN}
+      S4N_OVERLAY_ORIGIN: ${S4N_OVERLAY_ORIGIN:?請在 .env 設定 S4N_OVERLAY_ORIGIN}
+      S4N_PUBLIC_BASE_URL: ${S4N_PUBLIC_BASE_URL:?請在 .env 設定 S4N_PUBLIC_BASE_URL}
+      PORT: "8787"
+    volumes:
+      - s4n_alert_sounds:/data/alert-sounds
+    depends_on:
+      postgres:
+        condition: service_healthy
+    healthcheck:
+      test:
+        [
+          "CMD",
+          "node",
+          "-e",
+          "fetch('http://127.0.0.1:8787/api/health').then((r)=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))",
+        ]
+      interval: 10s
+      timeout: 5s
+      retries: 20
+      start_period: 40s
+    networks:
+      - s4n
+
+  web:
+    <<: [*restart, *logging]
+    image: ghcr.io/salmon4neko-studio/s4n-web:${S4N_IMAGE_TAG:?請在 .env 設定 S4N_IMAGE_TAG}
+    build:
+      context: .
+      dockerfile: apps/web/Dockerfile
+    depends_on:
+      api:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "wget", "-q", "-O", "/dev/null", "http://127.0.0.1:8080/"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 10s
+    networks:
+      - s4n
+
+  overlay:
+    <<: [*restart, *logging]
+    image: ghcr.io/salmon4neko-studio/s4n-overlay:${S4N_IMAGE_TAG:?請在 .env 設定 S4N_IMAGE_TAG}
+    build:
+      context: .
+      dockerfile: apps/overlay/Dockerfile
+    depends_on:
+      api:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "wget", "-q", "-O", "/dev/null", "http://127.0.0.1:8080/"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 10s
+    networks:
+      - s4n
+
+  # 文件預設不啟動。要對外時設定 S4N_DOCS_HOST，並加上 --profile docs。
+  docs:
+    <<: [*restart, *logging]
+    profiles: ["docs"]
+    image: ghcr.io/salmon4neko-studio/s4n-docs:${S4N_IMAGE_TAG:?請在 .env 設定 S4N_IMAGE_TAG}
+    build:
+      context: .
+      dockerfile: apps/docs/Dockerfile
+    healthcheck:
+      test: ["CMD", "wget", "-q", "-O", "/dev/null", "http://127.0.0.1:8080/"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 10s
+    networks:
+      - s4n
+
+  caddy:
+    <<: [*restart, *logging]
+    image: caddy:2.10-alpine
+    environment:
+      S4N_DOMAIN: ${S4N_DOMAIN:?請在 .env 設定 S4N_DOMAIN}
+      S4N_OVERLAY_HOST: ${S4N_OVERLAY_HOST:?請在 .env 設定 S4N_OVERLAY_HOST}
+      S4N_DOCS_HOST: ${S4N_DOCS_HOST:-}
+      S4N_TLS_MODE: ${S4N_TLS_MODE:?請在 .env 設定 S4N_TLS_MODE，acme 或 internal}
+      S4N_ACME_EMAIL: ${S4N_ACME_EMAIL:?請在 .env 設定 S4N_ACME_EMAIL}
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./deploy/caddy/entrypoint.sh:/entrypoint.sh:ro
+      - s4n_caddy_data:/data
+      - s4n_caddy_config:/config
+    entrypoint: ["/bin/sh", "/entrypoint.sh"]
+    depends_on:
+      api:
+        condition: service_healthy
+      web:
+        condition: service_healthy
+      overlay:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "wget", "-q", "-O", "/dev/null", "http://127.0.0.1:2019/config/"]
+      interval: 10s
+      timeout: 5s
+      retries: 12
+      start_period: 15s
+    networks:
+      - s4n
+
+  backup:
+    <<: [*restart, *logging]
+    image: postgres:16-alpine
+    # 官方映像預設是 postgres 使用者，寫不進新的 volume。這個 sidecar 不對外。
+    user: "0:0"
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:?請在 .env 設定 POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?請在 .env 設定 POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB:?請在 .env 設定 POSTGRES_DB}
+      S4N_BACKUP_RETENTION: ${S4N_BACKUP_RETENTION:?請在 .env 設定 S4N_BACKUP_RETENTION}
+    volumes:
+      - ./deploy/backup.sh:/backup.sh:ro
+      - s4n_backups:/backups
+    entrypoint: ["/bin/sh", "/backup.sh"]
+    depends_on:
+      postgres:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "test -f /backups/.last-ok"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 120s
+    networks:
+      - s4n
+
+networks:
+  s4n:
+    name: s4n_prod
+
+volumes:
+  s4n_postgres:
+    name: s4n_prod_postgres
+  s4n_caddy_data:
+    name: s4n_prod_caddy_data
+  s4n_caddy_config:
+    name: s4n_prod_caddy_config
+  s4n_backups:
+    name: s4n_prod_backups
+  s4n_alert_sounds:
+    name: s4n_prod_alert_sounds

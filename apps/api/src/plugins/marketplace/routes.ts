@@ -6,7 +6,7 @@ import type { LoadedPlugin } from "../catalog.js";
 import { MarketplaceError, type MarketplaceService } from "./service.js";
 import type { SessionEnv } from "../../auth/session.js";
 import type { Hono } from "hono";
-import { isRecord, readJson } from "../../http.js";
+import { clientKey, isRecord, readJson } from "../../http.js";
 import { rateLimit } from "../../auth/rate-limit.js";
 
 const KNOWN = new Set<string>(PERMISSIONS);
@@ -19,6 +19,7 @@ export function registerMarketplaceRoutes(
     guard: MiddlewareHandler<SessionEnv>;
     catalog: readonly LoadedPlugin[];
     installations: InstallationStore;
+    trustProxy?: boolean;
     onPluginsChanged?: () => void;
   },
 ): void {
@@ -27,7 +28,7 @@ export function registerMarketplaceRoutes(
   const limited = rateLimit({
     windowMs: 60_000,
     max: 30,
-    key: (c) => `marketplace:${c.req.header("x-forwarded-for") ?? "local"}`,
+    key: (c) => `marketplace:${clientKey(c.req.header("x-forwarded-for"), deps.trustProxy === true)}`,
   });
 
   app.get("/api/marketplace", session, async (c) => {

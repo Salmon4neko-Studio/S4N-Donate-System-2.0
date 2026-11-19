@@ -9,6 +9,7 @@ import { createPrismaAuthStore } from "./auth/prisma-store.js";
 import { parseMasterKey } from "./crypto/master-key.js";
 import { createPrisma } from "./db.js";
 import { loadEnv } from "./env.js";
+import { forwardedRequest } from "./http.js";
 import { expireDueOrders, startPaymentExpiry } from "./payments/expiry.js";
 import { createPrismaLedger } from "./payments/prisma-ledger.js";
 import { createOfficialCatalog, createPaymentRegistry } from "./plugins/catalog.js";
@@ -25,12 +26,15 @@ import { decorateOverlaySettings, forgetRetiredGoalSetting, publishGoalProgress 
 import { createAlertSoundStore } from "./alerts/sound.js";
 import { startEventRetention } from "./realtime/retention.js";
 
-const root = resolve(import.meta.dirname, "../../..");
-const envPath = resolve(root, ".env");
-const examplePath = resolve(root, ".env.example");
-if (existsSync(envPath)) {
+const envCandidates = [
+  resolve(import.meta.dirname, "../../..", ".env"),
+  resolve(import.meta.dirname, "..", ".env"),
+];
+const envPath = envCandidates.find((path) => existsSync(path));
+const examplePath = resolve(import.meta.dirname, "../../..", ".env.example");
+if (envPath !== undefined) {
   loadDotenv({ path: envPath });
-} else if (existsSync(examplePath)) {
+} else if (process.env.S4N_ENV !== "production" && existsSync(examplePath)) {
   loadDotenv({ path: examplePath });
   console.warn("Loaded .env.example because .env is missing.");
 }
@@ -60,7 +64,10 @@ async function main(): Promise<void> {
   const chatHost = createChatHost({ catalog, installations, secrets, masterKey, bus });
 
   const ledger = createPrismaLedger(prisma);
-  const alertSounds = createAlertSoundStore(resolve(root, "data/alert-sounds"));
+  const alertSoundDir =
+    process.env.S4N_ALERT_SOUND_DIR ??
+    resolve(process.env.S4N_REPO_ROOT ?? resolve(import.meta.dirname, "../../.."), "data/alert-sounds");
+  const alertSounds = createAlertSoundStore(alertSoundDir);
   try {
     await secrets.discard("official.tts");
     await installations.remove("official.tts");
@@ -115,6 +122,7 @@ async function main(): Promise<void> {
     eventLog: "postgres",
     eventRetentionDays: env.eventRetentionDays,
     eventChatRetentionHours: env.eventChatRetentionHours,
+    trustProxy: env.trustProxy,
     onPluginsChanged: (pluginId) => {
       void chatHost.sync();
       if (pluginId === "official.goals") refreshGoal();
@@ -163,7 +171,8 @@ async function main(): Promise<void> {
   const sockets = new WebSocketServer({ noServer: true });
   const server = serve(
     {
-      fetch: app.fetch,
+      fetch: (request, bindings) =>
+        app.fetch(env.trustProxy ? forwardedRequest(request) : request, bindings),
       port: env.port,
       hostname: "0.0.0.0",
       websocket: { server: sockets },

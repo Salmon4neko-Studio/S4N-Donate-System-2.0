@@ -1,4 +1,5 @@
 import { useEffect, useState, type CSSProperties } from "react";
+import { apiOrigin } from "./api-origin";
 import { ChatOverlay } from "./chat-overlay";
 import { GoalOverlay } from "./goal-overlay";
 import { Overlay } from "./overlay";
@@ -124,8 +125,7 @@ export function readScene(value: unknown): SceneView | null {
 }
 
 function sceneUrl(token: string): string {
-  const httpUrl = import.meta.env.VITE_API_URL ?? "http://localhost:8787";
-  const url = new URL(httpUrl);
+  const url = new URL(apiOrigin());
   url.pathname = "/api/overlay/scene";
   url.search = "";
   url.hash = "";

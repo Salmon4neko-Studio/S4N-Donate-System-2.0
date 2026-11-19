@@ -7,6 +7,7 @@ import {
   type AlertAppearance,
   type DonationAlert,
 } from "@s4n/plugin-alerts";
+import { apiOrigin } from "./api-origin";
 import { noteEvent, readCursor, readSeen } from "./cursor";
 import { overlayStatusLine } from "./status";
 
@@ -167,8 +168,7 @@ function soundUrl(token: string): string {
 }
 
 function socketUrl(token: string, since: string | null): string {
-  const httpUrl = import.meta.env.VITE_API_URL ?? "http://localhost:8787";
-  const url = new URL(httpUrl);
+  const url = new URL(apiOrigin());
   url.protocol = url.protocol === "https:" ? "wss:" : "ws:";
   url.pathname = "/ws/overlay";
   url.search = "";

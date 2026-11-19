@@ -1,4 +1,5 @@
 .git
+.github
 uploads
 node_modules
 **/node_modules
@@ -9,5 +10,6 @@ dist
 apps/api/generated
 *.log
 .env
-.env.local
+.env.*
 coverage
+backups

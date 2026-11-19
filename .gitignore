@@ -10,3 +10,4 @@ apps/api/generated/
 .DS_Store
 coverage/
 data/
+/backups/
