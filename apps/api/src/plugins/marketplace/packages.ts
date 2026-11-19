@@ -15,7 +15,6 @@ export const BUNDLED_PLUGIN_FILES: Record<string, string> = {
   "official.twitch-chat": "plugins/twitch-chat/s4n-plugin.json",
   "official.goals": "plugins/goals/s4n-plugin.json",
   "official.ticker": "plugins/ticker/s4n-plugin.json",
-  "official.tts": "plugins/tts/s4n-plugin.json",
 };
 
 export function repoRoot(): string {

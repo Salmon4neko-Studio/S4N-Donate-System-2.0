@@ -2,17 +2,17 @@
   "index": {
     "format": "s4n-registry-index",
     "version": 1,
-    "issuedAt": "2026-11-19T07:00:00.000Z",
+    "issuedAt": "2026-11-19T12:00:00.000Z",
     "plugins": [
       {
         "id": "official.alerts",
         "name": "贊助提醒",
-        "version": "0.2.0",
+        "version": "0.3.0",
         "api": "0.1",
         "category": "overlay",
         "author": "S4N",
         "official": true,
-        "description": "在疊層顯示贊助人、金額與留言。標題、內文、顏色與進退場動畫可在外掛設定調整。",
+        "description": "在疊層顯示贊助人、金額與留言。標題、內文、顏色、動畫與提示音可在外掛設定調整。",
         "icon": "bell",
         "permissions": [
           "events.subscribe",
@@ -21,12 +21,12 @@
         "kind": [
           "overlay"
         ],
-        "changelog": "0.2.0 可調整標題與內文範本、文字顏色、通知主色與副色，以及進場與退場動畫。",
+        "changelog": "0.3.0 可上傳提示音、調整音量。沒有音效時維持靜音。",
         "compatibility": {
           "core": "0.1",
           "pluginSpec": "0.1"
         },
-        "sha256": "534b9f324280962becf220f762c5292d9c2169c1009be462a728b2e625883a2d",
+        "sha256": "6ae3ef7ef94fd83bcf648a2591b29b5a54889b8df8d256f1dcdfbe893eb842cd",
         "featured": true,
         "screenshots": [
           {
@@ -204,12 +204,12 @@
       {
         "id": "official.goals",
         "name": "目標進度",
-        "version": "0.0.0",
+        "version": "0.1.0",
         "api": "0.1",
-        "category": "tool",
+        "category": "overlay",
         "author": "S4N",
         "official": true,
-        "description": "目標條的佔位。尚未計算進度。",
+        "description": "在疊層顯示目標名稱、目前與目標金額，以及百分比進度條。進度由帳本的已付款贊助計算。",
         "icon": "bullseye",
         "permissions": [
           "events.subscribe",
@@ -220,18 +220,18 @@
           "overlay",
           "dashboard"
         ],
-        "changelog": "0.0.0 目標條的佔位。還沒有計算進度。",
+        "changelog": "0.1.0 依帳本已付款計算進度，可設起算時間與顏色，並在共用畫布占一個版位。",
         "compatibility": {
           "core": "0.1",
           "pluginSpec": "0.1"
         },
-        "sha256": "6c723fc1dd841098719b8066a571eb64e72dfc7e1349d58b479002df5d07c9be",
+        "sha256": "ed1df184774dfff03908c5344bb253797d083b991a5a73d9c4ba2b33cef56df5",
         "featured": false,
         "screenshots": [
           {
-            "alt": "目標進度的佔位",
-            "caption": "尚未計算進度",
-            "frame": "tool"
+            "alt": "目標名稱、金額與進度條",
+            "caption": "疊層上的目標",
+            "frame": "overlay"
           }
         ]
       },
@@ -337,12 +337,12 @@
       {
         "id": "official.ticker",
         "name": "跑馬燈",
-        "version": "0.0.0",
+        "version": "0.1.0",
         "api": "0.1",
-        "category": "tool",
+        "category": "overlay",
         "author": "S4N",
         "official": true,
-        "description": "跑馬燈的佔位。尚未捲動文字。",
+        "description": "在疊層捲動純文字。可以放自訂句子，也可以接上最近的贊助。",
         "icon": "scroll",
         "permissions": [
           "events.subscribe",
@@ -351,50 +351,18 @@
         "kind": [
           "overlay"
         ],
-        "changelog": "0.0.0 跑馬燈的佔位。還沒有捲動文字。",
+        "changelog": "0.1.0 捲動純文字，可接最近的贊助，並在共用畫布占一個版位。",
         "compatibility": {
           "core": "0.1",
           "pluginSpec": "0.1"
         },
-        "sha256": "578ad458705189fe666ea006a3c8c87fa96333488575d27c8c7aa408992d064e",
+        "sha256": "de727752cc3e23914c374d45818e588f200748dd64e8f6731a7ab8c3ba5fd5a9",
         "featured": false,
         "screenshots": [
           {
-            "alt": "跑馬燈的佔位",
-            "caption": "尚未捲動",
-            "frame": "tool"
-          }
-        ]
-      },
-      {
-        "id": "official.tts",
-        "name": "文字轉語音",
-        "version": "0.0.0",
-        "api": "0.1",
-        "category": "tool",
-        "author": "S4N",
-        "official": true,
-        "description": "語音的佔位。尚未合成，也不會朗讀不受信任的文字。",
-        "icon": "microphone",
-        "permissions": [
-          "events.subscribe",
-          "tts.speak"
-        ],
-        "kind": [
-          "processor"
-        ],
-        "changelog": "0.0.0 語音的佔位。不會朗讀不受信任的文字。",
-        "compatibility": {
-          "core": "0.1",
-          "pluginSpec": "0.1"
-        },
-        "sha256": "61fac0e8ae105c3642184ece699deb03cf62ef4bc78e2d26ee632e8201ff28ad",
-        "featured": false,
-        "screenshots": [
-          {
-            "alt": "語音的佔位",
-            "caption": "尚未合成",
-            "frame": "tool"
+            "alt": "橫向捲動的文字",
+            "caption": "疊層上的跑馬燈",
+            "frame": "overlay"
           }
         ]
       },
@@ -434,5 +402,5 @@
       }
     ]
   },
-  "signature": "eG2dAlowcvT2ZZVTv/AHdyu1L1uC7ToWaOnmCvaC+6vBQ03an6H5C0XVa09846q0xQ05zwPpZCbRN/C+IXQ2DQ=="
+  "signature": "ZhQoBGdkIA0V1xcvflDZw0OiaaeCOCkHWiOqPY/AVy9+IaCseSijX23J9mlMlIeC192WERxnF7nOf4QFMFFPAQ=="
 }

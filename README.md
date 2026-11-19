@@ -8,7 +8,7 @@
 
 - `@s4n/events`：`s4n.donation.created` / `succeeded` / `failed`、`s4n.chat.message` / `delete` / `clear`、`s4n.goal.updated`、`s4n.tts.request`、`s4n.media.now_playing`
 - `@s4n/plugin-sdk`：外掛規格 0.1、權限，以及不能寫帳的付款介面
-- 官方外掛清單：綠界與歐付寶的信用卡、ATM、超商代碼、超商條碼，加上提醒、Twitch 聊天來源、聊天疊層，以及目標、跑馬燈、語音的佔位
+- 官方外掛清單：綠界與歐付寶的信用卡、ATM、超商代碼、超商條碼，加上提醒、Twitch 聊天來源、聊天疊層、目標進度與跑馬燈
 - API：Argon2id 登入、AES-256-GCM 密文設定、`/api/payments/:pluginId/callback`、帶權杖的疊層 WebSocket
 - 儀表板（初次設定、外掛市集、帳本、測試贊助）、贊助頁，以及贊助提醒疊層
 - Starlight 文件，以及 Docker Compose
@@ -16,7 +16,7 @@
 ## 這個骨架故意沒做
 
 - YouTube 聊天（Twitch 聊天疊層已有。下一個來源沿用同一份事件）
-- 目標計算、跑馬燈、語音合成
+- 語音合成（外掛已移除；舊的 `s4n.tts.request` 只留在事件紀錄）
 - 多個 API 實例共用的登入限流（事件紀錄已在 PostgreSQL）
 
 畫面若寫著尚未實作，那就是還沒有。不要把空狀態讀成「今天沒有贊助」。
@@ -75,7 +75,7 @@ docker compose up --build
 ```text
 apps/api          Hono、Prisma、PostgreSQL、疊層 WebSocket
 apps/web          Vite、React 19、儀表板 / 贊助頁 / 外掛庫
-apps/overlay      OBS 瀏覽器來源（贊助提醒、聊天疊層）
+apps/overlay      OBS 瀏覽器來源（贊助提醒、聊天、目標、跑馬燈）
 apps/docs         Starlight（繁體中文）
 packages/events   事件契約
 packages/plugin-sdk
@@ -85,9 +85,8 @@ plugins/opay      歐付寶，含密文設定
 plugins/alerts    贊助提醒
 plugins/twitch-chat  Twitch IRC 來源
 plugins/chat-overlay 聊天疊層（與平台無關）
-plugins/goals     佔位
-plugins/ticker    佔位
-plugins/tts       佔位
+plugins/goals     目標進度（帳本計算，疊層版位）
+plugins/ticker    跑馬燈（純文字，疊層版位）
 plugins/example-thanks  可編譯的社群疊層範例（未進官方目錄）
 ```
 

@@ -10,7 +10,6 @@ import { createProvider as createOpayAtm, manifest as opayAtm } from "@s4n/plugi
 import { createProvider as createOpayCvs, manifest as opayCvs } from "@s4n/plugin-opay-cvs";
 import { manifest as ticker } from "@s4n/plugin-ticker";
 import { createTwitchChatSource, manifest as twitchChat } from "@s4n/plugin-twitch-chat";
-import { manifest as tts } from "@s4n/plugin-tts";
 import {
   assertManifestCoherent,
   assertPermissionsAllowed,
@@ -43,7 +42,6 @@ export function createOfficialCatalog(): LoadedPlugin[] {
     { manifest: twitchChat, createChatSource: createTwitchChatSource },
     { manifest: goals },
     { manifest: ticker },
-    { manifest: tts },
   ];
 
   for (const plugin of plugins) {

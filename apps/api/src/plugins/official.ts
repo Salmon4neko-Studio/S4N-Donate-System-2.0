@@ -11,7 +11,6 @@ export const OFFICIAL_PLUGIN_IDS = [
   "official.twitch-chat",
   "official.goals",
   "official.ticker",
-  "official.tts",
 ] as const;
 
 export type OfficialPluginId = (typeof OFFICIAL_PLUGIN_IDS)[number];

@@ -1,9 +1,21 @@
 import { manifest } from "./manifest.js";
 
 export { manifest };
+export {
+  DEFAULT_TICKER,
+  TICKER_ITEM_MAX,
+  TICKER_LINE_MAX,
+  buildTickerLine,
+  parseTickerSettings,
+  plainTickerText,
+  tickerCustomItems,
+  tickerDonationItem,
+  tickerDurationSec,
+} from "./text.js";
+export type { TickerAppearance, TickerDirection, TickerDonation } from "./text.js";
 
-/** Declared overlay or worker slot. The shell does not load this module yet. */
+/** The overlay app scrolls the line the core already sanitized. */
 export const slot = {
   pluginId: manifest.id,
-  implemented: false as const,
+  implemented: true as const,
 };

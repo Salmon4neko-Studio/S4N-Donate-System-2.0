@@ -21,6 +21,8 @@ import { mountDashboardSocket } from "./realtime/dashboard-socket.js";
 import { createPostgresEventStore } from "./realtime/postgres-store.js";
 import { mountOverlaySocket } from "./realtime/overlay-socket.js";
 import { createPrismaOverlayLayoutStore } from "./realtime/prisma-overlay-layout.js";
+import { decorateOverlaySettings, publishGoalProgress } from "./realtime/overlay-state.js";
+import { createAlertSoundStore } from "./alerts/sound.js";
 import { startEventRetention } from "./realtime/retention.js";
 
 const root = resolve(import.meta.dirname, "../../..");
@@ -58,6 +60,21 @@ async function main(): Promise<void> {
   const chatHost = createChatHost({ catalog, installations, secrets, masterKey, bus });
 
   const ledger = createPrismaLedger(prisma);
+  const alertSounds = createAlertSoundStore(resolve(root, "data/alert-sounds"));
+  try {
+    await secrets.discard("official.tts");
+    await installations.remove("official.tts");
+  } catch {
+    console.warn("retired official.tts cleanup skipped");
+  }
+  const refreshGoal = () => {
+    setImmediate(() => {
+      void publishGoalProgress({ ledger, secrets, installations, bus }).catch(() => undefined);
+    });
+  };
+  bus.subscribe((event) => {
+    if (event.type === "s4n.donation.succeeded") refreshGoal();
+  });
   const stopExpiry = startPaymentExpiry(
     () =>
       expireDueOrders({
@@ -88,11 +105,13 @@ async function main(): Promise<void> {
     bus,
     auth,
     layouts: createPrismaOverlayLayoutStore(prisma),
+    alertSounds,
     eventLog: "postgres",
     eventRetentionDays: env.eventRetentionDays,
     eventChatRetentionHours: env.eventChatRetentionHours,
-    onPluginsChanged: () => {
+    onPluginsChanged: (pluginId) => {
       void chatHost.sync();
+      if (pluginId === "official.goals") refreshGoal();
     },
     pingDatabase: async () => {
       try {
@@ -122,7 +141,8 @@ async function main(): Promise<void> {
     replayLimit,
     tokenValid: (token) => auth.overlayTokenValid(token),
     pluginEnabled: async (pluginId) => (await installations.enabledIds()).has(pluginId),
-    readPublicSettings: (pluginId) => secrets.readPublicSettings(pluginId),
+    readPublicSettings: async (pluginId) =>
+      decorateOverlaySettings(pluginId, await secrets.readPublicSettings(pluginId), ledger),
   });
   mountDashboardSocket(app, {
     bus,

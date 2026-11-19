@@ -57,8 +57,10 @@ export interface PluginField {
   required: boolean;
   enum: string[] | null;
   minimum: number | null;
+  maximum: number | null;
   multiline: boolean;
   color: boolean;
+  datetime: boolean;
   maxLength: number | null;
   default: string | number | boolean | null;
 }

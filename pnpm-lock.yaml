@@ -68,9 +68,6 @@ importers:
       '@s4n/plugin-ticker':
         specifier: workspace:*
         version: link:../../plugins/ticker
-      '@s4n/plugin-tts':
-        specifier: workspace:*
-        version: link:../../plugins/tts
       '@s4n/plugin-twitch-chat':
         specifier: workspace:*
         version: link:../../plugins/twitch-chat
@@ -145,6 +142,12 @@ importers:
       '@s4n/plugin-chat-overlay':
         specifier: workspace:*
         version: link:../../plugins/chat-overlay
+      '@s4n/plugin-goals':
+        specifier: workspace:*
+        version: link:../../plugins/goals
+      '@s4n/plugin-ticker':
+        specifier: workspace:*
+        version: link:../../plugins/ticker
       react:
         specifier: ^19.2.0
         version: 19.3.1
@@ -188,9 +191,15 @@ importers:
       '@s4n/plugin-alerts':
         specifier: workspace:*
         version: link:../../plugins/alerts
+      '@s4n/plugin-goals':
+        specifier: workspace:*
+        version: link:../../plugins/goals
       '@s4n/plugin-sdk':
         specifier: workspace:*
         version: link:../../packages/plugin-sdk
+      '@s4n/plugin-ticker':
+        specifier: workspace:*
+        version: link:../../plugins/ticker
       react:
         specifier: ^19.2.0
         version: 19.3.1
@@ -359,6 +368,12 @@ importers:
         specifier: workspace:*
         version: link:../../packages/plugin-sdk
     devDependencies:
+      '@types/node':
+        specifier: ^22.19.0
+        version: 22.20.5
+      tsx:
+        specifier: ^4.23.15
+        version: 4.23.15
       typescript:
         specifier: 'catalog:'
         version: 5.9.3
@@ -421,16 +436,12 @@ importers:
         specifier: workspace:*
         version: link:../../packages/plugin-sdk
     devDependencies:
-      typescript:
-        specifier: 'catalog:'
-        version: 5.9.3
-
-  plugins/tts:
-    dependencies:
-      '@s4n/plugin-sdk':
-        specifier: workspace:*
-        version: link:../../packages/plugin-sdk
-    devDependencies:
+      '@types/node':
+        specifier: ^22.19.0
+        version: 22.20.5
+      tsx:
+        specifier: ^4.23.15
+        version: 4.23.15
       typescript:
         specifier: 'catalog:'
         version: 5.9.3

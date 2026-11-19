@@ -41,6 +41,12 @@ test("unknown and non-payment callbacks never touch the ledger", async () => {
       async listRecent() {
         return [];
       },
+      async sumPaid() {
+        return 0;
+      },
+      async listPaidRecent() {
+        return [];
+      },
     },
   });
 

@@ -1,8 +1,11 @@
 import { useState } from "react";
 import { Link, useParams } from "react-router";
 import { AlertSettingsPreview } from "@/components/alert-settings-preview";
+import { AlertSoundSettings } from "@/components/alert-sound-settings";
+import { GoalSettingsPreview } from "@/components/goal-settings-preview";
 import { Note } from "@/components/fields";
 import { PluginSettingsForm } from "@/components/plugin-settings-form";
+import { TickerSettingsPreview } from "@/components/ticker-settings-preview";
 import { usePluginNav } from "@/lib/plugin-nav";
 
 export function PluginSettingsPage() {
@@ -12,6 +15,9 @@ export function PluginSettingsPage() {
   const plugin = nav.plugins.find((item) => item.id === pluginId);
   const [drafts, setDrafts] = useState<Record<string, string>>({});
   const alerts = plugin?.id === "official.alerts";
+  const goals = plugin?.id === "official.goals";
+  const ticker = plugin?.id === "official.ticker";
+  const wide = alerts || goals || ticker;
 
   return (
     <div className="s4n-stack is-loose">
@@ -41,9 +47,14 @@ export function PluginSettingsPage() {
       ) : null}
       {plugin?.enabled ? (
         <section className="ts-box is-raised">
-          <div className={`ts-content is-padded ${alerts ? "s4n-alert-settings" : ""}`}>
-            <PluginSettingsForm pluginId={plugin.id} scope="public" onDraft={alerts ? setDrafts : undefined} />
+          <div className={`ts-content is-padded ${wide ? "s4n-alert-settings" : ""}`}>
+            <div className="s4n-stack">
+              <PluginSettingsForm pluginId={plugin.id} scope="public" onDraft={wide ? setDrafts : undefined} />
+              {alerts ? <AlertSoundSettings /> : null}
+            </div>
             {alerts ? <AlertSettingsPreview drafts={drafts} /> : null}
+            {goals ? <GoalSettingsPreview drafts={drafts} /> : null}
+            {ticker ? <TickerSettingsPreview drafts={drafts} /> : null}
           </div>
         </section>
       ) : null}

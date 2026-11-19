@@ -25,6 +25,8 @@ export interface SettingsField {
   description?: string;
   enum?: readonly string[];
   minimum?: number;
+  /** Inclusive upper bound for number and integer fields. */
+  maximum?: number;
   /**
    * Core encrypts the value at rest and never returns it in plaintext.
    * This is an open annotation, not a standard JSON Schema keyword.
@@ -46,6 +48,12 @@ export interface SettingsField {
    * Not a standard JSON Schema keyword.
    */
   "x-s4n-color"?: boolean;
+  /**
+   * Render the string as a local date-time. The stored value is an ISO-8601
+   * timestamp, or an empty string when the operator clears it.
+   * Not a standard JSON Schema keyword.
+   */
+  "x-s4n-datetime"?: boolean;
 }
 
 export interface SettingsSchema {
@@ -286,6 +294,20 @@ function parseField(value: unknown): SettingsField {
     if (typeof value.minimum !== "number") throw new ManifestError("minimum must be a number");
     field.minimum = value.minimum;
   }
+  if (value.maximum !== undefined) {
+    const maximum = value.maximum;
+    const integerField = type === "integer";
+    if (
+      (type !== "integer" && type !== "number") ||
+      typeof maximum !== "number" ||
+      !Number.isFinite(maximum) ||
+      (integerField && !Number.isInteger(maximum)) ||
+      (field.minimum !== undefined && maximum < field.minimum)
+    ) {
+      throw new ManifestError("maximum must be a number");
+    }
+    field.maximum = maximum;
+  }
   if (value.enum !== undefined) {
     if (!Array.isArray(value.enum) || value.enum.some((item) => typeof item !== "string")) {
       throw new ManifestError("enum must be an array of strings");
@@ -312,6 +334,18 @@ function parseField(value: unknown): SettingsField {
       throw new ManifestError("secret fields cannot be colors");
     }
     field["x-s4n-color"] = value["x-s4n-color"];
+  }
+  if (value["x-s4n-datetime"] !== undefined) {
+    if (value["x-s4n-datetime"] !== true && value["x-s4n-datetime"] !== false) {
+      throw new ManifestError("x-s4n-datetime must be a boolean");
+    }
+    if (value["x-s4n-datetime"] === true && type !== "string") {
+      throw new ManifestError("x-s4n-datetime is only valid on string fields");
+    }
+    if (value["x-s4n-datetime"] === true && (field["x-s4n-secret"] === true || field["x-s4n-color"] === true)) {
+      throw new ManifestError("x-s4n-datetime is only valid on string fields");
+    }
+    field["x-s4n-datetime"] = value["x-s4n-datetime"];
   }
   if (value.maxLength !== undefined) {
     if (
@@ -353,6 +387,7 @@ function defaultMatches(value: unknown, field: SettingsField): value is string |
     if (typeof value !== "number" || !Number.isFinite(value)) return false;
     if (field.type === "integer" && !Number.isInteger(value)) return false;
     if (field.minimum !== undefined && value < field.minimum) return false;
+    if (field.maximum !== undefined && value > field.maximum) return false;
     return true;
   }
   return false;

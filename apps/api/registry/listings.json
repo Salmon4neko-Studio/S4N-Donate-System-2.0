@@ -5,7 +5,7 @@
     "author": "S4N",
     "featured": true,
     "icon": "bell",
-    "changelog": "0.2.0 可調整標題與內文範本、文字顏色、通知主色與副色，以及進場與退場動畫。",
+    "changelog": "0.3.0 可上傳提示音、調整音量。沒有音效時維持靜音。",
     "screenshots": [
       {
         "alt": "紙色提醒卡，左邊是橘色細線",
@@ -91,16 +91,16 @@
   },
   {
     "id": "official.goals",
-    "category": "tool",
+    "category": "overlay",
     "author": "S4N",
     "featured": false,
     "icon": "bullseye",
-    "changelog": "0.0.0 目標條的佔位。還沒有計算進度。",
+    "changelog": "0.1.0 依帳本已付款計算進度，可設起算時間與顏色，並在共用畫布占一個版位。",
     "screenshots": [
       {
-        "alt": "目標進度的佔位",
-        "caption": "尚未計算進度",
-        "frame": "tool"
+        "alt": "目標名稱、金額與進度條",
+        "caption": "疊層上的目標",
+        "frame": "overlay"
       }
     ]
   },
@@ -151,31 +151,16 @@
   },
   {
     "id": "official.ticker",
-    "category": "tool",
+    "category": "overlay",
     "author": "S4N",
     "featured": false,
     "icon": "scroll",
-    "changelog": "0.0.0 跑馬燈的佔位。還沒有捲動文字。",
+    "changelog": "0.1.0 捲動純文字，可接最近的贊助，並在共用畫布占一個版位。",
     "screenshots": [
       {
-        "alt": "跑馬燈的佔位",
-        "caption": "尚未捲動",
-        "frame": "tool"
-      }
-    ]
-  },
-  {
-    "id": "official.tts",
-    "category": "tool",
-    "author": "S4N",
-    "featured": false,
-    "icon": "microphone",
-    "changelog": "0.0.0 語音的佔位。不會朗讀不受信任的文字。",
-    "screenshots": [
-      {
-        "alt": "語音的佔位",
-        "caption": "尚未合成",
-        "frame": "tool"
+        "alt": "橫向捲動的文字",
+        "caption": "疊層上的跑馬燈",
+        "frame": "overlay"
       }
     ]
   },

@@ -455,6 +455,99 @@ p .ts-text.is-link,
   top: 1rem;
 }
 
+.s4n-file-input {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+}
+
+.s4n-datetime-row,
+.s4n-sound {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.6rem;
+}
+
+.s4n-sound {
+  flex-direction: column;
+  align-items: stretch;
+  margin-top: 1.25rem;
+  padding-top: 1.25rem;
+  border-top: 1px solid var(--s4n-color-line);
+}
+
+.s4n-datetime-row .ts-input {
+  min-width: 16rem;
+  flex: 1;
+}
+
+.s4n-goal-preview,
+.s4n-ticker-preview {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.s4n-goal-preview .goal-card,
+.s4n-ticker-preview .ticker-viewport {
+  border-radius: 0.9rem;
+}
+
+.s4n-goal-preview .goal-card {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+  padding: 0.85rem 1rem;
+  background: color-mix(in srgb, var(--goal-secondary, #f4efe8) 86%, white);
+  color: var(--goal-text, #1a1512);
+}
+
+.s4n-goal-preview .goal-title,
+.s4n-goal-preview .goal-amounts {
+  margin: 0;
+}
+
+.s4n-goal-preview .goal-title {
+  font-size: 1.25rem;
+  font-weight: 700;
+}
+
+.s4n-goal-preview .goal-percent {
+  margin-left: 0.5rem;
+  font-weight: 700;
+}
+
+.s4n-goal-preview .goal-track {
+  overflow: hidden;
+  height: 0.7rem;
+  border-radius: 999px;
+  background: var(--goal-secondary, #f4efe8);
+}
+
+.s4n-goal-preview .goal-fill {
+  height: 100%;
+  border-radius: inherit;
+  background: var(--goal-primary, #f28500);
+}
+
+.s4n-ticker-preview .ticker-viewport {
+  overflow: hidden;
+  padding: 0.7rem 1rem;
+  background: linear-gradient(90deg, var(--ticker-primary, #f28500), var(--ticker-secondary, #ffd7a8));
+  color: var(--ticker-text, #1a1512);
+}
+
+.s4n-ticker-preview .ticker-track {
+  margin: 0;
+  font-weight: 700;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
 .s4n-color-row {
   display: flex;
   align-items: center;

@@ -16,13 +16,14 @@ export {
   alertTemplateValues,
   formatAlertAmount,
   isAlertMotion,
+  isAlertSoundName,
   parseAlertAppearance,
   renderAlertCopy,
   renderAlertTemplate,
 } from "./appearance.js";
 export type { AlertAppearance, AlertMotion } from "./appearance.js";
 
-/** The overlay app imports readDonationAlert. Goals, ticker, and TTS stay stubs. */
+/** The overlay app imports readDonationAlert and plays the uploaded sound. */
 export const slot = {
   pluginId: manifest.id,
   implemented: true as const,

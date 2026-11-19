@@ -47,7 +47,7 @@ import { acceptEventId, nextCursor, type S4nEvent } from "@s4n/events";
 | `events.emit` | 所有外掛 | 透過 `PluginBus.emit` 發事件，但不能發核心保留的贊助事件 |
 | `overlay.slot` | 所有外掛 | 宣告自己要一塊疊層。見下方限制 |
 | `dashboard.settings` | 所有外掛 | 儀表板設定表單 |
-| `tts.speak` | 所有外掛 | 請求語音。這個版本沒有合成器 |
+| `tts.speak` | 所有外掛 | 舊的權限名稱。沒有語音外掛，也不會朗讀 |
 | `payments.read` | 所有外掛 | 預留的唯讀付款。這個版本沒有讀取 API |
 | `payments.provider` | 僅官方 | 建立結帳表單、驗證回呼。不能寫帳 |
 | `secrets` | 僅官方 | 設定裡可以有密文欄位 |
@@ -126,7 +126,7 @@ export function shouldShow(seen: readonly string[], id: string, cursor: string |
 
 OBS 只有一條網址。權杖仍是核心核發的疊層權杖，網址上沒有外掛密文，也不再靠 `plugin` 選畫面。營運者在疊層頁拖曳後儲存的位置會蓋過這個預設值。位置以比例儲存，畫布改尺寸時區塊跟著縮放。
 
-`kind` 含 `overlay` 但沒有 `overlaySlot` 的外掛不會被排上去。目標與跑馬燈目前就是這樣。
+`kind` 含 `overlay` 但沒有 `overlaySlot` 的外掛不會被排上去。目標與跑馬燈都已經帶了版位。
 
 這個版本的轉送寫在 `apps/api/src/realtime/audience.ts` 的 `overlayPluginFor`，只認：
 
@@ -135,7 +135,7 @@ OBS 只有一條網址。權杖仍是核心核發的疊層權杖，網址上沒�
 | `s4n.donation.*` | `official.alerts` |
 | `s4n.chat.message` / `delete` / `clear` | `official.chat-overlay` |
 | `s4n.goal.updated` | `official.goals` |
-| `s4n.tts.request` | `official.tts` |
+| `s4n.tts.request` | 不轉送。語音外掛已移除 |
 
 `s4n.media.now_playing` 還沒有疊層。社群清單可以宣告 `overlay.slot`，但不會因此得到一條 `/ws/overlay`。`plugins/example-thanks` 示範訂閱與去重，沒有註冊進目錄。
 

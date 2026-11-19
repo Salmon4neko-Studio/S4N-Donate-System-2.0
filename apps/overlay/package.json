@@ -14,6 +14,8 @@
     "@s4n/events": "workspace:*",
     "@s4n/plugin-alerts": "workspace:*",
     "@s4n/plugin-chat-overlay": "workspace:*",
+    "@s4n/plugin-goals": "workspace:*",
+    "@s4n/plugin-ticker": "workspace:*",
     "react": "^19.2.0",
     "react-dom": "^19.2.0"
   },

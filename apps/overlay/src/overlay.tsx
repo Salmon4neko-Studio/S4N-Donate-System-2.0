@@ -96,6 +96,16 @@ export function Overlay({
   }
 
   useEffect(() => {
+    if (alert === null || appearance.soundFile === "" || token === "") return;
+    const audio = new Audio(soundUrl(token));
+    audio.volume = appearance.volume / 100;
+    void audio.play().catch(() => undefined);
+    return () => {
+      audio.pause();
+    };
+  }, [alert, appearance.soundFile, appearance.volume, token]);
+
+  useEffect(() => {
     if (alert === null) return;
     setPhase("in");
     const timer = window.setTimeout(() => setPhase("out"), appearance.durationMs);
@@ -146,6 +156,16 @@ function alertStyle(appearance: AlertAppearance): CSSProperties {
     "--s4n-alert-title": appearance.titleColor,
     "--s4n-alert-body": appearance.bodyColor,
   } as CSSProperties;
+}
+
+function soundUrl(token: string): string {
+  const httpUrl = import.meta.env.VITE_API_URL ?? "http://localhost:8787";
+  const url = new URL(httpUrl);
+  url.pathname = "/api/overlay/alerts/sound";
+  url.search = "";
+  url.hash = "";
+  url.searchParams.set("token", token);
+  return url.toString();
 }
 
 function socketUrl(token: string, since: string | null): string {

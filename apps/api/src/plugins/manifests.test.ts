@@ -14,7 +14,6 @@ import { manifest as opay } from "@s4n/plugin-opay";
 import { manifest as opayAtm } from "@s4n/plugin-opay-atm";
 import { manifest as opayCvs } from "@s4n/plugin-opay-cvs";
 import { manifest as ticker } from "@s4n/plugin-ticker";
-import { manifest as tts } from "@s4n/plugin-tts";
 import { manifest as twitchChat } from "@s4n/plugin-twitch-chat";
 import { hasPluginSettingsNav, parseManifest, publicFieldKeys, secretFieldKeys } from "@s4n/plugin-sdk";
 import { createOfficialCatalog, createPaymentRegistry } from "./catalog.js";
@@ -34,7 +33,6 @@ const manifests = [
   ["twitch-chat", twitchChat],
   ["goals", goals],
   ["ticker", ticker],
-  ["tts", tts],
 ] as const;
 
 test("s4n-plugin.json matches the typed manifest", () => {
@@ -53,7 +51,7 @@ test("ECPay and O'Pay declare secret merchant fields and the other plugins do no
     assert.deepEqual(publicFieldKeys(manifest.settingsSchema), ["environment"]);
     assert.equal(hasPluginSettingsNav(manifest), true);
   }
-  for (const manifest of [alerts, goals, ticker, tts, chatOverlay]) {
+  for (const manifest of [alerts, goals, ticker, chatOverlay]) {
     assert.deepEqual(secretFieldKeys(manifest.settingsSchema), []);
     assert.equal(publicFieldKeys(manifest.settingsSchema).length > 0, true);
     assert.equal(hasPluginSettingsNav(manifest), true);
@@ -63,8 +61,11 @@ test("ECPay and O'Pay declare secret merchant fields and the other plugins do no
   assert.equal(hasPluginSettingsNav(twitchChat), true);
   assert.equal(alerts.overlaySlot?.width, 0.36);
   assert.equal(chatOverlay.overlaySlot?.x, 0.66);
-  assert.equal("overlaySlot" in goals, false);
-  assert.equal("overlaySlot" in ticker, false);
+  assert.equal(goals.overlaySlot?.y, 0.04);
+  assert.equal(ticker.overlaySlot?.y, 0.22);
+  assert.equal(goals.version, "0.1.0");
+  assert.equal(ticker.version, "0.1.0");
+  assert.equal(alerts.version, "0.3.0");
   const secretOnly = parseManifest({
     id: "official.secret-only",
     name: "只有密文",
@@ -105,7 +106,8 @@ test("chat manifests keep display defaults and do not publish secret defaults", 
 
 test("the official catalog loads one provider per payment method and the twitch source", () => {
   const catalog = createOfficialCatalog();
-  assert.equal(catalog.length, 13);
+  assert.equal(catalog.length, 12);
+  assert.equal(catalog.some((plugin) => plugin.manifest.id === "official.tts"), false);
   assert.equal(catalog.some((plugin) => plugin.manifest.id === "official.chat-overlay" && plugin.createChatSource === undefined), true);
   assert.equal(catalog.some((plugin) => plugin.manifest.id === "official.twitch-chat" && plugin.createChatSource !== undefined), true);
   const parked = parseManifest(

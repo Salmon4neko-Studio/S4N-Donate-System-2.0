@@ -3,9 +3,9 @@ import type { PluginManifest } from "@s4n/plugin-sdk";
 export const manifest = {
   id: "official.alerts",
   name: "贊助提醒",
-  version: "0.2.0",
+  version: "0.3.0",
   api: "0.1",
-  description: "在疊層顯示贊助人、金額與留言。標題、內文、顏色與進退場動畫可在外掛設定調整。",
+  description: "在疊層顯示贊助人、金額與留言。標題、內文、顏色、動畫與提示音可在外掛設定調整。",
   kind: ["overlay"],
   permissions: ["events.subscribe", "overlay.slot"],
   entry: {
@@ -78,7 +78,16 @@ export const manifest = {
         title: "顯示時間（毫秒）",
         description: "提醒留在畫面上的時間，不含退場。",
         minimum: 1000,
+        maximum: 120000,
         default: 12000,
+      },
+      volume: {
+        type: "integer",
+        title: "音量",
+        description: "0 到 100。沒有上傳音效時維持靜音。OBS 瀏覽器來源若沒有聲音，請在來源勾選「透過 OBS 控制音訊」。",
+        minimum: 0,
+        maximum: 100,
+        default: 80,
       },
     },
   },
