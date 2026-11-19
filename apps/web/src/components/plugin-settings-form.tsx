@@ -118,10 +118,11 @@ export function PluginSettingsForm({
             </>
           }
           hint={
-            <>
-              {field.secret ? <Hint>只會存成密文。這個畫面不會再顯示內容。</Hint> : null}
-              {field.description ? <Hint>{field.description}</Hint> : null}
-            </>
+            field.secret ? (
+              <Hint>{secretHint(field.description)}</Hint>
+            ) : field.description ? (
+              <Hint>{field.description}</Hint>
+            ) : null
           }
         >
           {field.enum !== null ? (
@@ -182,6 +183,15 @@ export function PluginSettingsForm({
       </div>
     </form>
   );
+}
+
+function secretHint(description: string | null): string {
+  const status = "畫面只顯示已設定或未設定";
+  const text = description?.trim().replace(/[。．\s]+$/u, "") ?? "";
+  if (text === "") return `只會存成密文，${status}。`;
+  if (text.includes("已設定") || text.includes("未設定")) return `${text}。`;
+  if (text.endsWith("只會存成密文")) return `${text}，${status}。`;
+  return `${text}。只會存成密文，${status}。`;
 }
 
 function draftValue(field: SettingsFieldState): string {
