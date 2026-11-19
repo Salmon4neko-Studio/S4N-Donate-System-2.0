@@ -11,6 +11,8 @@ export interface ApiEnv {
   donationMin: number;
   donationMax: number;
   port: number;
+  /** Honor X-Forwarded-* from the edge proxy. Off unless S4N_TRUST_PROXY=1. */
+  trustProxy: boolean;
   /** How long non-chat events stay in the log. */
   eventRetentionDays: number;
   /** How long chat events stay in the log. Can be shorter than the default. */
@@ -46,6 +48,7 @@ export function loadEnv(source: NodeJS.ProcessEnv = process.env): ApiEnv {
   if (!Number.isInteger(port) || port < 1 || port > 65535) {
     throw new Error("PORT is invalid");
   }
+  const trustProxy = parseTrustProxy(source.S4N_TRUST_PROXY);
   const eventRetentionDays = parseBound(source.S4N_EVENT_RETENTION_DAYS, 7, "S4N_EVENT_RETENTION_DAYS", 365);
   const eventChatRetentionHours = parseBound(
     source.S4N_EVENT_CHAT_RETENTION_HOURS,
@@ -71,6 +74,7 @@ export function loadEnv(source: NodeJS.ProcessEnv = process.env): ApiEnv {
     donationMin,
     donationMax,
     port,
+    trustProxy,
     eventRetentionDays,
     eventChatRetentionHours,
     eventCleanupIntervalMinutes,
@@ -110,6 +114,14 @@ function parseOrigin(value: string, name: string): string {
     throw new Error(`${name} is invalid`);
   }
   return url.origin;
+}
+
+function parseTrustProxy(value: string | undefined): boolean {
+  if (value === undefined || value.trim() === "") return false;
+  const normalized = value.trim().toLowerCase();
+  if (normalized === "1" || normalized === "true") return true;
+  if (normalized === "0" || normalized === "false") return false;
+  throw new Error("S4N_TRUST_PROXY is invalid");
 }
 
 function parseRuntime(value: string): RuntimeEnv {

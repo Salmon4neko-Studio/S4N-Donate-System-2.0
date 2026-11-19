@@ -19,6 +19,8 @@ export const BUNDLED_PLUGIN_FILES: Record<string, string> = {
 };
 
 export function repoRoot(): string {
+  const override = process.env.S4N_REPO_ROOT;
+  if (override !== undefined && override.trim() !== "") return override;
   return resolve(import.meta.dirname, "../../../../../");
 }
 

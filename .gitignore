@@ -9,3 +9,4 @@ apps/api/generated/
 *.log
 .DS_Store
 coverage/
+/backups/

@@ -1,0 +1,58 @@
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_USER: s4n
+          POSTGRES_PASSWORD: s4n_dev_password
+          POSTGRES_DB: s4n
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U s4n -d s4n"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 20
+    env:
+      DATABASE_URL: postgresql://s4n:s4n_dev_password@localhost:5432/s4n
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 10.33.4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+      - name: Install
+        run: pnpm install --frozen-lockfile
+      - name: Migrate
+        run: pnpm --filter @s4n/api exec prisma migrate deploy
+      - name: Typecheck
+        run: pnpm typecheck
+      - name: Lint
+        run: |
+          if jq -e '.scripts.lint' package.json >/dev/null; then
+            pnpm lint
+          else
+            echo "No root lint script."
+          fi
+      - name: Test
+        run: pnpm test

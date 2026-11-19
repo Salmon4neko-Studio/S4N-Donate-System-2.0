@@ -14,6 +14,7 @@ export function registerAuthRoutes(
     auth: AuthService;
     allowedOrigins: ReadonlySet<string>;
     secureCookie: boolean;
+    trustProxy?: boolean;
     loginRateLimit?: { windowMs: number; max: number };
     setupRateLimit?: { windowMs: number; max: number };
   },
@@ -41,7 +42,7 @@ export function registerAuthRoutes(
     rateLimit({
       windowMs: setupLimit.windowMs,
       max: setupLimit.max,
-      key: (c) => `setup:${clientKey(c.req.header("x-forwarded-for"))}`,
+      key: (c) => `setup:${clientKey(c.req.header("x-forwarded-for"), options.trustProxy === true)}`,
     }),
     async (c) => {
       c.header("cache-control", "no-store");
@@ -65,7 +66,7 @@ export function registerAuthRoutes(
     rateLimit({
       windowMs: loginLimit.windowMs,
       max: loginLimit.max,
-      key: (c) => `login:${clientKey(c.req.header("x-forwarded-for"))}`,
+      key: (c) => `login:${clientKey(c.req.header("x-forwarded-for"), options.trustProxy === true)}`,
     }),
     async (c) => {
       c.header("cache-control", "no-store");

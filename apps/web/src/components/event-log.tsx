@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { acceptEventId, nextCursor } from "@s4n/events";
 import { Note } from "@/components/fields";
 import { api, type EventLogEntry, type EventLogResponse } from "@/lib/api";
+import { apiOrigin } from "@/lib/api-origin";
 import { formatTaipei } from "@/lib/time";
 
 type Connection = "connecting" | "open" | "reconnecting" | "closed";
@@ -178,8 +179,7 @@ function mergeEvents(current: readonly EventLogEntry[], incoming: EventLogEntry)
 }
 
 function dashboardSocketUrl(since: string | null): string {
-  const httpUrl = import.meta.env.DEV ? window.location.origin : (import.meta.env.VITE_API_URL ?? "http://localhost:8787");
-  const url = new URL(httpUrl);
+  const url = new URL(apiOrigin());
   url.protocol = url.protocol === "https:" ? "wss:" : "ws:";
   url.pathname = "/ws/dashboard";
   url.search = "";

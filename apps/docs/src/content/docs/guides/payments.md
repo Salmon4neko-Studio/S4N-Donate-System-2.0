@@ -45,7 +45,9 @@ S4N_PUBLIC_BASE_URL=https://donate.example
 
 信用卡表單帶 ReturnURL、OrderResultURL、ClientBackURL。ATM、超商代碼、超商條碼改帶 ReturnURL、PaymentInfoURL、ClientRedirectURL，不帶 OrderResultURL。廠商文件寫明：非即時付款不支援 OrderResultURL；設了 ClientRedirectURL 之後，ClientBackURL 會失效。
 
-`S4N_ENV=production` 時公開網址必填，而且只能是來源（不能帶路徑）。正式環境的 ReturnURL 要用 80 或 443。本機的 `127.0.0.1:8787` 只有你的瀏覽器打得到。沒有公開位址時，信用卡仍可靠瀏覽器被導回 OrderResultURL 入帳；ATM 與超商的取號通知要等網址公開，或在帳本按「向金流查詢」。
+`S4N_ENV=production` 時公開網址必填，而且只能是來源（不能帶路徑）。正式環境的 ReturnURL 要用 443。本機的 `127.0.0.1:8787` 只有你的瀏覽器打得到。沒有公開位址時，信用卡仍可靠瀏覽器被導回 OrderResultURL 入帳；ATM 與超商的取號通知要等網址公開，或在帳本按「向金流查詢」。
+
+正式 Compose 把 `S4N_PUBLIC_BASE_URL` 設成儀表板網域，例如 `https://donate.example`。Caddy 在這個網域上把 `/api` 轉給 API。廠商後台要填的完整網址、以及瀏覽器導回的頁面，寫在 [正式環境](/guides/production/) 的「金流通知網址」。不要填疊層那個主機名。
 
 簽章不符、商店代號不符、金額不符，回 `0|Error`，訂單不改。同一筆成功通知再來一次，回 `1|OK`，不再送事件。
 

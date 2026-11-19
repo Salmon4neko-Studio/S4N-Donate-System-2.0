@@ -8,6 +8,10 @@ COPY . .
 RUN pnpm install --frozen-lockfile
 RUN pnpm --filter @s4n/docs build
 
-FROM nginx:1.27-alpine
+FROM nginxinc/nginx-unprivileged:1.27-alpine
+USER root
+RUN apk add --no-cache wget
 COPY apps/docs/nginx.conf /etc/nginx/conf.d/default.conf
-COPY --from=build /app/apps/docs/dist /usr/share/nginx/html
+COPY --from=build --chown=nginx:nginx /app/apps/docs/dist /usr/share/nginx/html
+USER nginx
+EXPOSE 8080

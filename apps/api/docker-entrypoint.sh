@@ -1,11 +1,17 @@
 #!/bin/sh
 set -eu
-cd /app/apps/api
+
+cd /app
+
+if [ -z "${DATABASE_URL:-}" ]; then
+  echo "DATABASE_URL is required" >&2
+  exit 1
+fi
 
 ok=0
 i=1
-while [ "$i" -le 10 ]; do
-  if pnpm exec prisma migrate deploy; then
+while [ "$i" -le 15 ]; do
+  if ./node_modules/.bin/prisma migrate deploy; then
     ok=1
     break
   fi
@@ -18,4 +24,4 @@ if [ "$ok" -ne 1 ]; then
   exit 1
 fi
 
-exec pnpm exec tsx src/index.ts
+exec ./node_modules/.bin/tsx src/index.ts
