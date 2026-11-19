@@ -17,6 +17,7 @@ import { validateDonationRequest } from "./payments/plan.js";
 import { paymentMethodReady } from "./payments/readiness.js";
 import { reconcileDonation } from "./payments/reconcile.js";
 import { isTradeNo } from "./payments/trade-no.js";
+import { hasPluginSettingsNav, isSecretField } from "@s4n/plugin-sdk";
 import type { LoadedPlugin, PaymentRegistry } from "./plugins/catalog.js";
 import type { InstallationStore } from "./plugins/installations.js";
 import { MarketplaceError, type MarketplaceService } from "./plugins/marketplace/service.js";
@@ -25,6 +26,7 @@ import {
   redactSettings,
   saveSettings,
   SettingsValidationError,
+  splitRedactedFields,
   type SecretStore,
 } from "./plugins/settings.js";
 import type { CoreBus } from "./realtime/bus.js";
@@ -144,6 +146,7 @@ export function createApp(deps: AppDeps): Hono<SessionEnv> {
           official: true,
           enabled: enabled.has(plugin.manifest.id),
           settingsFields: describeFields(plugin),
+          settingsNav: hasPluginSettingsNav(plugin.manifest),
           category: null,
           author: null,
           latestVersion: plugin.manifest.version,
@@ -180,6 +183,7 @@ export function createApp(deps: AppDeps): Hono<SessionEnv> {
         official: listing.official,
         enabled: listing.enabled,
         settingsFields: [],
+        settingsNav: listing.kind.includes("overlay"),
         category: listing.category,
         author: listing.author,
         latestVersion: listing.version,
@@ -212,14 +216,14 @@ export function createApp(deps: AppDeps): Hono<SessionEnv> {
       return c.json({
         pluginId: plugin.manifest.id,
         persistence: deps.secrets.persistence,
-        fields: redactSettings(plugin.manifest.settingsSchema, publicSettings, configured),
+        ...splitRedactedFields(redactSettings(plugin.manifest.settingsSchema, publicSettings, configured)),
       });
     } catch {
       return c.json(
         {
           pluginId: plugin.manifest.id,
           persistence: "unavailable",
-          fields: redactSettings(plugin.manifest.settingsSchema, {}, []),
+          ...splitRedactedFields(redactSettings(plugin.manifest.settingsSchema, {}, [])),
         },
         503,
       );
@@ -264,7 +268,7 @@ export function createApp(deps: AppDeps): Hono<SessionEnv> {
           values: body.value.values,
         });
         deps.onPluginsChanged?.();
-        return c.json({ pluginId: plugin.manifest.id, fields });
+        return c.json({ pluginId: plugin.manifest.id, ...splitRedactedFields(fields) });
       } catch (error) {
         if (error instanceof SettingsValidationError) {
           return c.json({ error: "invalid_settings", issues: error.issues }, 422);
@@ -687,6 +691,7 @@ function pluginSummary(
     official: listing.official,
     enabled: listing.enabled,
     settingsFields: describeFields(plugin),
+    settingsNav: hasPluginSettingsNav(plugin.manifest),
     category: listing.category,
     author: listing.author,
     latestVersion: listing.version,
@@ -705,7 +710,7 @@ function describeFields(plugin: LoadedPlugin) {
     title: field.title ?? null,
     description: field.description ?? null,
     type: field.type,
-    secret: field["x-s4n-secret"] === true,
+    secret: isSecretField(field),
     required: required.has(key),
     enum: field.enum ?? null,
     minimum: field.minimum ?? null,

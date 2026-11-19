@@ -107,6 +107,67 @@ test("a missing or foreign origin cannot write settings", async () => {
   assert.equal(anonymous.status, 401);
 });
 
+test("public and secret settings save on their own sides", async () => {
+  const { app, secrets, masterKey } = createTestApp();
+  const cookie = await setupOperator(app);
+  const headers = {
+    origin: TEST_ORIGIN,
+    cookie,
+    "content-type": "application/json",
+  };
+
+  const environmentOnly = await app.request("/api/plugins/official.ecpay/settings", {
+    method: "PUT",
+    headers,
+    body: JSON.stringify({ values: { environment: "production" } }),
+  });
+  const environmentBody = (await environmentOnly.json()) as {
+    publicFields: Array<{ key: string; value?: string; secret: boolean }>;
+    secretFields: Array<{ key: string; configured: boolean; secret: boolean; value?: string }>;
+  };
+  assert.equal(environmentOnly.status, 200);
+  assert.equal(environmentBody.publicFields.find((field) => field.key === "environment")?.value, "production");
+  assert.equal(environmentBody.secretFields.every((field) => field.configured === false && field.value === undefined), true);
+
+  const oneSecret = await app.request("/api/plugins/official.ecpay/settings", {
+    method: "PUT",
+    headers,
+    body: JSON.stringify({ values: { merchantId: sentinel.merchantId } }),
+  });
+  assert.equal(oneSecret.status, 422);
+
+  const secretsOnly = await app.request("/api/plugins/official.ecpay/settings", {
+    method: "PUT",
+    headers,
+    body: JSON.stringify({ values: sentinel }),
+  });
+  const secretsBody = (await secretsOnly.json()) as {
+    publicFields: Array<{ key: string; value?: string }>;
+    secretFields: Array<{ key: string; configured: boolean; value?: string }>;
+  };
+  const secretsText = JSON.stringify(secretsBody);
+  assert.equal(secretsOnly.status, 200);
+  assert.equal(secretsBody.publicFields.find((field) => field.key === "environment")?.value, "production");
+  assert.equal(secretsBody.secretFields.every((field) => field.configured && field.value === undefined), true);
+  for (const value of Object.values(sentinel)) {
+    assert.equal(secretsText.includes(value), false);
+  }
+  assert.equal(
+    openSecret(
+      (await secrets.readSealed("official.ecpay")).hashKey!,
+      masterKey,
+      secretAad("official.ecpay", "hashKey"),
+    ),
+    sentinel.hashKey,
+  );
+
+  const listed = await app.request("/api/plugins", { headers: { cookie } });
+  const plugins = ((await listed.json()) as { plugins: Array<{ id: string; settingsNav: boolean; enabled: boolean }> }).plugins;
+  assert.equal(plugins.find((plugin) => plugin.id === "official.alerts")?.settingsNav, true);
+  assert.equal(plugins.find((plugin) => plugin.id === "official.ecpay")?.settingsNav, true);
+  assert.equal(plugins.find((plugin) => plugin.id === "official.alerts")?.enabled, false);
+});
+
 test("redaction drops a secret even if it was placed in public settings", () => {
   const redacted = redactSettings(
     {

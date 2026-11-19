@@ -50,7 +50,7 @@ pnpm --filter @s4n/plugin-example-thanks typecheck
 
 - 外掛碰不到帳本。入帳只發生在核心，而且金額來自核心建立的訂單。
 - `events.emit` 不能發送 `s4n.donation.created`、`succeeded`、`failed` 或 `s4n.donation.test`。測試贊助由工作台發出。
-- 密文用 `S4N_MASTER_KEY` 做 AES-256-GCM。儀表板徽章只顯示「已設定」或「未設定」。留空表示不改已存的值。API 不回明文，也不回密文。
+- 密文用 `S4N_MASTER_KEY` 做 AES-256-GCM。外掛頁的徽章只顯示「已設定」或「未設定」。留空表示不改已存的值。API 不回明文，也不回密文。一般設定在各外掛的 `/plugins/:id/settings`。
 - 事件的 JSON 不得含金鑰形狀的欄位。核心在寫入事件紀錄前會拒絕。
 - 贊助人名稱、留言、聊天文字是 `UntrustedText`。畫面要用文字節點，不要當成 HTML。
 - 事件至少送達一次。斷線補送可能再送同一則，用事件 `id` 排除重複。序號與保留期限見 [事件紀錄](/guides/events/)。

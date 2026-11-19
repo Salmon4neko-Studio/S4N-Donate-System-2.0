@@ -16,7 +16,7 @@ import { manifest as opayCvs } from "@s4n/plugin-opay-cvs";
 import { manifest as ticker } from "@s4n/plugin-ticker";
 import { manifest as tts } from "@s4n/plugin-tts";
 import { manifest as twitchChat } from "@s4n/plugin-twitch-chat";
-import { parseManifest, secretFieldKeys } from "@s4n/plugin-sdk";
+import { hasPluginSettingsNav, parseManifest, publicFieldKeys, secretFieldKeys } from "@s4n/plugin-sdk";
 import { createOfficialCatalog, createPaymentRegistry } from "./catalog.js";
 
 const root = resolve(dirname(fileURLToPath(import.meta.url)), "../../../..");
@@ -50,12 +50,32 @@ test("ECPay and O'Pay declare secret merchant fields and the other plugins do no
   for (const manifest of [ecpay, ecpayAtm, ecpayCvs, ecpayBarcode, opay, opayAtm, opayCvs]) {
     const secrets = secretFieldKeys(manifest.settingsSchema);
     assert.deepEqual(secrets.sort(), ["hashIv", "hashKey", "merchantId"]);
-    assert.equal(secrets.includes("environment"), false);
+    assert.deepEqual(publicFieldKeys(manifest.settingsSchema), ["environment"]);
+    assert.equal(hasPluginSettingsNav(manifest), true);
   }
   for (const manifest of [alerts, goals, ticker, tts, chatOverlay]) {
     assert.deepEqual(secretFieldKeys(manifest.settingsSchema), []);
+    assert.equal(publicFieldKeys(manifest.settingsSchema).length > 0, true);
+    assert.equal(hasPluginSettingsNav(manifest), true);
   }
   assert.deepEqual(secretFieldKeys(twitchChat.settingsSchema).sort(), ["clientId", "clientSecret"]);
+  assert.deepEqual(publicFieldKeys(twitchChat.settingsSchema), ["channel"]);
+  assert.equal(hasPluginSettingsNav(twitchChat), true);
+  const secretOnly = parseManifest({
+    id: "official.secret-only",
+    name: "只有密文",
+    version: "0.0.0",
+    api: "0.1",
+    kind: ["connector"],
+    permissions: ["secrets"],
+    entry: { worker: "./src/index.ts" },
+    settingsSchema: {
+      type: "object",
+      properties: { token: { type: "string", "x-s4n-secret": true, title: "權杖" } },
+    },
+  });
+  assert.deepEqual(publicFieldKeys(secretOnly.settingsSchema), []);
+  assert.equal(hasPluginSettingsNav(secretOnly), false);
 });
 
 test("chat manifests keep display defaults and do not publish secret defaults", () => {

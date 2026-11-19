@@ -77,10 +77,34 @@ function expectString(value: unknown, label: string): string {
   return value;
 }
 
+/** True when the field is stored encrypted and must not be echoed to the dashboard. */
+export function isSecretField(field: SettingsField): boolean {
+  return field["x-s4n-secret"] === true;
+}
+
 export function secretFieldKeys(schema: SettingsSchema): string[] {
   return Object.entries(schema.properties)
-    .filter(([, field]) => field["x-s4n-secret"] === true)
+    .filter(([, field]) => isSecretField(field))
     .map(([key]) => key);
+}
+
+/** Settings edited on the per-plugin page. The inverse of `secretFieldKeys`. */
+export function publicFieldKeys(schema: SettingsSchema): string[] {
+  return Object.entries(schema.properties)
+    .filter(([, field]) => !isSecretField(field))
+    .map(([key]) => key);
+}
+
+/**
+ * Whether an enabled plugin belongs in the dashboard 「外掛」 sidebar.
+ * Secret-only plugins stay on the management page.
+ * No extra schema flag: a field is public unless `x-s4n-secret` is true,
+ * and an overlay is listed even when it has no public fields.
+ */
+export function hasPluginSettingsNav(
+  manifest: Pick<PluginManifest, "kind" | "settingsSchema">,
+): boolean {
+  return manifest.kind.includes("overlay") || publicFieldKeys(manifest.settingsSchema).length > 0;
 }
 
 export function parseManifest(value: unknown): PluginManifest {

@@ -1,3 +1,4 @@
+import { isSecretField } from "@s4n/plugin-sdk";
 import type { LoadedPlugin } from "../plugins/catalog.js";
 import type { InstallationStore } from "../plugins/installations.js";
 import type { SecretStore } from "../plugins/settings.js";
@@ -17,7 +18,7 @@ export async function paymentMethodReady(
   for (const key of plugin.manifest.settingsSchema.required ?? []) {
     const field = plugin.manifest.settingsSchema.properties[key];
     if (field === undefined) return false;
-    if (field["x-s4n-secret"] === true) {
+    if (isSecretField(field)) {
       if (!configured.has(key)) return false;
       continue;
     }

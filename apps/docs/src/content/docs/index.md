@@ -17,6 +17,7 @@ English. These docs are written in Traditional Chinese. A short English summary 
 
 - 第一位營運者的初次設定、登入、登出與伺服器端工作階段
 - 外掛市集：簽過名的官方索引、權限確認、安裝與更新。見 [外掛市集](/guides/marketplace/)
+- 外掛頁只負責啟用與密文。一般設定在側欄「外掛」，見 [登入、外掛與疊層](/guides/operator/)
 - 測試贊助：送到疊層，不寫入帳本
 - 帳本：待付款、待繳費、已付款、已過期、待人工處理、失敗，可依狀態篩選
 - 贊助頁：綠界與歐付寶的信用卡、ATM 虛擬帳號、超商代碼、超商條碼

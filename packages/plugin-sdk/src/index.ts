@@ -12,7 +12,10 @@ export {
   PLUGIN_API_VERSION,
   PLUGIN_KINDS,
   assertManifestCoherent,
+  hasPluginSettingsNav,
+  isSecretField,
   parseManifest,
+  publicFieldKeys,
   secretFieldKeys,
 } from "./manifest.js";
 export type {
