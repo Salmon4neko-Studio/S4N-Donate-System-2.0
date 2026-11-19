@@ -1,4 +1,5 @@
 import {
+  isHexColor,
   isSecretField,
   publicFieldKeys,
   secretFieldKeys,
@@ -19,6 +20,8 @@ export interface RedactedField {
   enum: string[] | null;
   minimum: number | null;
   multiline: boolean;
+  color: boolean;
+  maxLength: number | null;
   default: string | number | boolean | null;
   /** Present only for non-secret fields that have a stored value. */
   value?: string | number | boolean;
@@ -70,6 +73,8 @@ export function redactSettings(
       enum: field.enum === undefined ? null : [...field.enum],
       minimum: field.minimum ?? null,
       multiline: field["x-s4n-multiline"] === true,
+      color: field["x-s4n-color"] === true,
+      maxLength: field.maxLength ?? null,
       default: field.default ?? null,
     };
     if (secret) {
@@ -196,7 +201,12 @@ function acceptsPublicValue(value: unknown, field: SettingsField): value is stri
   if (field.enum !== undefined) {
     return typeof value === "string" && field.enum.includes(value);
   }
-  if (field.type === "string") return typeof value === "string";
+  if (field.type === "string") {
+    if (typeof value !== "string") return false;
+    if (field.maxLength !== undefined && value.length > field.maxLength) return false;
+    if (field["x-s4n-color"] === true && !isHexColor(value)) return false;
+    return true;
+  }
   if (field.type === "boolean") return typeof value === "boolean";
   if (field.type === "number" || field.type === "integer") {
     if (typeof value !== "number" || !Number.isFinite(value)) return false;

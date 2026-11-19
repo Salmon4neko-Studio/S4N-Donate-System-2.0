@@ -20,6 +20,7 @@ import { createDurableBus } from "./realtime/bus.js";
 import { mountDashboardSocket } from "./realtime/dashboard-socket.js";
 import { createPostgresEventStore } from "./realtime/postgres-store.js";
 import { mountOverlaySocket } from "./realtime/overlay-socket.js";
+import { createPrismaOverlayLayoutStore } from "./realtime/prisma-overlay-layout.js";
 import { startEventRetention } from "./realtime/retention.js";
 
 const root = resolve(import.meta.dirname, "../../..");
@@ -86,6 +87,7 @@ async function main(): Promise<void> {
     ledger,
     bus,
     auth,
+    layouts: createPrismaOverlayLayoutStore(prisma),
     eventLog: "postgres",
     eventRetentionDays: env.eventRetentionDays,
     eventChatRetentionHours: env.eventChatRetentionHours,

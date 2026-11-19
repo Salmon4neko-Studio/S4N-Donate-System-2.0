@@ -58,6 +58,8 @@ export interface PluginField {
   enum: string[] | null;
   minimum: number | null;
   multiline: boolean;
+  color: boolean;
+  maxLength: number | null;
   default: string | number | boolean | null;
 }
 
@@ -167,10 +169,18 @@ export interface EventLogResponse {
   events: EventLogEntry[];
 }
 
+export interface OverlaySlotState {
+  pluginId: string;
+  name: string;
+  x: number;
+  y: number;
+  width: number;
+  height: number;
+}
+
 export interface OverlayLink {
   configured: boolean;
   url: string | null;
-  pluginId: string;
-  chatUrl: string | null;
-  chatPluginId: string;
+  canvas: { width: number; height: number };
+  slots: OverlaySlotState[];
 }

@@ -1,3 +1,4 @@
+import { isHexColor, parseOverlayRect, type OverlayRect } from "./overlay.js";
 import { PERMISSIONS, type Permission } from "./permissions.js";
 
 export const PLUGIN_API_VERSION = "0.1" as const;
@@ -38,6 +39,13 @@ export interface SettingsField {
   "x-s4n-multiline"?: boolean;
   /** Shown and used when the operator has not stored a value. Not allowed on secrets. */
   default?: string | number | boolean;
+  /** String fields only. The stored value may not be longer than this. */
+  maxLength?: number;
+  /**
+   * The string must be `#RGB` or `#RRGGBB`.
+   * Not a standard JSON Schema keyword.
+   */
+  "x-s4n-color"?: boolean;
 }
 
 export interface SettingsSchema {
@@ -57,6 +65,12 @@ export interface PluginManifest {
   permissions: readonly Permission[];
   entry: PluginEntry;
   settingsSchema: SettingsSchema;
+  /**
+   * Present when this plugin draws on the shared OBS canvas.
+   * `kind` may still include `overlay` without this field (a placeholder that
+   * is not placed). Future plugins opt in by setting the default rectangle.
+   */
+  overlaySlot?: OverlayRect;
 }
 
 export class ManifestError extends Error {
@@ -139,6 +153,11 @@ export function parseManifest(value: unknown): PluginManifest {
   if (value.description !== undefined) {
     manifest.description = expectString(value.description, "description");
   }
+  if (value.overlaySlot !== undefined) {
+    const slot = parseOverlayRect(value.overlaySlot);
+    if (slot === null) throw new ManifestError("overlaySlot is invalid");
+    manifest.overlaySlot = slot;
+  }
 
   assertManifestCoherent(manifest);
   return manifest;
@@ -161,6 +180,14 @@ export function assertManifestCoherent(manifest: PluginManifest): void {
   const secrets = secretFieldKeys(manifest.settingsSchema);
   if (secrets.length > 0 && !manifest.permissions.includes("secrets")) {
     throw new ManifestError("secret settings require the secrets permission");
+  }
+  if (manifest.overlaySlot !== undefined) {
+    if (!manifest.kind.includes("overlay")) {
+      throw new ManifestError("overlaySlot requires kind overlay");
+    }
+    if (!manifest.permissions.includes("overlay.slot")) {
+      throw new ManifestError("overlaySlot requires the overlay.slot permission");
+    }
   }
 }
 
@@ -274,12 +301,42 @@ function parseField(value: unknown): SettingsField {
     }
     field["x-s4n-multiline"] = value["x-s4n-multiline"];
   }
+  if (value["x-s4n-color"] !== undefined) {
+    if (value["x-s4n-color"] !== true && value["x-s4n-color"] !== false) {
+      throw new ManifestError("x-s4n-color must be a boolean");
+    }
+    if (value["x-s4n-color"] === true && type !== "string") {
+      throw new ManifestError("x-s4n-color is only valid on string fields");
+    }
+    if (value["x-s4n-color"] === true && field["x-s4n-secret"] === true) {
+      throw new ManifestError("secret fields cannot be colors");
+    }
+    field["x-s4n-color"] = value["x-s4n-color"];
+  }
+  if (value.maxLength !== undefined) {
+    if (
+      type !== "string" ||
+      typeof value.maxLength !== "number" ||
+      !Number.isInteger(value.maxLength) ||
+      value.maxLength < 1 ||
+      value.maxLength > 4_000
+    ) {
+      throw new ManifestError("maxLength is invalid");
+    }
+    field.maxLength = value.maxLength;
+  }
   if (value.default !== undefined) {
     if (!defaultMatches(value.default, field)) {
       throw new ManifestError("settings field default is invalid");
     }
     if (field["x-s4n-secret"] === true) {
       throw new ManifestError("secret fields cannot have a default");
+    }
+    if (field.maxLength !== undefined && typeof value.default === "string" && value.default.length > field.maxLength) {
+      throw new ManifestError("settings field default is invalid");
+    }
+    if (field["x-s4n-color"] === true && (typeof value.default !== "string" || !isHexColor(value.default))) {
+      throw new ManifestError("settings field default is invalid");
     }
     field.default = value.default;
   }

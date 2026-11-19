@@ -16,6 +16,31 @@
   --radius-card: var(--s4n-radius-card);
 }
 
+.overlay-stage {
+  position: relative;
+  width: 100vw;
+  height: 100vh;
+  overflow: hidden;
+}
+
+.overlay-slot {
+  position: absolute;
+  overflow: hidden;
+}
+
+.overlay-hint {
+  margin: 0.4rem 0.6rem;
+  color: var(--s4n-color-paper-raised);
+  font-size: 1rem;
+  line-height: 1.5;
+  text-shadow: 0 1px 2px #1a1512;
+}
+
+.alert-layer {
+  width: 100%;
+  height: 100%;
+}
+
 body {
   margin: 0;
   min-height: 100svh;
@@ -52,20 +77,24 @@ body[data-transparent="1"] {
 
 .chat-overlay {
   display: flex;
-  min-height: 100svh;
+  height: 100%;
+  min-height: 0;
   flex-direction: column;
   justify-content: flex-end;
-  padding: 1rem 1.25rem 1.5rem;
+  overflow: hidden;
+  padding: 0.4rem 0.6rem;
   font-family: var(--s4n-font-sans);
   font-synthesis: none;
 }
 
 .chat-lines {
   display: flex;
-  width: min(100%, 36rem);
+  width: 100%;
+  max-height: 100%;
   flex-direction: column;
   gap: 0.5rem;
   margin: 0;
+  overflow: hidden;
   padding: 0;
   list-style: none;
 }

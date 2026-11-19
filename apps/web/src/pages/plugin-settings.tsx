@@ -1,4 +1,6 @@
+import { useState } from "react";
 import { Link, useParams } from "react-router";
+import { AlertSettingsPreview } from "@/components/alert-settings-preview";
 import { Note } from "@/components/fields";
 import { PluginSettingsForm } from "@/components/plugin-settings-form";
 import { usePluginNav } from "@/lib/plugin-nav";
@@ -8,6 +10,8 @@ export function PluginSettingsPage() {
   const pluginId = params.pluginId ?? "";
   const nav = usePluginNav();
   const plugin = nav.plugins.find((item) => item.id === pluginId);
+  const [drafts, setDrafts] = useState<Record<string, string>>({});
+  const alerts = plugin?.id === "official.alerts";
 
   return (
     <div className="s4n-stack is-loose">
@@ -37,8 +41,9 @@ export function PluginSettingsPage() {
       ) : null}
       {plugin?.enabled ? (
         <section className="ts-box is-raised">
-          <div className="ts-content is-padded">
-            <PluginSettingsForm pluginId={plugin.id} scope="public" />
+          <div className={`ts-content is-padded ${alerts ? "s4n-alert-settings" : ""}`}>
+            <PluginSettingsForm pluginId={plugin.id} scope="public" onDraft={alerts ? setDrafts : undefined} />
+            {alerts ? <AlertSettingsPreview drafts={drafts} /> : null}
           </div>
         </section>
       ) : null}

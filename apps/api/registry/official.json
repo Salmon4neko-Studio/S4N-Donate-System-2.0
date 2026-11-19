@@ -2,17 +2,17 @@
   "index": {
     "format": "s4n-registry-index",
     "version": 1,
-    "issuedAt": "2026-11-18T16:30:00.000Z",
+    "issuedAt": "2026-11-19T07:00:00.000Z",
     "plugins": [
       {
         "id": "official.alerts",
         "name": "贊助提醒",
-        "version": "0.1.0",
+        "version": "0.2.0",
         "api": "0.1",
         "category": "overlay",
         "author": "S4N",
         "official": true,
-        "description": "在疊層顯示贊助人、金額與留言。沒有動畫序列。",
+        "description": "在疊層顯示贊助人、金額與留言。標題、內文、顏色與進退場動畫可在外掛設定調整。",
         "icon": "bell",
         "permissions": [
           "events.subscribe",
@@ -21,12 +21,12 @@
         "kind": [
           "overlay"
         ],
-        "changelog": "0.1.0 把贊助提醒放進官方市集。畫面、權限與設定和上一版相同。",
+        "changelog": "0.2.0 可調整標題與內文範本、文字顏色、通知主色與副色，以及進場與退場動畫。",
         "compatibility": {
           "core": "0.1",
           "pluginSpec": "0.1"
         },
-        "sha256": "085aa12b00b7726d55d413ac7e9c9c0330b73054fdeeb491ce496720199e10fa",
+        "sha256": "534b9f324280962becf220f762c5292d9c2169c1009be462a728b2e625883a2d",
         "featured": true,
         "screenshots": [
           {
@@ -39,7 +39,7 @@
       {
         "id": "official.chat-overlay",
         "name": "聊天疊層",
-        "version": "0.1.0",
+        "version": "0.2.0",
         "api": "0.1",
         "category": "overlay",
         "author": "S4N",
@@ -54,12 +54,12 @@
         "kind": [
           "overlay"
         ],
-        "changelog": "0.1.0 顯示已經正規化的聊天。它不連到任何平台。",
+        "changelog": "0.2.0 改在共用畫布上占一個版位。過濾與設定沒有改。",
         "compatibility": {
           "core": "0.1",
           "pluginSpec": "0.1"
         },
-        "sha256": "b84428a944eb0004d3e21473936f96ea97ec77df6f5d3eee8ac6b0731148d05b",
+        "sha256": "e5cfd9df9aefcf4dea891300cb5cea63b5110cff0e0c6edf0b025b13be00c015",
         "featured": true,
         "screenshots": [
           {
@@ -434,5 +434,5 @@
       }
     ]
   },
-  "signature": "9X5jNdizf8H2a03/tzLXQuVRu6tRx8OoCM2A32xYSVDfQkfYxvT+5othlRPp0YhnL08ik195joEW4hBr7s35Dw=="
+  "signature": "eG2dAlowcvT2ZZVTv/AHdyu1L1uC7ToWaOnmCvaC+6vBQ03an6H5C0XVa09846q0xQ05zwPpZCbRN/C+IXQ2DQ=="
 }

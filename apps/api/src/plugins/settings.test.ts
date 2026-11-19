@@ -183,3 +183,51 @@ test("redaction drops a secret even if it was placed in public settings", () => 
   assert.equal(JSON.stringify(redacted).includes("sentinel-hash-key-9f3a"), false);
   assert.equal(redacted.find((field) => field.key === "environment")?.value, "stage");
 });
+
+test("alert color fields accept hex and reject other colors", async () => {
+  const { app } = createTestApp();
+  const cookie = await setupOperator(app);
+  const headers = {
+    origin: TEST_ORIGIN,
+    cookie,
+    "content-type": "application/json",
+  };
+
+  const named = await app.request("/api/plugins/official.alerts/settings", {
+    method: "PUT",
+    headers,
+    body: JSON.stringify({ values: { titleColor: "red", primaryColor: "#F28500" } }),
+  });
+  assert.equal(named.status, 422);
+
+  const wide = await app.request("/api/plugins/official.alerts/settings", {
+    method: "PUT",
+    headers,
+    body: JSON.stringify({ values: { primaryColor: "#ffff" } }),
+  });
+  assert.equal(wide.status, 422);
+
+  const saved = await app.request("/api/plugins/official.alerts/settings", {
+    method: "PUT",
+    headers,
+    body: JSON.stringify({ values: { titleColor: "#abc", primaryColor: "#F28500", durationMs: 4000 } }),
+  });
+  assert.equal(saved.status, 200);
+  const body = (await saved.json()) as {
+    publicFields: Array<{ key: string; value?: string | number; color?: boolean }>;
+  };
+  assert.equal(body.publicFields.find((field) => field.key === "titleColor")?.value, "#abc");
+  assert.equal(body.publicFields.find((field) => field.key === "titleColor")?.color, true);
+  assert.equal(body.publicFields.find((field) => field.key === "primaryColor")?.value, "#F28500");
+  assert.equal(body.publicFields.find((field) => field.key === "durationMs")?.value, 4000);
+
+  const legacy = await app.request("/api/plugins/official.alerts/settings", {
+    method: "PUT",
+    headers,
+    body: JSON.stringify({ values: { durationMs: 8000 } }),
+  });
+  assert.equal(legacy.status, 200);
+  const legacyBody = (await legacy.json()) as { publicFields: Array<{ key: string; value?: string | number }> };
+  assert.equal(legacyBody.publicFields.find((field) => field.key === "durationMs")?.value, 8000);
+  assert.equal(legacyBody.publicFields.find((field) => field.key === "titleColor")?.value, "#abc");
+});

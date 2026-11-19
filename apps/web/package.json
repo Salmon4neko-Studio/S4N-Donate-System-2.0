@@ -13,6 +13,8 @@
   "dependencies": {
     "@s4n/design-tokens": "workspace:*",
     "@s4n/events": "workspace:*",
+    "@s4n/plugin-alerts": "workspace:*",
+    "@s4n/plugin-sdk": "workspace:*",
     "react": "^19.2.0",
     "react-dom": "^19.2.0",
     "react-router": "^8.5.1",

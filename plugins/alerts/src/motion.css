@@ -1,0 +1,124 @@
+/* Enter and exit motions for the donation alert. Reduced motion plays none of them. */
+
+@keyframes s4n-enter-rise {
+  from { opacity: 0; transform: translateY(1.25rem); }
+  to { opacity: 1; transform: none; }
+}
+@keyframes s4n-exit-rise {
+  from { opacity: 1; transform: none; }
+  to { opacity: 0; transform: translateY(1.25rem); }
+}
+@keyframes s4n-enter-fade {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+@keyframes s4n-exit-fade {
+  from { opacity: 1; }
+  to { opacity: 0; }
+}
+@keyframes s4n-enter-slide-left {
+  from { opacity: 0; transform: translateX(-1.75rem); }
+  to { opacity: 1; transform: none; }
+}
+@keyframes s4n-exit-slide-left {
+  from { opacity: 1; transform: none; }
+  to { opacity: 0; transform: translateX(-1.75rem); }
+}
+@keyframes s4n-enter-slide-right {
+  from { opacity: 0; transform: translateX(1.75rem); }
+  to { opacity: 1; transform: none; }
+}
+@keyframes s4n-exit-slide-right {
+  from { opacity: 1; transform: none; }
+  to { opacity: 0; transform: translateX(1.75rem); }
+}
+@keyframes s4n-enter-bounce {
+  0% { opacity: 0; transform: translateY(1rem) scale(0.96); }
+  60% { opacity: 1; transform: translateY(-0.35rem) scale(1.02); }
+  100% { opacity: 1; transform: none; }
+}
+@keyframes s4n-exit-bounce {
+  from { opacity: 1; transform: none; }
+  to { opacity: 0; transform: translateY(0.8rem) scale(0.96); }
+}
+@keyframes s4n-enter-scale {
+  from { opacity: 0; transform: scale(0.86); }
+  to { opacity: 1; transform: none; }
+}
+@keyframes s4n-exit-scale {
+  from { opacity: 1; transform: none; }
+  to { opacity: 0; transform: scale(0.86); }
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .s4n-enter-rise { animation: s4n-enter-rise 420ms ease-out both; }
+  .s4n-exit-rise { animation: s4n-exit-rise 420ms ease-in both; }
+  .s4n-enter-fade { animation: s4n-enter-fade 420ms ease-out both; }
+  .s4n-exit-fade { animation: s4n-exit-fade 420ms ease-in both; }
+  .s4n-enter-slide-left { animation: s4n-enter-slide-left 420ms ease-out both; }
+  .s4n-exit-slide-left { animation: s4n-exit-slide-left 420ms ease-in both; }
+  .s4n-enter-slide-right { animation: s4n-enter-slide-right 420ms ease-out both; }
+  .s4n-exit-slide-right { animation: s4n-exit-slide-right 420ms ease-in both; }
+  .s4n-enter-bounce { animation: s4n-enter-bounce 520ms ease-out both; }
+  .s4n-exit-bounce { animation: s4n-exit-bounce 420ms ease-in both; }
+  .s4n-enter-scale { animation: s4n-enter-scale 420ms ease-out both; }
+  .s4n-exit-scale { animation: s4n-exit-scale 420ms ease-in both; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .s4n-enter-rise,
+  .s4n-exit-rise,
+  .s4n-enter-fade,
+  .s4n-exit-fade,
+  .s4n-enter-slide-left,
+  .s4n-exit-slide-left,
+  .s4n-enter-slide-right,
+  .s4n-exit-slide-right,
+  .s4n-enter-bounce,
+  .s4n-exit-bounce,
+  .s4n-enter-scale,
+  .s4n-exit-scale {
+    animation: none;
+  }
+}
+
+.s4n-alert-card {
+  box-sizing: border-box;
+  width: 100%;
+  max-height: 100%;
+  overflow: hidden;
+  border: 1px solid var(--s4n-alert-primary, #f28500);
+  border-left-width: 6px;
+  border-radius: 1.25rem;
+  background: var(--s4n-alert-secondary, #fbf8f3);
+  color: var(--s4n-alert-body, #6b5e56);
+  padding: 1rem 1.25rem 1.1rem;
+  font-family: "jf open 粉圓", "PingFang TC", "Microsoft JhengHei", sans-serif;
+  box-shadow: 0 10px 30px rgba(36, 28, 24, 0.08);
+}
+
+.s4n-alert-kicker {
+  margin: 0;
+  color: var(--s4n-alert-primary, #f28500);
+  font-size: 0.75rem;
+  letter-spacing: 0.18em;
+}
+
+.s4n-alert-title {
+  margin: 0.45rem 0 0;
+  color: var(--s4n-alert-title, #1a1512);
+  font-size: 1.65rem;
+  font-weight: 400;
+  line-height: 1.35;
+  letter-spacing: 0.03em;
+  overflow-wrap: anywhere;
+}
+
+.s4n-alert-body {
+  margin: 0.55rem 0 0;
+  color: var(--s4n-alert-body, #6b5e56);
+  font-size: 1rem;
+  line-height: 1.6;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}

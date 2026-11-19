@@ -56,10 +56,51 @@
 
 .overlay-preview-stage iframe {
   position: absolute;
-  top: 0;
-  left: 0;
+  inset: 0;
+  width: 100%;
+  height: 100%;
   border: 0;
   background: transparent;
   pointer-events: none;
+}
+
+.overlay-preview-canvas {
+  position: absolute;
+  top: 0;
+  left: 0;
   transform-origin: top left;
+}
+
+.overlay-slot-editor {
+  position: absolute;
+  z-index: 2;
+  box-sizing: border-box;
+  border: 2px solid #f28500;
+  background: rgba(242, 133, 0, 0.16);
+  color: #1a1512;
+  cursor: grab;
+  touch-action: none;
+}
+
+.overlay-slot-editor span {
+  display: inline-block;
+  margin: 0.35rem 0.45rem;
+  padding: 0.12rem 0.5rem;
+  border-radius: 999px;
+  background: #f28500;
+  color: #1a1512;
+  font-size: 0.85rem;
+  line-height: 1.4;
+}
+
+.overlay-slot-resize {
+  position: absolute;
+  right: -1px;
+  bottom: -1px;
+  width: 0.95rem;
+  height: 0.95rem;
+  padding: 0;
+  border: 0;
+  background: #f28500;
+  cursor: nwse-resize;
 }

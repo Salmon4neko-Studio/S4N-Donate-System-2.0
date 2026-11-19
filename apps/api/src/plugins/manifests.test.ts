@@ -61,6 +61,10 @@ test("ECPay and O'Pay declare secret merchant fields and the other plugins do no
   assert.deepEqual(secretFieldKeys(twitchChat.settingsSchema).sort(), ["clientId", "clientSecret"]);
   assert.deepEqual(publicFieldKeys(twitchChat.settingsSchema), ["channel"]);
   assert.equal(hasPluginSettingsNav(twitchChat), true);
+  assert.equal(alerts.overlaySlot?.width, 0.36);
+  assert.equal(chatOverlay.overlaySlot?.x, 0.66);
+  assert.equal("overlaySlot" in goals, false);
+  assert.equal("overlaySlot" in ticker, false);
   const secretOnly = parseManifest({
     id: "official.secret-only",
     name: "只有密文",

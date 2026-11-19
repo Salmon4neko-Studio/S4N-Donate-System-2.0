@@ -127,15 +127,20 @@ test("overlay tokens can be regenerated and the previous token is revoked", { ti
     assert.equal(await fixture.auth.overlayTokenValid(second), true);
 
     const current = await fixture.app.request("/api/overlay", { headers: { cookie } });
-    const currentBody = (await current.json()) as { url?: string; chatUrl?: string };
-    assert.equal(new URL(currentBody.url ?? "").searchParams.get("token"), second);
-    assert.equal(new URL(currentBody.url ?? "").searchParams.get("plugin"), "official.alerts");
-    const chatUrl = new URL(currentBody.chatUrl ?? "");
-    assert.equal(chatUrl.searchParams.get("token"), second);
-    assert.equal(chatUrl.searchParams.get("plugin"), "official.chat-overlay");
-    assert.equal(chatUrl.searchParams.get("transparent"), "1");
-    assert.equal(chatUrl.searchParams.has("clientId"), false);
-    assert.equal(chatUrl.searchParams.has("clientSecret"), false);
+    const currentBody = (await current.json()) as {
+      url?: string;
+      chatUrl?: string;
+      canvas?: { width?: number; height?: number };
+    };
+    const page = new URL(currentBody.url ?? "");
+    assert.equal(page.searchParams.get("token"), second);
+    assert.equal(page.searchParams.get("plugin"), null);
+    assert.equal(page.searchParams.get("transparent"), "1");
+    assert.equal(currentBody.chatUrl, undefined);
+    assert.equal(currentBody.canvas?.width, 1920);
+    assert.equal(currentBody.canvas?.height, 1080);
+    assert.equal(JSON.stringify(currentBody).includes("clientSecret"), false);
+    assert.equal(JSON.stringify(currentBody).includes("clientId"), false);
 
     assert.equal(await closeCode(`ws://127.0.0.1:${port}/ws/overlay`), 4001);
     assert.equal(
