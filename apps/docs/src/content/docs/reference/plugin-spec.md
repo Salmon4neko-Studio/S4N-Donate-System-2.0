@@ -39,7 +39,7 @@ Twitch 來源需要 `events.emit`、`secrets` 與 `network`。頻道名稱是一
 | --- | --- | --- |
 | `events.subscribe` | 所有外掛 | 透過 SDK 訂閱事件 |
 | `events.emit` | 所有外掛 | 透過 SDK 發送事件，但不能偽造核心付款事件 |
-| `overlay.slot` | 所有外掛 | 宣告疊層版位 |
+| `overlay.slot` | 所有外掛 | 宣告疊層版位。要排進共用畫布，清單還要有 `overlaySlot` 矩形 |
 | `dashboard.settings` | 所有外掛 | 儀表板上的設定 |
 | `tts.speak` | 所有外掛 | 請求語音。這次沒有合成器 |
 | `payments.read` | 所有外掛 | 唯讀付款資料。這次沒有讀取 API |

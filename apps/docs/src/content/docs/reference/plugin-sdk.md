@@ -118,7 +118,15 @@ export function shouldShow(seen: readonly string[], id: string, cursor: string |
 
 ## 疊層版位
 
-宣告方式是權限 `overlay.slot` 加上 `entry.overlay`。OBS 網址的 `plugin` 參數選畫面，權杖仍是核心核發的疊層權杖，網址上沒有外掛密文。
+要出現在共用畫布上，清單要有 `overlaySlot`，並具備 `kind` 含 `overlay`、權限 `overlay.slot`。`overlaySlot` 是預設矩形，`x`、`y`、`width`、`height` 都是畫布的比例（0 到 1），寬與高至少 0.05，而且不能超出畫布。
+
+```json
+"overlaySlot": { "x": 0.04, "y": 0.62, "width": 0.36, "height": 0.32 }
+```
+
+OBS 只有一條網址。權杖仍是核心核發的疊層權杖，網址上沒有外掛密文，也不再靠 `plugin` 選畫面。營運者在疊層頁拖曳後儲存的位置會蓋過這個預設值。位置以比例儲存，畫布改尺寸時區塊跟著縮放。
+
+`kind` 含 `overlay` 但沒有 `overlaySlot` 的外掛不會被排上去。目標與跑馬燈目前就是這樣。
 
 這個版本的轉送寫在 `apps/api/src/realtime/audience.ts` 的 `overlayPluginFor`，只認：
 

@@ -96,7 +96,7 @@ export function ChatOverlay({
       </p>
       {showHint && lines.length === 0 ? (
         <p className="chat-waiting">
-          {connection === "denied" ? "這個網址的權杖無效。請從工作台複製新的聊天疊層網址。" : `聊天疊層${connectionLabel}。等待訊息。`}
+          {connection === "denied" ? "這個網址的權杖無效。請從工作台複製新的疊層網址。" : `聊天疊層${connectionLabel}。等待訊息。`}
         </p>
       ) : null}
       <ol className="chat-lines" aria-live="polite">

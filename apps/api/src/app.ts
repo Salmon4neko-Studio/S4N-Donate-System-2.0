@@ -31,7 +31,14 @@ import {
 } from "./plugins/settings.js";
 import type { CoreBus } from "./realtime/bus.js";
 import { toEventLogEntry } from "./realtime/summary.js";
-import { CHAT_OVERLAY_PLUGIN_ID, ALERTS_PLUGIN_ID, overlayPageUrl } from "./realtime/overlay-url.js";
+import { overlayPageUrl } from "./realtime/overlay-url.js";
+import {
+  canvasPlugins,
+  mergeLayout,
+  readLayoutUpdate,
+  viewLayout,
+  type OverlayLayoutStore,
+} from "./realtime/overlay-layout.js";
 import { previewChatMessage } from "@s4n/plugin-chat-overlay";
 
 export interface AppDeps {
@@ -50,6 +57,7 @@ export interface AppDeps {
   ledger: Ledger;
   bus: CoreBus;
   auth: AuthService;
+  layouts: OverlayLayoutStore;
   /** `postgres` once the API is writing the shared event log. Tests stay on `memory`. */
   eventLog?: "memory" | "postgres";
   eventRetentionDays?: number;
@@ -63,14 +71,15 @@ export interface AppDeps {
 
 export function createApp(deps: AppDeps): Hono<SessionEnv> {
   const app = new Hono<SessionEnv>();
-  const allowedOrigins = originAllowlist(deps.dashboardOrigin);
+  const dashboardOrigins = originAllowlist(deps.dashboardOrigin);
+  const readOrigins = originAllowlist(deps.dashboardOrigin, deps.overlayOrigin);
   const callbackLimit = deps.callbackRateLimit ?? { windowMs: 60_000, max: 60 };
   const secureCookie = sessionCookieSecure(deps.envName);
   const session = requireSession(deps.auth, {
     secure: secureCookie,
     rotateAfterMs: deps.auth.rotateAfterMs,
   });
-  const guard = originGuard(allowedOrigins);
+  const guard = originGuard(dashboardOrigins);
 
   app.use("*", async (c, next) => {
     c.header("x-content-type-options", "nosniff");
@@ -82,7 +91,7 @@ export function createApp(deps: AppDeps): Hono<SessionEnv> {
   app.use(
     "/api/*",
     cors({
-      origin: (origin) => (allowedOrigins.has(origin) ? origin : null),
+      origin: (origin) => (readOrigins.has(origin) ? origin : null),
       allowMethods: ["GET", "POST", "PUT", "OPTIONS"],
       allowHeaders: ["content-type"],
       credentials: true,
@@ -91,7 +100,7 @@ export function createApp(deps: AppDeps): Hono<SessionEnv> {
 
   registerAuthRoutes(app, {
     auth: deps.auth,
-    allowedOrigins,
+    allowedOrigins: dashboardOrigins,
     secureCookie,
     ...(deps.loginRateLimit ? { loginRateLimit: deps.loginRateLimit } : {}),
   });
@@ -387,8 +396,44 @@ export function createApp(deps: AppDeps): Hono<SessionEnv> {
 
   app.get("/api/overlay", session, async (c) => {
     try {
-      const token = await deps.auth.readOverlayToken(c.get("operatorId"));
-      return c.json(overlayLinks(deps.overlayOrigin, token));
+      const operatorId = c.get("operatorId");
+      const [token, layout] = await Promise.all([
+        deps.auth.readOverlayToken(operatorId),
+        readOperatorLayout(deps, operatorId),
+      ]);
+      return c.json(overlayLinks(deps.overlayOrigin, token, layout));
+    } catch {
+      return c.json({ error: "overlay_unavailable" }, 503);
+    }
+  });
+
+  app.put("/api/overlay/layout", session, guard, async (c) => {
+    const body = await readJson(c.req.raw);
+    if (!body.ok) return c.json({ error: "invalid_json" }, 422);
+    const allowed = new Set(canvasPlugins(deps.catalog).map((plugin) => plugin.id));
+    const update = readLayoutUpdate(body.value, allowed);
+    if (update === null) return c.json({ error: "invalid_layout" }, 422);
+    const operatorId = c.get("operatorId");
+    try {
+      const previous = await deps.layouts.read(operatorId);
+      await deps.layouts.write(operatorId, mergeLayout(previous, update, allowed));
+      const [token, layout] = await Promise.all([
+        deps.auth.readOverlayToken(operatorId),
+        readOperatorLayout(deps, operatorId),
+      ]);
+      return c.json(overlayLinks(deps.overlayOrigin, token, layout));
+    } catch {
+      return c.json({ error: "overlay_unavailable" }, 503);
+    }
+  });
+
+  app.get("/api/overlay/scene", async (c) => {
+    c.header("cache-control", "no-store");
+    const operatorId = await deps.auth.overlayOperatorId(c.req.query("token") ?? "");
+    if (operatorId === null) return c.json({ error: "unauthorized" }, 401);
+    try {
+      const layout = await readOperatorLayout(deps, operatorId);
+      return c.json({ canvas: layout.canvas, slots: layout.slots });
     } catch {
       return c.json({ error: "overlay_unavailable" }, 503);
     }
@@ -396,8 +441,10 @@ export function createApp(deps: AppDeps): Hono<SessionEnv> {
 
   app.post("/api/overlay/token", session, guard, async (c) => {
     try {
-      const token = await deps.auth.issueOverlayToken(c.get("operatorId"));
-      return c.json(overlayLinks(deps.overlayOrigin, token));
+      const operatorId = c.get("operatorId");
+      const token = await deps.auth.issueOverlayToken(operatorId);
+      const layout = await readOperatorLayout(deps, operatorId);
+      return c.json(overlayLinks(deps.overlayOrigin, token, layout));
     } catch {
       return c.json({ error: "overlay_unavailable" }, 503);
     }
@@ -637,23 +684,25 @@ function testDonationBody(value: unknown): unknown {
   };
 }
 
-function overlayLinks(origin: string, token: string | null) {
-  if (token === null) {
-    return {
-      configured: false,
-      url: null,
-      pluginId: ALERTS_PLUGIN_ID,
-      chatUrl: null,
-      chatPluginId: CHAT_OVERLAY_PLUGIN_ID,
-    };
-  }
+function overlayLinks(
+  origin: string,
+  token: string | null,
+  layout: Awaited<ReturnType<typeof readOperatorLayout>>,
+) {
   return {
-    configured: true,
-    url: overlayPageUrl(origin, token, ALERTS_PLUGIN_ID),
-    pluginId: ALERTS_PLUGIN_ID,
-    chatUrl: overlayPageUrl(origin, token, CHAT_OVERLAY_PLUGIN_ID),
-    chatPluginId: CHAT_OVERLAY_PLUGIN_ID,
+    configured: token !== null,
+    url: token === null ? null : overlayPageUrl(origin, token),
+    canvas: layout.canvas,
+    slots: layout.slots,
   };
+}
+
+async function readOperatorLayout(deps: AppDeps, operatorId: string) {
+  const [stored, enabled] = await Promise.all([
+    deps.layouts.read(operatorId),
+    deps.installations.enabledIds(),
+  ]);
+  return viewLayout(stored, canvasPlugins(deps.catalog), enabled);
 }
 
 function readTestChat(value: unknown): { displayName: string; text: string } | null {
@@ -715,6 +764,8 @@ function describeFields(plugin: LoadedPlugin) {
     enum: field.enum ?? null,
     minimum: field.minimum ?? null,
     multiline: field["x-s4n-multiline"] === true,
+    color: field["x-s4n-color"] === true,
+    maxLength: field.maxLength ?? null,
     default: field.default ?? null,
   }));
 }

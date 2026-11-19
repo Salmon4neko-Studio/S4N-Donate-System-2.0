@@ -18,6 +18,7 @@ model Operator {
   overlayIv          Bytes?
   overlayAuthTag     Bytes?
   sessions           Session[]
+  overlayLayout      OverlayLayout?
   createdAt          DateTime  @default(now())
   updatedAt          DateTime  @updatedAt
 }
@@ -31,6 +32,17 @@ model Session {
   createdAt  DateTime @default(now())
 
   @@index([operatorId])
+}
+
+/// Shared OBS canvas for one operator. Slot rectangles are fractions of the canvas.
+/// A missing row means 1920×1080 and each plugin's manifest default.
+model OverlayLayout {
+  operatorId String   @id
+  operator   Operator @relation(fields: [operatorId], references: [id], onDelete: Cascade)
+  width      Int      @default(1920)
+  height     Int      @default(1080)
+  slots      Json     @default("{}")
+  updatedAt  DateTime @updatedAt
 }
 
 model PluginInstallation {

@@ -2,19 +2,22 @@ import type { MiddlewareHandler } from "hono";
 
 const SAFE_METHODS = new Set(["GET", "HEAD", "OPTIONS"]);
 
-export function originAllowlist(primary: string): Set<string> {
-  const allowed = new Set<string>([primary]);
-  try {
-    const url = new URL(primary);
-    if (url.hostname === "localhost") {
-      url.hostname = "127.0.0.1";
-      allowed.add(url.origin);
-    } else if (url.hostname === "127.0.0.1") {
-      url.hostname = "localhost";
-      allowed.add(url.origin);
+export function originAllowlist(...primaries: string[]): Set<string> {
+  const allowed = new Set<string>();
+  for (const primary of primaries) {
+    allowed.add(primary);
+    try {
+      const url = new URL(primary);
+      if (url.hostname === "localhost") {
+        url.hostname = "127.0.0.1";
+        allowed.add(url.origin);
+      } else if (url.hostname === "127.0.0.1") {
+        url.hostname = "localhost";
+        allowed.add(url.origin);
+      }
+    } catch {
+      // Keep the raw primary. Callers that need a URL already failed closed elsewhere.
     }
-  } catch {
-    // Keep the raw primary. Callers that need a URL already failed closed elsewhere.
   }
   return allowed;
 }

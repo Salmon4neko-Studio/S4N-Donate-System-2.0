@@ -62,4 +62,4 @@ description: 一份社群疊層清單，以及官方綠界清單的密文欄位�
 }
 ```
 
-歐付寶信用卡的欄位相同，id 是 `official.opay`。ATM 與超商代碼的 id 是 `official.ecpay-atm`、`official.ecpay-cvs`、`official.opay-atm`、`official.opay-cvs`。綠界超商條碼是 `official.ecpay-barcode`。歐付寶超商條碼的程式在 `plugins/opay-barcode`，目前沒有註冊，贊助頁不會出現。已註冊的付款外掛版本：信用卡 `0.2.0`，其餘 `0.1.0`，密文欄位相同。贊助提醒會在疊層顯示名稱、金額與留言，版本 `0.1.0`，沒有密文欄位。目標、跑馬燈與語音仍是官方佔位，版本是 `0.0.0`，沒有密文欄位。
+歐付寶信用卡的欄位相同，id 是 `official.opay`。ATM 與超商代碼的 id 是 `official.ecpay-atm`、`official.ecpay-cvs`、`official.opay-atm`、`official.opay-cvs`。綠界超商條碼是 `official.ecpay-barcode`。歐付寶超商條碼的程式在 `plugins/opay-barcode`，目前沒有註冊，贊助頁不會出現。已註冊的付款外掛版本：信用卡 `0.2.0`，其餘 `0.1.0`，密文欄位相同。贊助提醒版本 `0.2.0`，沒有密文欄位，可調範本、顏色與動畫，並在共用畫布上占一個版位。聊天疊層版本 `0.2.0`，同樣占一個版位。目標、跑馬燈與語音仍是官方佔位，版本是 `0.0.0`，沒有 `overlaySlot`，也不會出現在畫布上。

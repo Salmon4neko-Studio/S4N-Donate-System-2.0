@@ -1,30 +1,85 @@
 import type { PluginManifest } from "@s4n/plugin-sdk";
 
 export const manifest = {
-  "id": "official.alerts",
-  "name": "贊助提醒",
-  "version": "0.1.0",
-  "api": "0.1",
-  "description": "在疊層顯示贊助人、金額與留言。沒有動畫序列。",
-  "kind": [
-    "overlay"
-  ],
-  "permissions": [
-    "events.subscribe",
-    "overlay.slot"
-  ],
-  "entry": {
-    "overlay": "./src/index.ts"
+  id: "official.alerts",
+  name: "贊助提醒",
+  version: "0.2.0",
+  api: "0.1",
+  description: "在疊層顯示贊助人、金額與留言。標題、內文、顏色與進退場動畫可在外掛設定調整。",
+  kind: ["overlay"],
+  permissions: ["events.subscribe", "overlay.slot"],
+  entry: {
+    overlay: "./src/index.ts",
   },
-  "settingsSchema": {
-    "type": "object",
-    "additionalProperties": false,
-    "properties": {
-      "durationMs": {
-        "type": "integer",
-        "title": "顯示時間（毫秒）",
-        "minimum": 1000
-      }
-    }
-  }
+  overlaySlot: { x: 0.04, y: 0.62, width: 0.36, height: 0.32 },
+  settingsSchema: {
+    type: "object",
+    additionalProperties: false,
+    properties: {
+      titleTemplate: {
+        type: "string",
+        title: "標題範本",
+        description: "可用 {name}、{amount}、{message}、{currency}。未知的 {變數} 會原樣留下。輸出是純文字。",
+        default: "{name} 贊助了 {amount}",
+        maxLength: 160,
+      },
+      bodyTemplate: {
+        type: "string",
+        title: "內文範本",
+        description: "可用 {name}、{amount}、{message}、{currency}。留言空白時，這一列會是空的。",
+        "x-s4n-multiline": true,
+        default: "{message}",
+        maxLength: 400,
+      },
+      titleColor: {
+        type: "string",
+        title: "標題顏色",
+        description: "使用 #RGB 或 #RRGGBB。",
+        "x-s4n-color": true,
+        default: "#1a1512",
+      },
+      bodyColor: {
+        type: "string",
+        title: "內文顏色",
+        description: "使用 #RGB 或 #RRGGBB。",
+        "x-s4n-color": true,
+        default: "#6b5e56",
+      },
+      primaryColor: {
+        type: "string",
+        title: "通知主色",
+        description: "強調條與外框。使用 #RGB 或 #RRGGBB。",
+        "x-s4n-color": true,
+        default: "#f28500",
+      },
+      secondaryColor: {
+        type: "string",
+        title: "通知副色",
+        description: "卡片底色。使用 #RGB 或 #RRGGBB。",
+        "x-s4n-color": true,
+        default: "#fbf8f3",
+      },
+      enterAnimation: {
+        type: "string",
+        title: "進場動畫",
+        description: "系統若設定減少動態，進場與退場都不會播放。",
+        enum: ["rise", "fade", "slide-left", "slide-right", "bounce", "scale"],
+        default: "rise",
+      },
+      exitAnimation: {
+        type: "string",
+        title: "退場動畫",
+        description: "退場是同一個動作的反向，例如向左滑動會向左離開。",
+        enum: ["rise", "fade", "slide-left", "slide-right", "bounce", "scale"],
+        default: "fade",
+      },
+      durationMs: {
+        type: "integer",
+        title: "顯示時間（毫秒）",
+        description: "提醒留在畫面上的時間，不含退場。",
+        minimum: 1000,
+        default: 12000,
+      },
+    },
+  },
 } as const satisfies PluginManifest;

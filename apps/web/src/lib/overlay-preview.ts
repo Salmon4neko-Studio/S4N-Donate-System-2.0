@@ -7,11 +7,6 @@
  * origin, and the sandbox does not allow navigation, popups, or forms.
  */
 
-export const ALERTS_PLUGIN_ID = "official.alerts";
-export const CHAT_OVERLAY_PLUGIN_ID = "official.chat-overlay";
-
-const SCENE_PLUGIN_IDS = new Set([ALERTS_PLUGIN_ID, CHAT_OVERLAY_PLUGIN_ID]);
-export const COMBINED_PREVIEW_ID = "combined";
 export const SAMPLE_STAGE_PATH = "/preview/game-stage.svg";
 export const CANVAS_MIN = 160;
 export const CANVAS_MAX = 4096;
@@ -30,21 +25,7 @@ export const OVERLAY_PREVIEW_IFRAME = {
   referrerPolicy: "no-referrer",
 } as const;
 
-const PLUGIN_ID = /^[a-z0-9]+(?:[.-][a-z0-9]+)*$/;
 const BLOB_URL = /^blob:https?:\/\/[a-z0-9.\-:[\]]+\/[a-z0-9-]+$/i;
-
-export interface OverlayPluginRef {
-  id: string;
-  name: string;
-  kind: readonly string[];
-  enabled: boolean;
-}
-
-export interface PreviewChoice {
-  id: string;
-  label: string;
-  pluginIds: readonly string[];
-}
 
 export type StageBackground = "dark" | "light" | "green" | "sample" | "upload";
 
@@ -53,12 +34,7 @@ export type StageBackgroundAttr = {
   image: string | null;
 };
 
-export function isPluginId(value: string): boolean {
-  return PLUGIN_ID.test(value);
-}
-
-export function overlayPreviewSrc(pageUrl: string, pluginId: string): string | null {
-  if (!isPluginId(pluginId)) return null;
+export function overlayPreviewSrc(pageUrl: string): string | null {
   let url: URL;
   try {
     url = new URL(pageUrl);
@@ -69,66 +45,11 @@ export function overlayPreviewSrc(pageUrl: string, pluginId: string): string | n
   if (url.protocol !== "http:" && url.protocol !== "https:") return null;
   const token = url.searchParams.get("token");
   if (token === null || token === "") return null;
-  url.searchParams.set("plugin", pluginId);
+  url.searchParams.delete("plugin");
   url.searchParams.set("transparent", "1");
   url.searchParams.delete("preview");
   url.hash = "";
   return url.toString();
-}
-
-export function previewChoices(
-  plugins: readonly OverlayPluginRef[] | null,
-  urlPluginId: string,
-): PreviewChoice[] {
-  if (!isPluginId(urlPluginId)) return [];
-  if (plugins === null) {
-    return [{ id: urlPluginId, label: "這條網址", pluginIds: [urlPluginId] }];
-  }
-
-  const overlays = plugins.filter((plugin) => plugin.kind.includes("overlay") && isPluginId(plugin.id));
-  const enabled = overlays.filter((plugin) => plugin.enabled);
-  const individuals: PreviewChoice[] = [];
-  const urlPlugin = overlays.find((plugin) => plugin.id === urlPluginId);
-
-  if (urlPlugin !== undefined) {
-    individuals.push({
-      id: urlPlugin.id,
-      label: urlPlugin.name.trim() || urlPlugin.id,
-      pluginIds: [urlPlugin.id],
-    });
-  } else {
-    individuals.push({ id: urlPluginId, label: "這條網址", pluginIds: [urlPluginId] });
-  }
-
-  for (const plugin of enabled) {
-    if (individuals.some((item) => item.id === plugin.id)) continue;
-    individuals.push({
-      id: plugin.id,
-      label: plugin.name.trim() || plugin.id,
-      pluginIds: [plugin.id],
-    });
-  }
-
-  if (enabled.length <= 1) return individuals;
-
-  const stacked = enabled.map((plugin) => plugin.id);
-  const urlIndex = stacked.indexOf(urlPluginId);
-  if (urlIndex > -1 && urlIndex < stacked.length - 1) {
-    const [id] = stacked.splice(urlIndex, 1);
-    if (id !== undefined) stacked.push(id);
-  }
-
-  return [{ id: COMBINED_PREVIEW_ID, label: "全部疊加", pluginIds: stacked }, ...individuals];
-}
-
-export function defaultPreviewChoiceId(choices: readonly PreviewChoice[], urlPluginId: string): string {
-  if (choices.some((choice) => choice.id === urlPluginId)) return urlPluginId;
-  return choices[0]?.id ?? urlPluginId;
-}
-
-export function choiceNeedsSceneNote(choice: PreviewChoice | null): boolean {
-  if (choice === null || choice.pluginIds.length === 0) return false;
-  return choice.pluginIds.every((id) => !SCENE_PLUGIN_IDS.has(id));
 }
 
 export function parseCanvasDimension(raw: string): number | null {

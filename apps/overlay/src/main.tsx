@@ -1,13 +1,12 @@
 import { StrictMode, useState } from "react";
 import { createRoot } from "react-dom/client";
-import { ChatOverlay } from "./chat-overlay";
-import { Overlay } from "./overlay";
+import { OverlayStage } from "./stage";
+import "@s4n/plugin-alerts/motion.css";
 import "./index.css";
 
 const params = new URLSearchParams(window.location.search);
 const transparent = params.get("transparent") === "1";
 const preview = params.get("preview") === "1";
-const pluginId = params.get("plugin") ?? "official.alerts";
 
 if (preview) document.body.dataset.stage = "checker";
 else if (transparent) document.body.dataset.transparent = "1";
@@ -19,10 +18,7 @@ window.history.replaceState(null, "", `${cleaned.pathname}${cleaned.search}${cle
 
 function Root() {
   const [token] = useState(tokenFromUrl);
-  if (pluginId === "official.chat-overlay") {
-    return <ChatOverlay token={token} transparent={transparent} preview={preview} />;
-  }
-  return <Overlay token={token} pluginId={pluginId} transparent={transparent} preview={preview} />;
+  return <OverlayStage token={token} transparent={transparent} preview={preview} />;
 }
 
 const root = document.getElementById("root");

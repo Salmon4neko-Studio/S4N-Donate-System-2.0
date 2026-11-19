@@ -1,52 +1,67 @@
-import { useEffect, useRef, useState } from "react";
-import { alertDurationMs, readDonationAlert, type DonationAlert } from "@s4n/plugin-alerts";
+import { useEffect, useRef, useState, type CSSProperties } from "react";
+import {
+  alertExitHoldMs,
+  parseAlertAppearance,
+  readDonationAlert,
+  renderAlertCopy,
+  type AlertAppearance,
+  type DonationAlert,
+} from "@s4n/plugin-alerts";
 import { noteEvent, readCursor, readSeen } from "./cursor";
-import { formatTwd } from "./money";
 
+const PLUGIN_ID = "official.alerts";
 type Connection = "connecting" | "open" | "reconnecting" | "denied";
 
 export function Overlay({
   token,
-  pluginId,
   transparent,
   preview,
 }: {
   token: string;
-  pluginId: string;
   transparent: boolean;
   preview: boolean;
 }) {
   const [connection, setConnection] = useState<Connection>(token === "" ? "denied" : "connecting");
   const [alert, setAlert] = useState<DonationAlert | null>(null);
-  const [durationMs, setDurationMs] = useState(12_000);
+  const [phase, setPhase] = useState<"in" | "out">("in");
+  const [appearance, setAppearance] = useState<AlertAppearance>(() => parseAlertAppearance({}));
+  const [reducedMotion, setReducedMotion] = useState(false);
   const queueRef = useRef<DonationAlert[]>([]);
-  const showChrome = !transparent || preview;
+  const showHint = preview || !transparent;
+
+  useEffect(() => {
+    const media = window.matchMedia("(prefers-reduced-motion: reduce)");
+    const apply = () => setReducedMotion(media.matches);
+    apply();
+    media.addEventListener("change", apply);
+    return () => media.removeEventListener("change", apply);
+  }, []);
 
   useEffect(() => {
     if (token === "") return;
     let socket: WebSocket | null = null;
     let timer = 0;
     let closed = false;
-    let seen = readSeen(pluginId);
-    let cursor = readCursor(pluginId);
+    let seen = readSeen(PLUGIN_ID);
+    let cursor = readCursor(PLUGIN_ID);
 
     const connect = () => {
       setConnection((current) => (current === "connecting" ? "connecting" : "reconnecting"));
-      socket = new WebSocket(socketUrl(token, pluginId, cursor));
+      socket = new WebSocket(socketUrl(token, cursor));
       socket.addEventListener("open", () => setConnection("open"));
       socket.addEventListener("message", (message) => {
         if (typeof message.data !== "string") return;
         const next = readSocketMessage(message.data);
         if (next.kind === "settings") {
-          setDurationMs(next.durationMs);
+          setAppearance(parseAlertAppearance(next.settings));
           if (next.sequence !== null) {
-            const noted = noteEvent(pluginId, seen, "", next.sequence, cursor);
+            const noted = noteEvent(PLUGIN_ID, seen, "", next.sequence, cursor);
             cursor = noted.cursor;
           }
           return;
         }
         if (next.kind === "alert") {
-          const noted = noteEvent(pluginId, seen, next.alert.id, next.sequence, cursor);
+          const noted = noteEvent(PLUGIN_ID, seen, next.alert.id, next.sequence, cursor);
           seen = noted.seen;
           cursor = noted.cursor;
           if (noted.fresh) enqueue(next.alert);
@@ -69,7 +84,7 @@ export function Overlay({
       window.clearTimeout(timer);
       socket?.close();
     };
-  }, [pluginId, token]);
+  }, [token]);
 
   function enqueue(next: DonationAlert) {
     setAlert((current) => {
@@ -82,61 +97,58 @@ export function Overlay({
 
   useEffect(() => {
     if (alert === null) return;
-    const timer = window.setTimeout(() => {
-      const next = queueRef.current.shift() ?? null;
-      setAlert(next);
-    }, durationMs);
+    setPhase("in");
+    const timer = window.setTimeout(() => setPhase("out"), appearance.durationMs);
     return () => window.clearTimeout(timer);
-  }, [alert, durationMs]);
+  }, [alert, appearance.durationMs]);
+
+  useEffect(() => {
+    if (alert === null || phase !== "out") return;
+    const timer = window.setTimeout(() => {
+      setPhase("in");
+      setAlert(queueRef.current.shift() ?? null);
+    }, alertExitHoldMs(reducedMotion));
+    return () => window.clearTimeout(timer);
+  }, [alert, phase, reducedMotion]);
 
   const connectionLabel =
     connection === "open" ? "已連線" : connection === "reconnecting" ? "重新連線中" : connection === "denied" ? "權杖無效" : "連線中";
+  const copy = alert === null ? null : renderAlertCopy(alert, appearance);
+  const motion = phase === "out" ? appearance.exitAnimation : appearance.enterAnimation;
 
   return (
-    <main className="flex min-h-svh flex-col justify-end p-6 md:p-10">
+    <div className="alert-layer">
       <p className="sr-only" role="status">
         {connectionLabel}
       </p>
-      {showChrome && alert === null ? (
-        <section className="mb-6 max-w-md text-sm leading-6 text-ink-soft">
-          <p className="text-xs tracking-[0.18em] text-orange-ink">贊助提醒</p>
-          <h1 className="mt-3 text-3xl font-normal tracking-[0.04em] text-ink">等待贊助</h1>
-          <p className="mt-3">
-            {connection === "denied"
-              ? "這個網址的權杖無效。請從工作台複製新的疊層網址。"
-              : `${connectionLabel}。啟用「贊助提醒」之後，測試贊助與入帳贊助會出現在這裡。`}
-          </p>
-          {preview ? <p className="mt-2">棋盤底只供預覽。OBS 請使用沒有 preview 的網址。</p> : null}
-          {pluginId !== "official.alerts" ? <p className="mt-2">這個外掛還沒有自己的疊層畫面。</p> : null}
-        </section>
+      {showHint && alert === null ? (
+        <p className="overlay-hint">{connection === "denied" ? "權杖無效。" : `贊助提醒${connectionLabel}。等待贊助。`}</p>
       ) : null}
-      {alert ? <AlertCard alert={alert} /> : null}
-    </main>
+      {alert && copy ? (
+        <article
+          className={`s4n-alert-card s4n-${phase === "out" ? "exit" : "enter"}-${motion}`}
+          style={alertStyle(appearance)}
+          aria-live="polite"
+        >
+          <p className="s4n-alert-kicker">{alert.test ? "測試" : "贊助"}</p>
+          {copy.title ? <h2 className="s4n-alert-title">{copy.title}</h2> : null}
+          {copy.body ? <p className="s4n-alert-body">{copy.body}</p> : null}
+        </article>
+      ) : null}
+    </div>
   );
 }
 
-function AlertCard({ alert }: { alert: DonationAlert }) {
-  return (
-    <article
-      className="s4n-rise w-full max-w-md rounded-card border border-line border-l-4 border-l-orange bg-paper-raised px-6 py-5 shadow-soft"
-      aria-live="polite"
-    >
-      <div className="flex items-start justify-between gap-4">
-        <p className="text-xs tracking-[0.22em] text-orange-ink">{alert.test ? "測試" : "贊助"}</p>
-        {alert.test ? (
-          <span className="inline-flex size-11 items-center justify-center rounded-full border border-orange/70 font-normal text-xs tracking-widest text-orange-ink">
-            試
-          </span>
-        ) : null}
-      </div>
-      <h2 className="mt-3 text-4xl font-normal leading-tight tracking-[0.03em] text-ink">{alert.donorName}</h2>
-      <p className="mt-2 text-2xl text-orange-ink">{formatTwd(alert.amountMinor)}</p>
-      {alert.message ? <p className="mt-3 text-base leading-7 text-ink-soft">{alert.message}</p> : null}
-    </article>
-  );
+function alertStyle(appearance: AlertAppearance): CSSProperties {
+  return {
+    "--s4n-alert-primary": appearance.primaryColor,
+    "--s4n-alert-secondary": appearance.secondaryColor,
+    "--s4n-alert-title": appearance.titleColor,
+    "--s4n-alert-body": appearance.bodyColor,
+  } as CSSProperties;
 }
 
-function socketUrl(token: string, pluginId: string, since: string | null): string {
+function socketUrl(token: string, since: string | null): string {
   const httpUrl = import.meta.env.VITE_API_URL ?? "http://localhost:8787";
   const url = new URL(httpUrl);
   url.protocol = url.protocol === "https:" ? "wss:" : "ws:";
@@ -144,14 +156,17 @@ function socketUrl(token: string, pluginId: string, since: string | null): strin
   url.search = "";
   url.hash = "";
   url.searchParams.set("token", token);
-  url.searchParams.set("plugin", pluginId);
+  url.searchParams.set("plugin", PLUGIN_ID);
   if (since !== null) url.searchParams.set("since", since);
   return url.toString();
 }
 
 function readSocketMessage(
   raw: string,
-): { kind: "settings"; durationMs: number; sequence: string | null } | { kind: "alert"; alert: DonationAlert; sequence: string | null } | { kind: "ignore" } {
+):
+  | { kind: "settings"; settings: Record<string, unknown>; sequence: string | null }
+  | { kind: "alert"; alert: DonationAlert; sequence: string | null }
+  | { kind: "ignore" } {
   let parsed: unknown;
   try {
     parsed = JSON.parse(raw) as unknown;
@@ -160,10 +175,9 @@ function readSocketMessage(
   }
   if (!isRecord(parsed)) return { kind: "ignore" };
   if (parsed.channel === "system") {
-    const settings = isRecord(parsed.settings) ? parsed.settings : {};
     return {
       kind: "settings",
-      durationMs: alertDurationMs(settings),
+      settings: isRecord(parsed.settings) ? parsed.settings : {},
       sequence: typeof parsed.sequence === "string" ? parsed.sequence : null,
     };
   }

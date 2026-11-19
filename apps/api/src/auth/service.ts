@@ -21,6 +21,8 @@ export interface AuthService {
   issueOverlayToken(operatorId: string): Promise<string>;
   readOverlayToken(operatorId: string): Promise<string | null>;
   overlayTokenValid(token: string): Promise<boolean>;
+  /** Operator that owns this overlay token, or null when the token is not current. */
+  overlayOperatorId(token: string): Promise<string | null>;
   readonly rotateAfterMs: number;
 }
 
@@ -128,6 +130,11 @@ export function createAuthService(options: {
       if (token.length < 32 || token.length > 128) return false;
       const found = await options.store.findOverlayTokenByHash(hashOverlayToken(token));
       return found !== null;
+    },
+    async overlayOperatorId(token) {
+      if (token.length < 32 || token.length > 128) return null;
+      const found = await options.store.findOverlayTokenByHash(hashOverlayToken(token));
+      return found?.operatorId ?? null;
     },
   };
 }

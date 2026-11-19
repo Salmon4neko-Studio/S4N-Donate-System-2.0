@@ -1,5 +1,6 @@
 import { useEffect, useState, type FormEvent } from "react";
 import { Link } from "react-router";
+import { normalizeHexColor } from "@s4n/plugin-sdk";
 import { buttonClass, Field, Hint, Note, TextArea, TextInput } from "@/components/fields";
 import { ApiError, api, type PluginSettingsResponse, type SettingsFieldState } from "@/lib/api";
 
@@ -8,14 +9,22 @@ const enumLabel: Record<string, string> = {
   production: "正式站",
   slow: "慢",
   medium: "中",
+  rise: "上升",
+  fade: "淡化",
+  "slide-left": "向左滑動",
+  "slide-right": "向右滑動",
+  bounce: "彈跳",
+  scale: "縮放",
 };
 
 export function PluginSettingsForm({
   pluginId,
   scope,
+  onDraft,
 }: {
   pluginId: string;
   scope: "secret" | "public";
+  onDraft?: (drafts: Record<string, string>) => void;
 }) {
   const [fields, setFields] = useState<SettingsFieldState[] | null>(null);
   const [drafts, setDrafts] = useState<Record<string, string>>({});
@@ -35,6 +44,7 @@ export function PluginSettingsForm({
           next[field.key] = draftValue(field);
         }
         setDrafts(next);
+        onDraft?.(next);
       })
       .catch((caught: unknown) => {
         if (caught instanceof DOMException && caught.name === "AbortError") return;
@@ -74,14 +84,12 @@ export function PluginSettingsForm({
       });
       const visible = scope === "secret" ? body.secretFields : body.publicFields;
       setFields(visible);
-      setDrafts((current) => {
-        const next = { ...current };
-        for (const field of visible) {
-          if (field.secret) next[field.key] = "";
-          else next[field.key] = draftValue(field);
-        }
-        return next;
-      });
+      const next: Record<string, string> = {};
+      for (const field of visible) {
+        next[field.key] = field.secret ? "" : draftValue(field);
+      }
+      setDrafts(next);
+      if (scope === "public") onDraft?.(next);
       setSaved(true);
     } catch (caught) {
       setError(settingsError(caught));
@@ -102,6 +110,12 @@ export function PluginSettingsForm({
         </Link>
       </p>
     );
+  }
+
+  function changeDraft(key: string, value: string) {
+    const next = { ...drafts, [key]: value };
+    setDrafts(next);
+    if (scope === "public") onDraft?.(next);
   }
 
   return (
@@ -130,7 +144,7 @@ export function PluginSettingsForm({
               <select
                 id={`${pluginId}-${field.key}`}
                 value={drafts[field.key] ?? ""}
-                onChange={(event) => setDrafts((current) => ({ ...current, [field.key]: event.target.value }))}
+                onChange={(event) => changeDraft(field.key, event.target.value)}
               >
                 <option value="">請選擇</option>
                 {field.enum.map((option) => (
@@ -146,29 +160,45 @@ export function PluginSettingsForm({
                 id={`${pluginId}-${field.key}`}
                 type="checkbox"
                 checked={(drafts[field.key] ?? "false") === "true"}
-                onChange={(event) =>
-                  setDrafts((current) => ({ ...current, [field.key]: event.target.checked ? "true" : "false" }))
-                }
+                onChange={(event) => changeDraft(field.key, event.target.checked ? "true" : "false")}
               />
               <label htmlFor={`${pluginId}-${field.key}`}>{(drafts[field.key] ?? "false") === "true" ? "開啟" : "關閉"}</label>
+            </div>
+          ) : field.color ? (
+            <div className="s4n-color-row">
+              <input
+                type="color"
+                aria-label={`${field.title ?? field.key}色票`}
+                value={colorInputValue(drafts[field.key] ?? "")}
+                onChange={(event) => changeDraft(field.key, event.target.value)}
+              />
+              <TextInput
+                id={`${pluginId}-${field.key}`}
+                spellCheck={false}
+                maxLength={field.maxLength ?? undefined}
+                value={drafts[field.key] ?? ""}
+                onChange={(event) => changeDraft(field.key, event.target.value)}
+              />
             </div>
           ) : field.multiline ? (
             <TextArea
               id={`${pluginId}-${field.key}`}
               rows={5}
+              maxLength={field.maxLength ?? undefined}
               value={drafts[field.key] ?? ""}
-              onChange={(event) => setDrafts((current) => ({ ...current, [field.key]: event.target.value }))}
+              onChange={(event) => changeDraft(field.key, event.target.value)}
             />
           ) : (
             <TextInput
               id={`${pluginId}-${field.key}`}
               type={field.secret ? "password" : field.type === "integer" || field.type === "number" ? "number" : "text"}
               min={field.minimum ?? undefined}
+              maxLength={field.secret ? undefined : (field.maxLength ?? undefined)}
               step={field.type === "integer" ? 1 : undefined}
               autoComplete={field.secret ? "off" : undefined}
               placeholder={field.secret ? (field.configured ? "已設定，留空表示不變更" : "未設定") : undefined}
               value={drafts[field.key] ?? ""}
-              onChange={(event) => setDrafts((current) => ({ ...current, [field.key]: event.target.value }))}
+              onChange={(event) => changeDraft(field.key, event.target.value)}
             />
           )}
         </Field>
@@ -192,6 +222,10 @@ function secretHint(description: string | null): string {
   if (text.includes("已設定") || text.includes("未設定")) return `${text}。`;
   if (text.endsWith("只會存成密文")) return `${text}，${status}。`;
   return `${text}。只會存成密文，${status}。`;
+}
+
+function colorInputValue(value: string): string {
+  return normalizeHexColor(value) ?? "#f28500";
 }
 
 function draftValue(field: SettingsFieldState): string {

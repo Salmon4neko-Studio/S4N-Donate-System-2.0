@@ -5,7 +5,7 @@
     "author": "S4N",
     "featured": true,
     "icon": "bell",
-    "changelog": "0.1.0 把贊助提醒放進官方市集。畫面、權限與設定和上一版相同。",
+    "changelog": "0.2.0 可調整標題與內文範本、文字顏色、通知主色與副色，以及進場與退場動畫。",
     "screenshots": [
       {
         "alt": "紙色提醒卡，左邊是橘色細線",
@@ -20,7 +20,7 @@
     "author": "S4N",
     "featured": true,
     "icon": "display",
-    "changelog": "0.1.0 顯示已經正規化的聊天。它不連到任何平台。",
+    "changelog": "0.2.0 改在共用畫布上占一個版位。過濾與設定沒有改。",
     "screenshots": [
       {
         "alt": "聊天列與徽章",

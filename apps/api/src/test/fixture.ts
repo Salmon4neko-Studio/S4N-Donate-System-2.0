@@ -11,6 +11,7 @@ import { createMemoryInstallations, type InstallationStore } from "../plugins/in
 import { createMemorySecretStore } from "../plugins/memory-store.js";
 import { createBundledMarketplace, type MarketplaceService } from "../plugins/marketplace/service.js";
 import { createMemoryAuthStore } from "../auth/store.js";
+import { createMemoryOverlayLayoutStore } from "../realtime/overlay-layout.js";
 import type { SecretStore } from "../plugins/settings.js";
 
 export const TEST_ORIGIN = "http://localhost:5180";
@@ -79,6 +80,7 @@ export function createTestApp(overrides: TestOverrides = {}): {
     ledger,
     bus,
     auth,
+    layouts: createMemoryOverlayLayoutStore(),
     pingDatabase: async () => "unconfigured",
     ...rest,
   });

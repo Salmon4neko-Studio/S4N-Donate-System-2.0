@@ -7,7 +7,7 @@ export const DEFAULT_BOT_NAMES = "Nightbot\nStreamElements\nMoobot\nStreamlabs\n
 export const manifest = {
   id: CHAT_OVERLAY_PLUGIN_ID,
   name: "聊天疊層",
-  version: "0.1.0",
+  version: "0.2.0",
   api: "0.1",
   description:
     "在 OBS 顯示已正規化的聊天。過濾、遮罩、停留時間與贊助混入都在這份設定。它不連到 Twitch 或 YouTube，所以下一個平台來源不必改這個外掛。",
@@ -16,6 +16,7 @@ export const manifest = {
   entry: {
     overlay: "./src/index.ts",
   },
+  overlaySlot: { x: 0.66, y: 0.06, width: 0.3, height: 0.88 },
   settingsSchema: {
     type: "object",
     additionalProperties: false,

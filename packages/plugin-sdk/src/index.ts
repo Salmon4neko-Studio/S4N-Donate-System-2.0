@@ -26,6 +26,9 @@ export type {
   SettingsSchema,
 } from "./manifest.js";
 
+export { OVERLAY_RECT_MIN, clampOverlayRect, isHexColor, normalizeHexColor, parseOverlayRect } from "./overlay.js";
+export type { OverlayRect } from "./overlay.js";
+
 export { PaymentConfigError, PaymentNotImplemented } from "./payments.js";
 export type {
   CallbackVerification,
