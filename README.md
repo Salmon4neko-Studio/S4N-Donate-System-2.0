@@ -1,126 +1,209 @@
 # S4N DONATE SYSTEM 2.0
 
-開源實況主贊助平台。這不是舊系統的遷移。綠界與歐付寶可開信用卡、ATM、超商代碼與超商條碼。
+**開源實況主贊助平台**  
+*An open-source, self-hosted donation platform for livestreamers.*
 
-優先順序是安全、美感，然後才是開發容易。核心擁有帳本、付款介面、事件匯流排、疊層外殼、外掛密鑰與權限。功能以外掛掛上。文件與介面文字以繁體中文為主。
+[![License: MIT](https://img.shields.io/github/license/Salmon4neko-Studio/S4N-Donate-System-2.0?color=2d333b)](LICENSE)
+[![CI](https://github.com/Salmon4neko-Studio/S4N-Donate-System-2.0/actions/workflows/ci.yml/badge.svg)](https://github.com/Salmon4neko-Studio/S4N-Donate-System-2.0/actions/workflows/ci.yml)
+
+S4N DONATE SYSTEM 2.0 是給實況主自行架設的贊助平台：營運者在儀表板管理金流與疊層，觀眾在公開贊助頁完成付款，OBS 則以瀏覽器來源顯示提醒、目標、跑馬燈與聊天。這不是舊系統的遷移。
+
+設計優先順序是**安全**、**美感**，然後才是開發容易。核心只保留帳本、付款介面、事件匯流排、疊層外殼、外掛密鑰與權限；具體功能以外掛掛上。介面與文件以繁體中文為主。
+
+使用教學與部署步驟不在本 README，請見文件站（來源：[`apps/docs`](apps/docs)）。
 
 文件站：https://docs.donate-system.salmon4neko.com/
 
-## 這個骨架有什麼
+---
 
-- `s4n-donate-system-2.0-events`：`s4n.donation.created` / `succeeded` / `failed`、`s4n.chat.message` / `delete` / `clear`、`s4n.goal.updated`、`s4n.tts.request`、`s4n.media.now_playing`
-- `s4n-donate-system-2.0-plugin-sdk`：外掛規格 0.1、權限，以及不能寫帳的付款介面
-- 官方外掛清單：綠界與歐付寶的信用卡、ATM、超商代碼、超商條碼，加上提醒、Twitch 聊天來源、聊天疊層、目標進度與跑馬燈
-- API：Argon2id 登入、AES-256-GCM 密文設定、`/api/payments/:pluginId/callback`、帶權杖的疊層 WebSocket
-- 儀表板（初次設定、外掛市集、帳本、測試贊助）、贊助頁，以及贊助提醒疊層
-- Starlight 文件，以及 Docker Compose
+## 架構
 
-## 這個骨架故意沒做
+本專案是單一 pnpm monorepo 裡的**模組化單體（modular monolith）**：一個 API 程序承載帳本、認證、市集與即時事件，功能則以外掛擴充。官方外掛與核心一起發布；市集以簽過名的索引宣告版本、權限與套件摘要。
 
-- YouTube 聊天（Twitch 聊天疊層已有。下一個來源沿用同一份事件）
-- 語音合成（外掛已移除；舊的 `s4n.tts.request` 只留在事件紀錄）
-- 多個 API 實例共用的登入限流（事件紀錄已在 PostgreSQL）
+```mermaid
+flowchart TB
+  subgraph ui["使用者介面"]
+    web["apps/web<br/>儀表板、贊助頁、外掛市集"]
+    overlay["apps/overlay<br/>OBS 共用畫布"]
+    docs["apps/docs<br/>Starlight 文件"]
+  end
 
-畫面若寫著尚未實作，那就是還沒有。不要把空狀態讀成「今天沒有贊助」。
+  subgraph core["apps/api　模組化單體"]
+    hono["Hono API"]
+    auth["營運者認證與工作階段"]
+    ledger["帳本 Donation"]
+    events["EventLog<br/>LISTEN / NOTIFY"]
+    market["外掛市集"]
+    secrets["S4N_MASTER_KEY<br/>AES-256-GCM 密文"]
+  end
 
-## 需求
+  subgraph shared["共用套件"]
+    ev["s4n-donate-system-2.0-events"]
+    sdk["s4n-donate-system-2.0-plugin-sdk"]
+    tokens["s4n-donate-system-2.0-design-tokens"]
+  end
 
-- Node.js 22
-- pnpm 10（`packageManager` 已指定 10.33.4）
-- 可選：Docker，用來跑 PostgreSQL 或整組 Compose
+  subgraph plugins["外掛"]
+    pay["金流：綠界、歐付寶<br/>（僅官方、一種方式一個外掛）"]
+    ov["疊層：提醒、目標、跑馬燈、聊天顯示"]
+    chat["連接器：Twitch 聊天來源"]
+  end
 
-## 安裝與開發
+  pg[("PostgreSQL 16")]
 
-```bash
-pnpm install
-pnpm dev
+  web -->|"HTTPS / 工作階段 Cookie"| hono
+  overlay -->|"WebSocket<br/>疊層權杖"| hono
+  hono --> auth
+  hono --> ledger
+  hono --> events
+  hono --> market
+  hono --> secrets
+  hono --> pg
+  market --> plugins
+  plugins --> sdk
+  ev --> sdk
+  web --> tokens
+  overlay --> tokens
+  docs --> tokens
 ```
 
-沒有 `.env` 時，API 會讀 `.env.example`。要改設定再複製，並自己產生主金鑰：
+正式環境由 Caddy 終止 TLS：儀表板與 API 同一個網域，OBS 疊層使用獨立主機名；PostgreSQL 不對外發布埠。映像推送到 `ghcr.io/salmon4neko-studio/s4n-donate-system-2.0-{api,web,overlay,docs}`。
 
-```bash
-cp .env.example .env
-openssl rand -base64 32
-```
-
-| 服務 | 位址 |
-| --- | --- |
-| API | http://127.0.0.1:8787 |
-| 儀表板與贊助頁 | http://127.0.0.1:5180 |
-| OBS 疊層 | http://127.0.0.1:5181 |
-| 文件 | http://127.0.0.1:4321 |
-
-測試不需要資料庫。登入、外掛設定與疊層權杖需要 PostgreSQL：
-
-```bash
-docker compose up -d postgres
-pnpm db:migrate
-```
-
-檢查：
-
-```bash
-pnpm typecheck
-pnpm test
-```
-
-## Docker Compose
-
-本機：
-
-```bash
-docker compose up --build
-```
-
-服務是 `postgres`、`api`、`web`、`overlay`、`docs`。資料庫密碼 `s4n_dev_password` 與全零的 `S4N_MASTER_KEY` 只給本機。`S4N_ENV=production` 會拒絕那把金鑰。web、overlay、docs 在容器裡聽 8080。瀏覽器打頁面自己的 `/api` 與 `/ws`。
-
-正式環境用 `compose.prod.yaml`：Caddy 終止 TLS，儀表板與 API 同一個網域，疊層用另一個主機名，Postgres 不發布埠。步驟、備份與金流通知網址寫在文件站的「正式環境」。CI 在拉取要求上跑型別檢查與測試（含 PostgreSQL 的 `LISTEN`），推上 `main` 或 `v*` 標籤時把映像推到 `ghcr.io/salmon4neko-studio/s4n-donate-system-2.0-api`、`s4n-donate-system-2.0-web`、`s4n-donate-system-2.0-overlay`、`s4n-donate-system-2.0-docs`。
-
-## 目錄
+### 目錄
 
 ```text
-apps/api          Hono、Prisma、PostgreSQL、疊層 WebSocket
-apps/web          Vite、React 19、儀表板 / 贊助頁 / 外掛庫
-apps/overlay      OBS 瀏覽器來源（贊助提醒、聊天、目標、跑馬燈）
-apps/docs         Starlight（繁體中文）
-packages/events   事件契約
-packages/plugin-sdk
-packages/design-tokens
-plugins/ecpay     綠界，含密文設定
-plugins/opay      歐付寶，含密文設定
-plugins/alerts    贊助提醒
-plugins/twitch-chat  Twitch IRC 來源
-plugins/chat-overlay 聊天疊層（與平台無關）
-plugins/goals     目標進度（帳本計算，疊層版位）
-plugins/ticker    跑馬燈（純文字，疊層版位）
-plugins/example-thanks  可編譯的社群疊層範例（未進官方目錄）
+apps/api             Hono、Prisma、PostgreSQL、疊層 WebSocket、外掛市集
+apps/web             Vite、React 19、Tocas UI：儀表板與公開贊助頁
+apps/overlay         OBS 瀏覽器來源（共用畫布上的提醒、聊天、目標、跑馬燈）
+apps/docs            Starlight 文件（繁體中文）
+packages/events      型別化事件契約
+packages/plugin-sdk  外掛規格 0.1、權限與付款介面（外掛不直接寫帳本）
+packages/design-tokens  品牌色與自託管字體
+plugins/             官方與範例外掛（見下方「外掛系統」）
+deploy/              正式環境的 Caddy 進入點與備份腳本
 ```
 
-外掛規格寫在文件站的「外掛規格 0.1」。授權是 MIT。
+核心擁有帳本；付款外掛只負責開單與驗證金流通知，通過後由核心入帳。疊層透過權杖連上 WebSocket，依事件序號補齊斷線期間的紀錄（至少送達一次，客戶端以事件 id 去重）。測試贊助只進事件紀錄，不寫入帳本。
 
-## 這份骨架自己定下來的事
+---
 
-簡報沒有指定、但程式必須有一個選擇的部分：
+## 技術棧
 
-- **Prisma 7.10**，不是還在候選階段的 Prisma 8。用戶端放在 `apps/api/generated`，連線使用 `@prisma/adapter-pg`。
-- **TypeScript 5.9**。Prisma 7 的文件以此為準，沒有跟到 TypeScript 7。
-- 付款介面放在 `s4n-donate-system-2.0-plugin-sdk`，API 重新導出使用方式。官方外掛因此不會依賴 API，也碰不到帳本。
-- 密文欄位的標記是 JSON Schema 的 `x-s4n-secret: true`。加密的附加資料綁住外掛 id 與欄位名。
-- 官方外掛是明確允許清單，不是 `official.` 前綴。
-- TWD 的最小單位訂為 1 元，因為綠界與歐付寶收整數元。贊助金額的上下限是 `S4N_DONATION_MIN_TWD` 與 `S4N_DONATION_MAX_TWD`，預設 30 與 20000。
-- 付款通知與瀏覽器導回的網址用 `S4N_PUBLIC_BASE_URL`。正式環境必填。本機沒設時是 `http://127.0.0.1:8787`。正式站由 Caddy 把這個來源上的 `/api` 轉到 API。
-- 正式環境的疊層用獨立主機名（`S4N_OVERLAY_HOST`），不放在儀表板的 `/overlay`。儀表板自己有這個路徑，預覽 iframe 也要跟登入頁不同來源。兩個主機名都轉發 `/api` 與 `/ws`，所以前端用相對路徑，不把 `localhost:8787` 寫進映像。
-- `S4N_TRUST_PROXY=1` 時，限流用 `X-Forwarded-For` 的最後一跳，要求網址改用邊緣代理的 scheme 與 host。正式 Compose 會打開它，而且不發布 API 埠。
-- 綠界與歐付寶只做信用卡一次付清。檢查碼依兩家目前的 AIO 附錄（SHA-256、EncryptType=1）。正式站不把模擬付款入帳。
-- 儀表板的跨站請求防護是來源允許清單，加上 `SameSite=Lax` 的 `s4n_session`。密碼雜湊用 `hash-wasm` 的 Argon2id，參數在 `apps/api/src/auth/constants.ts`，沒有另裝原生模組。`Secure` 只在 `S4N_ENV=production` 打開。
-- 事件寫在 PostgreSQL 的 `EventLog`，用 `LISTEN`/`NOTIFY` 讓多個 API 程序看見同一條紀錄。客戶端帶最後的序號重連，至少送達一次，並用事件 id 排除重複。預設保留 7 天，聊天 24 小時。測試贊助進事件紀錄，不進帳本。登入限流仍在單一程序的記憶體裡。Twitch 徽章快取也是，因為裡面有短暫的應用程式權杖。
-- 測試贊助是 `s4n.donation.test`，不寫入帳本。疊層權杖以 SHA-256 查找，並用主金鑰密封，方便儀表板再次顯示網址。
-- 開發用主金鑰是 32 個零位元組。正式環境拒絕它。
-- 儀表板與公開贊助頁以 Tocas UI 5 為主，紙色、橘色、靛藍對到它的 CSS 變數。實心按鈕底色是 `#f28500`，字是 `#1a1512`（對比 7.01:1）。淺底小字用 `#995400`。Tocas 沒有的版面（側欄在手機上的橫向導覽、OBS 預覽畫布）用自訂元件補上。OBS 疊層的提醒卡維持紙色，左邊線用 `#f28500`。
-- 儀表板預設淺色，側欄可以切換 Tocas 暗色。公開贊助頁維持淺色。字體是本機自託管的 jf open 粉圓 2.1（justfont，SIL OFL 1.1，https://github.com/justfont/open-huninn-font/releases/tag/v2.1）。官方 `jf-openhuninn-2.1.ttf` 轉成 WOFF2，放在 `packages/design-tokens/fonts/`，旁邊是 `OFL.txt`。12,260 個字形都保留，沒有再裁切。內文與標題同一個家族，`font-display: swap`，不連 Google Fonts 或其他字型 CDN。
-- Twitch 聊天由來源外掛 `official.twitch-chat` 連到 `wss://irc-ws.chat.twitch.tv`，用匿名 `justinfan`。選填的 Client ID / Client Secret 走既有的 AES-256-GCM 密文欄位，不放進 OBS 網址。顯示外掛 `official.chat-overlay` 只訂閱正規化事件，之後的 YouTube 來源不必改它。測試贊助可以混進聊天，但仍然不寫帳本。
-- 外掛市集的官方索引用 Ed25519 簽名，公鑰釘在 `apps/api/src/plugins/marketplace/pinned-key.ts`。私鑰不在版本庫。套件摘要是 `s4n-plugin.json` 的 SHA-256。金流只允許綠界與歐付寶。社群外掛只有疊層與儀表板那組權限可以記下安裝，而且不會執行程式。安裝與權限變更寫進 `s4n.plugin.changed`，不含密文。
+| 層面 | 技術 |
+| --- | --- |
+| 執行環境 | Node.js 22（`engines`: `>=22.13`）、pnpm 10.33.4 |
+| 語言 | TypeScript 5.9.3 |
+| API | Hono 4、`@hono/node-server`、WebSocket（`ws`） |
+| 資料 | Prisma 7.10、PostgreSQL 16（`postgres:16-alpine`）、`@prisma/adapter-pg` |
+| 前端 | Vite 8、React 19 |
+| 儀表板 / 贊助頁 UI | [Tocas UI](https://tocas-ui.com/) 5.7，輔以自訂元件 |
+| 字體 | 本機自託管 [jf open 粉圓 2.1](https://github.com/justfont/open-huninn-font/releases/tag/v2.1)（justfont，SIL OFL 1.1），不連外部字型 CDN |
+| 疊層樣式 | 獨立樣式；共用同一字型家族。建置使用 Tailwind CSS 4 |
+| 文件 | Astro 7、Starlight |
+| 部署 | Docker、Caddy 2.10、GitHub Actions、GHCR（`linux/amd64`） |
 
-## English
+品牌主色是 `#F28500`。實心按鈕使用該色填色，文字為 `#1a1512`。
 
-The dashboard and public donate pages use Tocas UI, themed with the paper, orange, and indigo tokens. Body and headings share self-hosted jf open 粉圓 2.1 (justfont, SIL OFL 1.1; https://github.com/justfont/open-huninn-font/releases/tag/v2.1). The OBS overlay stays on its own styles and the same family. Operators can sign in, install official plugins from a signed registry, and preview a test donation on the alerts overlay. Payment plugins stay official-only. Twitch chat is read anonymously on the server and shown by a separate chat overlay; optional Twitch credentials stay encrypted and never go on the OBS URL. YouTube chat is not in this version. ECPay and O'Pay can open a credit-card checkout; the ledger amount is the server order, and a test donation is still not written to the ledger. Set `S4N_PUBLIC_BASE_URL` so provider callbacks are not built from an internal host. Docs: https://docs.donate-system.salmon4neko.com/. Production uses `compose.prod.yaml`: Caddy, the overlay on its own hostname, Postgres unpublished, and images `ghcr.io/salmon4neko-studio/s4n-donate-system-2.0-api`, `s4n-donate-system-2.0-web`, `s4n-donate-system-2.0-overlay`, and `s4n-donate-system-2.0-docs`. The Traditional Chinese production guide has the checklist. Login needs PostgreSQL. Donation, chat, and plugin-audit events are appended there too, so an overlay can replay from the last sequence after a restart; delivery is at-least-once and clients dedupe by event id. Plugin audit events are not forwarded to OBS. The login rate limit and the Twitch badge cache stay in one process. See the Traditional Chinese sections above for ports, setup, and the decisions this tree had to make.
+---
+
+## 外掛系統
+
+外掛規格為 0.1，清單與權限宣告在各目錄的 `s4n-plugin.json`。官方外掛是**明確允許清單**，不是看到 `official.` 前綴就放行。金流外掛只有官方索引裡點名的方式可以安裝，而且一種付款方式對應一個外掛。
+
+### 金流（僅官方）
+
+目前已列入官方索引、並由核心載入的付款方式：
+
+| 外掛 id | 說明 |
+| --- | --- |
+| `official.ecpay` | 綠界信用卡（一次付清） |
+| `official.ecpay-atm` | 綠界 ATM 虛擬帳號 |
+| `official.ecpay-cvs` | 綠界超商代碼 |
+| `official.ecpay-barcode` | 綠界超商條碼 |
+| `official.opay` | 歐付寶信用卡（一次付清） |
+| `official.opay-atm` | 歐付寶 ATM 虛擬帳號 |
+| `official.opay-cvs` | 歐付寶超商代碼 |
+
+`plugins/opay-barcode`（歐付寶超商條碼）已有原始碼，但**尚未列入官方索引**，這個版本也不會被核心載入。
+
+付款通知與瀏覽器導回走 `/api/payments/:pluginId/callback` 與 `/return`。外掛以常數時間比對檢查碼並核對商店代號與付款方式；核心只在金額等於伺服器訂單、且廠商交易編號一致時入帳。取號（ATM／超商）只把訂單改為待繳費，不入帳、不送提醒。
+
+### 疊層與連接器
+
+| 外掛 id | 說明 |
+| --- | --- |
+| `official.alerts` | 贊助提醒：範本、顏色、動畫與提示音 |
+| `official.goals` | 目標進度：只計算帳本中已入帳（`succeeded`）的贊助 |
+| `official.ticker` | 跑馬燈：純文字，可接最近贊助 |
+| `official.chat-overlay` | 聊天顯示：只訂閱已正規化的聊天事件，不連到任何平台 |
+| `official.twitch-chat` | Twitch 聊天來源：伺服器以匿名 `justinfan` 讀取 IRC |
+
+提醒、目標、跑馬燈與聊天顯示共用同一條 OBS 網址、同一張畫布。Twitch 的選填 Client ID / Client Secret 以密文保存，不會出現在 OBS 網址。
+
+`plugins/example-thanks` 是可編譯的社群疊層範例，未進入官方目錄。這個版本對權限落在疊層與儀表板範圍內的社群外掛，最多只記下安裝狀態，**不會執行其程式**。
+
+---
+
+## 安全性
+
+主要設計如下。完整說明見文件站的〈安全性〉。
+
+- **主金鑰與密文：** 伺服器只放一把 `S4N_MASTER_KEY`（標準 Base64，解碼後為 32 位元組）。外掛密鑰以 AES-256-GCM 密封，附加驗證資料綁定外掛 id 與欄位名，密文不能挪到別的欄位。儀表板只顯示「已設定」或「未設定」，不回傳明文或密文。全零的開發用金鑰在正式環境會拒絕啟動。
+- **官方索引簽章：** `official.json` 以 Ed25519 簽署，公鑰釘在 `apps/api/src/plugins/marketplace/pinned-key.ts`。私鑰不在版本庫。沒有簽章、內容被改、或鑰匙不對的索引都不會被採用。套件摘要是正規化 `s4n-plugin.json` 的 SHA-256。
+- **金流隔離：** 只有允許清單上的官方付款外掛能使用 `payments.provider`、`secrets`、`network`。社群外掛不能成為付款提供者。入帳金額以伺服器訂單為準，不以廠商通知裡的金額覆寫。
+- **認證與工作階段：** 密碼為 Argon2id。Cookie `s4n_session` 為 `httpOnly`、`SameSite=Lax`，正式環境加上 `Secure`。會改變狀態的儀表板請求須通過來源允許清單。付款回呼不看 Origin，改由外掛驗簽。
+- **疊層權杖：** OBS 不使用登入 Cookie。權杖以 SHA-256 查找，並用主金鑰密封以便儀表板再次顯示網址。重新產生後舊權杖立即失效。
+- **不可信內容：** 贊助人名稱、留言與聊天文字不以 HTML 解讀。提示音只接受經 MIME 與檔頭檢查的音訊檔，路徑限制在音效目錄內。
+- **部署面：** API 與靜態服務映像以非 root 使用者執行；正式 Compose 不發布資料庫或 API 埠，僅由 Caddy 對外提供 80／443。不要把 `.env` 或真實密鑰提交到版本庫。
+
+目前尚無內容安全政策（CSP）。登入限流與 Twitch 徽章快取仍在單一程序的記憶體裡。
+
+### 回報弱點
+
+若發現安全漏洞，請不要在公開 Issue 貼出可重現的利用細節。回報方式、範圍與揭露原則見 [SECURITY.md](SECURITY.md)。
+
+---
+
+## 開發路線
+
+### 已完成
+
+- [x] 模組化單體與外掛市集（簽過名的官方索引、權限確認、安裝與更新）
+- [x] 營運者初次設定、登入，以及伺服器端工作階段
+- [x] 綠界與歐付寶：信用卡、ATM、超商代碼；綠界超商條碼
+- [x] 帳本狀態（待付款、待繳費、已付款、已過期、待人工處理、失敗）
+- [x] 測試贊助（送到疊層，不寫入帳本）
+- [x] 贊助提醒、目標進度、跑馬燈，以及 Twitch 聊天疊層
+- [x] 以 `S4N_MASTER_KEY` 密封外掛密鑰；密文欄位只顯示已設定／未設定
+- [x] PostgreSQL 事件紀錄與斷線依序號補齊
+- [x] 正式環境 Compose、Caddy、備份腳本，以及 CI 與 GHCR 映像
+
+### 規劃中
+
+- [ ] YouTube 聊天來源（事件契約與聊天疊層已預留同一份 `s4n.chat.*` 形狀；不必改顯示外掛）
+- [ ] 贊助頁自訂（版面與外觀由營運者調整）
+- [ ] 多個 API 實例共用的登入限流
+
+語音合成（TTS）已自本版本移除，不會列入後續規劃。
+
+---
+
+## AI 使用聲明
+
+本專案有相當比例的程式碼與文件，是在維護者的指導與審查下，藉由 AI 輔助開發工具（AI coding agents）產出。提交前經過人工檢視，但仍可能存在疏漏。
+
+請在用於正式環境前自行審查、測試，並依實際需求完成設定與驗證。本軟體依 MIT 授權「現況」提供，不對適用性或無錯誤作出保證。授權條款的完整免責聲明以 [`LICENSE`](LICENSE) 為準。
+
+---
+
+## 授權
+
+本專案採用 [MIT License](LICENSE)。Copyright (c) 2026 S4N DONATE SYSTEM contributors。
+
+儀表板、贊助頁與疊層使用的 jf open 粉圓字型，授權為 SIL Open Font License 1.1，檔案與授權全文在 `packages/design-tokens/fonts/`。
+
+---
+
+## 參與貢獻
+
+目前沒有獨立的 `CONTRIBUTING.md`。歡迎透過 [Issues](https://github.com/Salmon4neko-Studio/S4N-Donate-System-2.0/issues) 與 [Pull Requests](https://github.com/Salmon4neko-Studio/S4N-Donate-System-2.0/pulls) 參與。文件與介面文字請使用繁體中文。請勿提交 `.env` 或真實密鑰。

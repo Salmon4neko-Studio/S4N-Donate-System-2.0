@@ -14,6 +14,9 @@ export default defineConfig({
       },
       lastUpdated: false,
       favicon: "/favicon.png",
+      editLink: {
+        baseUrl: "https://github.com/Salmon4neko-Studio/S4N-Donate-System-2.0/edit/main/apps/docs/",
+      },
       social: [
         {
           icon: "github",
