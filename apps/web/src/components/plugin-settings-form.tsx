@@ -1,6 +1,6 @@
 import { useEffect, useState, type FormEvent } from "react";
 import { Link } from "react-router";
-import { normalizeHexColor } from "@s4n/plugin-sdk";
+import { normalizeHexColor } from "s4n-donate-system-2.0-plugin-sdk";
 import { buttonClass, Field, Hint, Note, TextArea, TextInput } from "@/components/fields";
 import { ApiError, api, type PluginSettingsResponse, type SettingsFieldState } from "@/lib/api";
 

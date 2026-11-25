@@ -3,7 +3,7 @@ import type { Server } from "node:http";
 import type { AddressInfo } from "node:net";
 import { test } from "node:test";
 import { serve } from "@hono/node-server";
-import { asUntrustedText } from "@s4n/events";
+import { asUntrustedText } from "s4n-donate-system-2.0-events";
 import { WebSocket, WebSocketServer } from "ws";
 import { createOfficialCatalog } from "../plugins/catalog.js";
 import { shouldForwardToOverlay } from "./audience.js";

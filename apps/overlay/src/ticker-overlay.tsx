@@ -1,5 +1,5 @@
 import { useEffect, useState, type CSSProperties } from "react";
-import { parseTickerSettings, tickerDurationSec } from "@s4n/plugin-ticker";
+import { parseTickerSettings, tickerDurationSec } from "s4n-donate-system-2.0-plugin-ticker";
 import { overlayStatusLine, type OverlayConnection } from "./status";
 
 const PLUGIN_ID = "official.ticker";

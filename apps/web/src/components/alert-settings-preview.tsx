@@ -1,7 +1,7 @@
 import { useState, type CSSProperties } from "react";
-import { parseAlertAppearance, renderAlertCopy, type DonationAlert } from "@s4n/plugin-alerts";
+import { parseAlertAppearance, renderAlertCopy, type DonationAlert } from "s4n-donate-system-2.0-plugin-alerts";
 import { buttonClass } from "@/components/fields";
-import "@s4n/plugin-alerts/motion.css";
+import "s4n-donate-system-2.0-plugin-alerts/motion.css";
 
 const SAMPLE: DonationAlert = {
   id: "preview",

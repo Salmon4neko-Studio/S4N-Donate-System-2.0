@@ -1,4 +1,4 @@
-import { PERMISSIONS, PLUGIN_KINDS, type Permission, type PluginKind } from "@s4n/plugin-sdk";
+import { PERMISSIONS, PLUGIN_KINDS, type Permission, type PluginKind } from "s4n-donate-system-2.0-plugin-sdk";
 import {
   MARKETPLACE_CATEGORIES,
   PLUGIN_ICONS,

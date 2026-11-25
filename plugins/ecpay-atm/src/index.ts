@@ -1,5 +1,5 @@
-import type { PaymentProvider } from "@s4n/plugin-sdk";
-import { createAioProvider } from "@s4n/plugin-sdk/aio";
+import type { PaymentProvider } from "s4n-donate-system-2.0-plugin-sdk";
+import { createAioProvider } from "s4n-donate-system-2.0-plugin-sdk/aio";
 import { manifest } from "./manifest.js";
 
 export { manifest };

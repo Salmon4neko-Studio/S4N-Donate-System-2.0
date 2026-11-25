@@ -1,5 +1,5 @@
-import type { ChatFragment, ChatMessagePayload } from "@s4n/events";
-import { asUntrustedText } from "@s4n/events";
+import type { ChatFragment, ChatMessagePayload } from "s4n-donate-system-2.0-events";
+import { asUntrustedText } from "s4n-donate-system-2.0-events";
 import type { ChatOverlaySettings } from "./settings.js";
 import { splitList } from "./settings.js";
 

@@ -3,7 +3,7 @@ title: 範例外掛
 description: 一份社群疊層清單，以及官方綠界清單的密文欄位。
 ---
 
-可編譯、可測試的社群範例是 `plugins/example-thanks`（`@s4n/plugin-example-thanks`）。它只有疊層與儀表板設定，沒有密鑰，也沒有付款，而且沒有放進官方目錄。做法見 [外掛開發](/guides/plugin-dev/)。清單如下。
+可編譯、可測試的社群範例是 `plugins/example-thanks`（`s4n-donate-system-2.0-plugin-example-thanks`）。它只有疊層與儀表板設定，沒有密鑰，也沒有付款，而且沒有放進官方目錄。做法見 [外掛開發](/guides/plugin-dev/)。清單如下。
 
 ```json
 {

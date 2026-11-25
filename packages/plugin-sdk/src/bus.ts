@@ -4,7 +4,7 @@ import {
   type S4nEvent,
   type S4nEventMap,
   type S4nEventName,
-} from "@s4n/events";
+} from "s4n-donate-system-2.0-events";
 
 export interface EventSink {
   publish<T extends S4nEventName>(type: T, payload: S4nEventMap[T]): void;

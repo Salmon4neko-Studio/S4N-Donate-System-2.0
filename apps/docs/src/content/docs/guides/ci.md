@@ -23,10 +23,10 @@ description: 拉取要求上跑的檢查，以及推到 GHCR 的映像標籤。
 
 | 映像 | Dockerfile |
 | --- | --- |
-| `ghcr.io/salmon4neko-studio/s4n-api` | `apps/api/Dockerfile` |
-| `ghcr.io/salmon4neko-studio/s4n-web` | `apps/web/Dockerfile` |
-| `ghcr.io/salmon4neko-studio/s4n-overlay` | `apps/overlay/Dockerfile` |
-| `ghcr.io/salmon4neko-studio/s4n-docs` | `apps/docs/Dockerfile` |
+| `ghcr.io/salmon4neko-studio/s4n-donate-system-2.0-api` | `apps/api/Dockerfile` |
+| `ghcr.io/salmon4neko-studio/s4n-donate-system-2.0-web` | `apps/web/Dockerfile` |
+| `ghcr.io/salmon4neko-studio/s4n-donate-system-2.0-overlay` | `apps/overlay/Dockerfile` |
+| `ghcr.io/salmon4neko-studio/s4n-donate-system-2.0-docs` | `apps/docs/Dockerfile` |
 
 標籤：
 
@@ -45,3 +45,13 @@ Caddy 使用官方映像，在容器裡為了綁 80/443 而以 root 執行。它
 第一次推送會在 GHCR 建立套件。請到套件頁確認可見範圍。私有套件要在伺服器上 `docker login ghcr.io`，權杖至少要有 `read:packages`。若組織限制 Actions 寫入套件，發布工作流程會在登入或推送時失敗，需要在組織設定裡允許這個儲存庫的 `GITHUB_TOKEN` 寫入 packages。
 
 伺服器怎麼拉映像、怎麼設定網域，見 [正式環境](/guides/production/)。
+
+## Cloudflare Workers
+
+文件站可以另外用 Cloudflare Workers 建置。Workers 的建置指令是：
+
+```bash
+pnpm --filter s4n-donate-system-2.0-docs build
+```
+
+套件名稱是 `s4n-donate-system-2.0-docs`。`pnpm --filter @s4n/docs build` 已經對不到這個套件。

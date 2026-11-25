@@ -29,48 +29,6 @@ importers:
       '@prisma/client':
         specifier: 7.10.1
         version: 7.10.1(prisma@7.10.1(@types/node@22.20.5)(@types/react-dom@19.3.0(@types/react@19.3.0))(@types/react@19.3.0)(magicast@0.5.5)(react-dom@19.3.1(react@19.3.1))(react@19.3.1)(typescript@5.9.3))(typescript@5.9.3)
-      '@s4n/events':
-        specifier: workspace:*
-        version: link:../../packages/events
-      '@s4n/plugin-alerts':
-        specifier: workspace:*
-        version: link:../../plugins/alerts
-      '@s4n/plugin-chat-overlay':
-        specifier: workspace:*
-        version: link:../../plugins/chat-overlay
-      '@s4n/plugin-ecpay':
-        specifier: workspace:*
-        version: link:../../plugins/ecpay
-      '@s4n/plugin-ecpay-atm':
-        specifier: workspace:*
-        version: link:../../plugins/ecpay-atm
-      '@s4n/plugin-ecpay-barcode':
-        specifier: workspace:*
-        version: link:../../plugins/ecpay-barcode
-      '@s4n/plugin-ecpay-cvs':
-        specifier: workspace:*
-        version: link:../../plugins/ecpay-cvs
-      '@s4n/plugin-goals':
-        specifier: workspace:*
-        version: link:../../plugins/goals
-      '@s4n/plugin-opay':
-        specifier: workspace:*
-        version: link:../../plugins/opay
-      '@s4n/plugin-opay-atm':
-        specifier: workspace:*
-        version: link:../../plugins/opay-atm
-      '@s4n/plugin-opay-cvs':
-        specifier: workspace:*
-        version: link:../../plugins/opay-cvs
-      '@s4n/plugin-sdk':
-        specifier: workspace:*
-        version: link:../../packages/plugin-sdk
-      '@s4n/plugin-ticker':
-        specifier: workspace:*
-        version: link:../../plugins/ticker
-      '@s4n/plugin-twitch-chat':
-        specifier: workspace:*
-        version: link:../../plugins/twitch-chat
       dotenv:
         specifier: ^18.0.0
         version: 18.0.10
@@ -86,6 +44,48 @@ importers:
       prisma:
         specifier: 7.10.1
         version: 7.10.1(@types/node@22.20.5)(@types/react-dom@19.3.0(@types/react@19.3.0))(@types/react@19.3.0)(magicast@0.5.5)(react-dom@19.3.1(react@19.3.1))(react@19.3.1)(typescript@5.9.3)
+      s4n-donate-system-2.0-events:
+        specifier: workspace:*
+        version: link:../../packages/events
+      s4n-donate-system-2.0-plugin-alerts:
+        specifier: workspace:*
+        version: link:../../plugins/alerts
+      s4n-donate-system-2.0-plugin-chat-overlay:
+        specifier: workspace:*
+        version: link:../../plugins/chat-overlay
+      s4n-donate-system-2.0-plugin-ecpay:
+        specifier: workspace:*
+        version: link:../../plugins/ecpay
+      s4n-donate-system-2.0-plugin-ecpay-atm:
+        specifier: workspace:*
+        version: link:../../plugins/ecpay-atm
+      s4n-donate-system-2.0-plugin-ecpay-barcode:
+        specifier: workspace:*
+        version: link:../../plugins/ecpay-barcode
+      s4n-donate-system-2.0-plugin-ecpay-cvs:
+        specifier: workspace:*
+        version: link:../../plugins/ecpay-cvs
+      s4n-donate-system-2.0-plugin-goals:
+        specifier: workspace:*
+        version: link:../../plugins/goals
+      s4n-donate-system-2.0-plugin-opay:
+        specifier: workspace:*
+        version: link:../../plugins/opay
+      s4n-donate-system-2.0-plugin-opay-atm:
+        specifier: workspace:*
+        version: link:../../plugins/opay-atm
+      s4n-donate-system-2.0-plugin-opay-cvs:
+        specifier: workspace:*
+        version: link:../../plugins/opay-cvs
+      s4n-donate-system-2.0-plugin-sdk:
+        specifier: workspace:*
+        version: link:../../packages/plugin-sdk
+      s4n-donate-system-2.0-plugin-ticker:
+        specifier: workspace:*
+        version: link:../../plugins/ticker
+      s4n-donate-system-2.0-plugin-twitch-chat:
+        specifier: workspace:*
+        version: link:../../plugins/twitch-chat
       tsx:
         specifier: ^4.23.15
         version: 4.23.15
@@ -111,12 +111,12 @@ importers:
       '@astrojs/starlight':
         specifier: ^0.42.10
         version: 0.42.10(astro@7.4.8(@types/node@24.19.2)(esbuild@0.28.2)(jiti@2.7.0)(tsx@4.23.15)(yaml@2.9.1))(typescript@5.9.3)
-      '@s4n/design-tokens':
-        specifier: workspace:*
-        version: link:../../packages/design-tokens
       astro:
         specifier: ^7.4.8
         version: 7.4.8(@types/node@24.19.2)(esbuild@0.28.2)(jiti@2.7.0)(tsx@4.23.15)(yaml@2.9.1)
+      s4n-donate-system-2.0-design-tokens:
+        specifier: workspace:*
+        version: link:../../packages/design-tokens
       sharp:
         specifier: ^0.34.5
         version: 0.34.5
@@ -130,30 +130,30 @@ importers:
 
   apps/overlay:
     dependencies:
-      '@s4n/design-tokens':
-        specifier: workspace:*
-        version: link:../../packages/design-tokens
-      '@s4n/events':
-        specifier: workspace:*
-        version: link:../../packages/events
-      '@s4n/plugin-alerts':
-        specifier: workspace:*
-        version: link:../../plugins/alerts
-      '@s4n/plugin-chat-overlay':
-        specifier: workspace:*
-        version: link:../../plugins/chat-overlay
-      '@s4n/plugin-goals':
-        specifier: workspace:*
-        version: link:../../plugins/goals
-      '@s4n/plugin-ticker':
-        specifier: workspace:*
-        version: link:../../plugins/ticker
       react:
         specifier: ^19.2.0
         version: 19.3.1
       react-dom:
         specifier: ^19.2.0
         version: 19.3.1(react@19.3.1)
+      s4n-donate-system-2.0-design-tokens:
+        specifier: workspace:*
+        version: link:../../packages/design-tokens
+      s4n-donate-system-2.0-events:
+        specifier: workspace:*
+        version: link:../../packages/events
+      s4n-donate-system-2.0-plugin-alerts:
+        specifier: workspace:*
+        version: link:../../plugins/alerts
+      s4n-donate-system-2.0-plugin-chat-overlay:
+        specifier: workspace:*
+        version: link:../../plugins/chat-overlay
+      s4n-donate-system-2.0-plugin-goals:
+        specifier: workspace:*
+        version: link:../../plugins/goals
+      s4n-donate-system-2.0-plugin-ticker:
+        specifier: workspace:*
+        version: link:../../plugins/ticker
     devDependencies:
       '@tailwindcss/vite':
         specifier: ^4.3.0
@@ -182,24 +182,6 @@ importers:
 
   apps/web:
     dependencies:
-      '@s4n/design-tokens':
-        specifier: workspace:*
-        version: link:../../packages/design-tokens
-      '@s4n/events':
-        specifier: workspace:*
-        version: link:../../packages/events
-      '@s4n/plugin-alerts':
-        specifier: workspace:*
-        version: link:../../plugins/alerts
-      '@s4n/plugin-goals':
-        specifier: workspace:*
-        version: link:../../plugins/goals
-      '@s4n/plugin-sdk':
-        specifier: workspace:*
-        version: link:../../packages/plugin-sdk
-      '@s4n/plugin-ticker':
-        specifier: workspace:*
-        version: link:../../plugins/ticker
       react:
         specifier: ^19.2.0
         version: 19.3.1
@@ -209,6 +191,24 @@ importers:
       react-router:
         specifier: ^8.5.1
         version: 8.5.1(@types/react-dom@19.3.0(@types/react@19.3.0))(@types/react@19.3.0)(react-dom@19.3.1(react@19.3.1))(react@19.3.1)
+      s4n-donate-system-2.0-design-tokens:
+        specifier: workspace:*
+        version: link:../../packages/design-tokens
+      s4n-donate-system-2.0-events:
+        specifier: workspace:*
+        version: link:../../packages/events
+      s4n-donate-system-2.0-plugin-alerts:
+        specifier: workspace:*
+        version: link:../../plugins/alerts
+      s4n-donate-system-2.0-plugin-goals:
+        specifier: workspace:*
+        version: link:../../plugins/goals
+      s4n-donate-system-2.0-plugin-sdk:
+        specifier: workspace:*
+        version: link:../../packages/plugin-sdk
+      s4n-donate-system-2.0-plugin-ticker:
+        specifier: workspace:*
+        version: link:../../plugins/ticker
       tocas:
         specifier: 5.7.0
         version: 5.7.0
@@ -242,7 +242,7 @@ importers:
 
   packages/plugin-sdk:
     dependencies:
-      '@s4n/events':
+      s4n-donate-system-2.0-events:
         specifier: workspace:*
         version: link:../events
     devDependencies:
@@ -255,10 +255,10 @@ importers:
 
   plugins/alerts:
     dependencies:
-      '@s4n/events':
+      s4n-donate-system-2.0-events:
         specifier: workspace:*
         version: link:../../packages/events
-      '@s4n/plugin-sdk':
+      s4n-donate-system-2.0-plugin-sdk:
         specifier: workspace:*
         version: link:../../packages/plugin-sdk
     devDependencies:
@@ -274,10 +274,10 @@ importers:
 
   plugins/chat-overlay:
     dependencies:
-      '@s4n/events':
+      s4n-donate-system-2.0-events:
         specifier: workspace:*
         version: link:../../packages/events
-      '@s4n/plugin-sdk':
+      s4n-donate-system-2.0-plugin-sdk:
         specifier: workspace:*
         version: link:../../packages/plugin-sdk
     devDependencies:
@@ -293,7 +293,7 @@ importers:
 
   plugins/ecpay:
     dependencies:
-      '@s4n/plugin-sdk':
+      s4n-donate-system-2.0-plugin-sdk:
         specifier: workspace:*
         version: link:../../packages/plugin-sdk
     devDependencies:
@@ -306,7 +306,7 @@ importers:
 
   plugins/ecpay-atm:
     dependencies:
-      '@s4n/plugin-sdk':
+      s4n-donate-system-2.0-plugin-sdk:
         specifier: workspace:*
         version: link:../../packages/plugin-sdk
     devDependencies:
@@ -319,7 +319,7 @@ importers:
 
   plugins/ecpay-barcode:
     dependencies:
-      '@s4n/plugin-sdk':
+      s4n-donate-system-2.0-plugin-sdk:
         specifier: workspace:*
         version: link:../../packages/plugin-sdk
     devDependencies:
@@ -332,7 +332,7 @@ importers:
 
   plugins/ecpay-cvs:
     dependencies:
-      '@s4n/plugin-sdk':
+      s4n-donate-system-2.0-plugin-sdk:
         specifier: workspace:*
         version: link:../../packages/plugin-sdk
     devDependencies:
@@ -345,10 +345,10 @@ importers:
 
   plugins/example-thanks:
     dependencies:
-      '@s4n/events':
+      s4n-donate-system-2.0-events:
         specifier: workspace:*
         version: link:../../packages/events
-      '@s4n/plugin-sdk':
+      s4n-donate-system-2.0-plugin-sdk:
         specifier: workspace:*
         version: link:../../packages/plugin-sdk
     devDependencies:
@@ -364,7 +364,7 @@ importers:
 
   plugins/goals:
     dependencies:
-      '@s4n/plugin-sdk':
+      s4n-donate-system-2.0-plugin-sdk:
         specifier: workspace:*
         version: link:../../packages/plugin-sdk
     devDependencies:
@@ -380,7 +380,7 @@ importers:
 
   plugins/opay:
     dependencies:
-      '@s4n/plugin-sdk':
+      s4n-donate-system-2.0-plugin-sdk:
         specifier: workspace:*
         version: link:../../packages/plugin-sdk
     devDependencies:
@@ -393,7 +393,7 @@ importers:
 
   plugins/opay-atm:
     dependencies:
-      '@s4n/plugin-sdk':
+      s4n-donate-system-2.0-plugin-sdk:
         specifier: workspace:*
         version: link:../../packages/plugin-sdk
     devDependencies:
@@ -406,7 +406,7 @@ importers:
 
   plugins/opay-barcode:
     dependencies:
-      '@s4n/plugin-sdk':
+      s4n-donate-system-2.0-plugin-sdk:
         specifier: workspace:*
         version: link:../../packages/plugin-sdk
     devDependencies:
@@ -419,7 +419,7 @@ importers:
 
   plugins/opay-cvs:
     dependencies:
-      '@s4n/plugin-sdk':
+      s4n-donate-system-2.0-plugin-sdk:
         specifier: workspace:*
         version: link:../../packages/plugin-sdk
     devDependencies:
@@ -432,7 +432,7 @@ importers:
 
   plugins/ticker:
     dependencies:
-      '@s4n/plugin-sdk':
+      s4n-donate-system-2.0-plugin-sdk:
         specifier: workspace:*
         version: link:../../packages/plugin-sdk
     devDependencies:
@@ -448,10 +448,10 @@ importers:
 
   plugins/twitch-chat:
     dependencies:
-      '@s4n/events':
+      s4n-donate-system-2.0-events:
         specifier: workspace:*
         version: link:../../packages/events
-      '@s4n/plugin-sdk':
+      s4n-donate-system-2.0-plugin-sdk:
         specifier: workspace:*
         version: link:../../packages/plugin-sdk
       ws:

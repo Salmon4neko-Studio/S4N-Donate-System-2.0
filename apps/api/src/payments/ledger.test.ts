@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
-import { asUntrustedText } from "@s4n/events";
+import { asUntrustedText } from "s4n-donate-system-2.0-events";
 import { decideVerifiedPayment, type LedgerOrder } from "./ledger.js";
 import { createMemoryLedger } from "./memory-ledger.js";
 

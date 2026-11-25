@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
-import { isHexColor, normalizeHexColor } from "@s4n/plugin-sdk";
+import { isHexColor, normalizeHexColor } from "s4n-donate-system-2.0-plugin-sdk";
 import { readDonationAlert } from "./alert.js";
 import {
   ALERT_BODY_MAX,

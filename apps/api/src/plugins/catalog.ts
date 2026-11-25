@@ -1,22 +1,22 @@
-import { manifest as alerts } from "@s4n/plugin-alerts";
-import { manifest as chatOverlay } from "@s4n/plugin-chat-overlay";
-import { createProvider as createEcpay, manifest as ecpay } from "@s4n/plugin-ecpay";
-import { createProvider as createEcpayAtm, manifest as ecpayAtm } from "@s4n/plugin-ecpay-atm";
-import { createProvider as createEcpayBarcode, manifest as ecpayBarcode } from "@s4n/plugin-ecpay-barcode";
-import { createProvider as createEcpayCvs, manifest as ecpayCvs } from "@s4n/plugin-ecpay-cvs";
-import { manifest as goals } from "@s4n/plugin-goals";
-import { createProvider as createOpay, manifest as opay } from "@s4n/plugin-opay";
-import { createProvider as createOpayAtm, manifest as opayAtm } from "@s4n/plugin-opay-atm";
-import { createProvider as createOpayCvs, manifest as opayCvs } from "@s4n/plugin-opay-cvs";
-import { manifest as ticker } from "@s4n/plugin-ticker";
-import { createTwitchChatSource, manifest as twitchChat } from "@s4n/plugin-twitch-chat";
+import { manifest as alerts } from "s4n-donate-system-2.0-plugin-alerts";
+import { manifest as chatOverlay } from "s4n-donate-system-2.0-plugin-chat-overlay";
+import { createProvider as createEcpay, manifest as ecpay } from "s4n-donate-system-2.0-plugin-ecpay";
+import { createProvider as createEcpayAtm, manifest as ecpayAtm } from "s4n-donate-system-2.0-plugin-ecpay-atm";
+import { createProvider as createEcpayBarcode, manifest as ecpayBarcode } from "s4n-donate-system-2.0-plugin-ecpay-barcode";
+import { createProvider as createEcpayCvs, manifest as ecpayCvs } from "s4n-donate-system-2.0-plugin-ecpay-cvs";
+import { manifest as goals } from "s4n-donate-system-2.0-plugin-goals";
+import { createProvider as createOpay, manifest as opay } from "s4n-donate-system-2.0-plugin-opay";
+import { createProvider as createOpayAtm, manifest as opayAtm } from "s4n-donate-system-2.0-plugin-opay-atm";
+import { createProvider as createOpayCvs, manifest as opayCvs } from "s4n-donate-system-2.0-plugin-opay-cvs";
+import { manifest as ticker } from "s4n-donate-system-2.0-plugin-ticker";
+import { createTwitchChatSource, manifest as twitchChat } from "s4n-donate-system-2.0-plugin-twitch-chat";
 import {
   assertManifestCoherent,
   assertPermissionsAllowed,
   type ChatSource,
   type PaymentProvider,
   type PluginManifest,
-} from "@s4n/plugin-sdk";
+} from "s4n-donate-system-2.0-plugin-sdk";
 import { OFFICIAL_PLUGIN_IDS, PAYMENT_PLUGIN_IDS, isOfficialPluginId } from "./official.js";
 
 export interface LoadedPlugin {

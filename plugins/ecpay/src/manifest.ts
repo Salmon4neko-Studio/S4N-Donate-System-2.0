@@ -1,4 +1,4 @@
-import type { PluginManifest } from "@s4n/plugin-sdk";
+import type { PluginManifest } from "s4n-donate-system-2.0-plugin-sdk";
 
 export const manifest = {
   "id": "official.ecpay",

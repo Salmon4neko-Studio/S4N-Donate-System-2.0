@@ -1,4 +1,4 @@
-import type { UntrustedText } from "@s4n/events";
+import type { UntrustedText } from "s4n-donate-system-2.0-events";
 
 export type DonationState = "created" | "awaiting" | "succeeded" | "expired" | "failed" | "review";
 

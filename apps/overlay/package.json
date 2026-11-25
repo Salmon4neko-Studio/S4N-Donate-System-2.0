@@ -1,5 +1,5 @@
 {
-  "name": "@s4n/overlay",
+  "name": "s4n-donate-system-2.0-overlay",
   "version": "0.0.0",
   "private": true,
   "type": "module",
@@ -11,12 +11,12 @@
     "test": "node --experimental-strip-types --test src/status.test.ts"
   },
   "dependencies": {
-    "@s4n/design-tokens": "workspace:*",
-    "@s4n/events": "workspace:*",
-    "@s4n/plugin-alerts": "workspace:*",
-    "@s4n/plugin-chat-overlay": "workspace:*",
-    "@s4n/plugin-goals": "workspace:*",
-    "@s4n/plugin-ticker": "workspace:*",
+    "s4n-donate-system-2.0-design-tokens": "workspace:*",
+    "s4n-donate-system-2.0-events": "workspace:*",
+    "s4n-donate-system-2.0-plugin-alerts": "workspace:*",
+    "s4n-donate-system-2.0-plugin-chat-overlay": "workspace:*",
+    "s4n-donate-system-2.0-plugin-goals": "workspace:*",
+    "s4n-donate-system-2.0-plugin-ticker": "workspace:*",
     "react": "^19.2.0",
     "react-dom": "^19.2.0"
   },

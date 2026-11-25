@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { acceptEventId, nextCursor } from "@s4n/events";
+import { acceptEventId, nextCursor } from "s4n-donate-system-2.0-events";
 import { Note } from "@/components/fields";
 import { api, type EventLogEntry, type EventLogResponse } from "@/lib/api";
 import { apiOrigin } from "@/lib/api-origin";

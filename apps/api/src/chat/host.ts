@@ -1,6 +1,6 @@
-import type { DonationSucceededPayload, DonationTestPayload } from "@s4n/events";
-import { donationAsChatMessage, parseChatOverlaySettings, CHAT_OVERLAY_PLUGIN_ID } from "@s4n/plugin-chat-overlay";
-import { createPluginBus, type ChatSource, type ChatSourceHost } from "@s4n/plugin-sdk";
+import type { DonationSucceededPayload, DonationTestPayload } from "s4n-donate-system-2.0-events";
+import { donationAsChatMessage, parseChatOverlaySettings, CHAT_OVERLAY_PLUGIN_ID } from "s4n-donate-system-2.0-plugin-chat-overlay";
+import { createPluginBus, type ChatSource, type ChatSourceHost } from "s4n-donate-system-2.0-plugin-sdk";
 import { decryptPluginSecrets } from "../plugins/secrets.js";
 import type { LoadedPlugin } from "../plugins/catalog.js";
 import type { InstallationStore } from "../plugins/installations.js";

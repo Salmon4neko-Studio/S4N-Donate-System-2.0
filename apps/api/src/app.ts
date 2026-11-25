@@ -1,7 +1,7 @@
 import { randomUUID } from "node:crypto";
 import { Hono } from "hono";
 import { cors } from "hono/cors";
-import { asUntrustedText } from "@s4n/events";
+import { asUntrustedText } from "s4n-donate-system-2.0-events";
 import type { RuntimeEnv } from "./env.js";
 import { originAllowlist, originGuard } from "./auth/origin.js";
 import { rateLimit } from "./auth/rate-limit.js";
@@ -17,7 +17,7 @@ import { validateDonationRequest } from "./payments/plan.js";
 import { paymentMethodReady } from "./payments/readiness.js";
 import { reconcileDonation } from "./payments/reconcile.js";
 import { isTradeNo } from "./payments/trade-no.js";
-import { hasPluginSettingsNav, isSecretField } from "@s4n/plugin-sdk";
+import { hasPluginSettingsNav, isSecretField } from "s4n-donate-system-2.0-plugin-sdk";
 import type { LoadedPlugin, PaymentRegistry } from "./plugins/catalog.js";
 import type { InstallationStore } from "./plugins/installations.js";
 import { MarketplaceError, type MarketplaceService } from "./plugins/marketplace/service.js";
@@ -39,7 +39,7 @@ import {
   viewLayout,
   type OverlayLayoutStore,
 } from "./realtime/overlay-layout.js";
-import { previewChatMessage } from "@s4n/plugin-chat-overlay";
+import { previewChatMessage } from "s4n-donate-system-2.0-plugin-chat-overlay";
 import { registerAlertSoundRoutes } from "./alerts/routes.js";
 import type { AlertSoundStore } from "./alerts/sound.js";
 

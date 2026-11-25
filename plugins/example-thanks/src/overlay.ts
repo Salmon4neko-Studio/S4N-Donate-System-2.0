@@ -1,5 +1,5 @@
-import { acceptEventId, nextCursor, type S4nEvent } from "@s4n/events";
-import type { PluginBus } from "@s4n/plugin-sdk";
+import { acceptEventId, nextCursor, type S4nEvent } from "s4n-donate-system-2.0-events";
+import type { PluginBus } from "s4n-donate-system-2.0-plugin-sdk";
 
 export type ThanksEvent = S4nEvent<"s4n.donation.succeeded"> | S4nEvent<"s4n.donation.test">;
 

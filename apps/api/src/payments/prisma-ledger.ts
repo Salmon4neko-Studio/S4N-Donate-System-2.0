@@ -1,4 +1,4 @@
-import { asUntrustedText } from "@s4n/events";
+import { asUntrustedText } from "s4n-donate-system-2.0-events";
 import { Prisma, DonationStatus, type PrismaClient } from "../../generated/prisma/client.js";
 import { sameAwaitSlip, type AwaitSlip, type DonationState, type Ledger, type LedgerOrder, type ListedDonation } from "./ledger.js";
 

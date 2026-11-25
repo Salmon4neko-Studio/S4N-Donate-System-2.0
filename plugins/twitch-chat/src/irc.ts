@@ -1,4 +1,4 @@
-import { asUntrustedText, type ChatBadge, type ChatFragment, type ChatMessageFlags, type ChatMessagePayload } from "@s4n/events";
+import { asUntrustedText, type ChatBadge, type ChatFragment, type ChatMessageFlags, type ChatMessagePayload } from "s4n-donate-system-2.0-events";
 
 export const TWITCH_IRC_URL = "wss://irc-ws.chat.twitch.tv:443";
 /** Public anonymous password. This is not a stored credential. */
@@ -42,8 +42,8 @@ export type TwitchInbound =
   | { kind: "reconnect" }
   | { kind: "ready" }
   | { kind: "message"; message: ChatMessagePayload; roomId: string | null }
-  | { kind: "delete"; event: import("@s4n/events").ChatDeletePayload }
-  | { kind: "clear"; event: import("@s4n/events").ChatClearPayload }
+  | { kind: "delete"; event: import("s4n-donate-system-2.0-events").ChatDeletePayload }
+  | { kind: "clear"; event: import("s4n-donate-system-2.0-events").ChatClearPayload }
   | { kind: "ignore" };
 
 export function anonymousNick(random: number): string {
@@ -248,7 +248,7 @@ function readClearMsg(parsed: ParsedIrcLine): TwitchInbound {
   const messageId = parsed.tags.get("target-msg-id") ?? "";
   if (channel === "" || !SAFE_ID.test(messageId)) return { kind: "ignore" };
   const userId = parsed.tags.get("target-user-id") ?? "";
-  const event: import("@s4n/events").ChatDeletePayload = {
+  const event: import("s4n-donate-system-2.0-events").ChatDeletePayload = {
     platform: "twitch",
     channel,
     messageId,
@@ -262,7 +262,7 @@ function readClearChat(parsed: ParsedIrcLine): TwitchInbound {
   if (channel === "") return { kind: "ignore" };
   const userId = parsed.tags.get("target-user-id") ?? "";
   const duration = parsed.tags.get("ban-duration");
-  const event: import("@s4n/events").ChatClearPayload = { platform: "twitch", channel };
+  const event: import("s4n-donate-system-2.0-events").ChatClearPayload = { platform: "twitch", channel };
   if (/^\d{1,20}$/.test(userId)) event.userId = userId;
   if (duration !== undefined && /^\d{1,8}$/.test(duration)) {
     const seconds = Number(duration);

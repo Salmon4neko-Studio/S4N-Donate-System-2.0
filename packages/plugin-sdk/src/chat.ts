@@ -3,11 +3,11 @@ import type {
   ChatDeletePayload,
   ChatMessagePayload,
   ChatPlatform,
-} from "@s4n/events";
+} from "s4n-donate-system-2.0-events";
 
 /**
  * What the core hands a chat source.
- * Sources emit the normalized events from `@s4n/events`.
+ * Sources emit the normalized events from `s4n-donate-system-2.0-events`.
  * The chat display plugin subscribes to those events and does not import a source,
  * so a later YouTube source can be registered without changing the display plugin.
  */

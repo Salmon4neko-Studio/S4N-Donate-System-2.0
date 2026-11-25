@@ -1,4 +1,4 @@
-import type { AnyS4nEvent } from "@s4n/events";
+import type { AnyS4nEvent } from "s4n-donate-system-2.0-events";
 
 const HIDDEN = /[\u0000-\u001F\u007F-\u009F\u202A-\u202E\u2066-\u2069]/g;
 

@@ -1,5 +1,5 @@
-import { PERMISSIONS } from "@s4n/plugin-sdk";
-import type { PluginChangeAction, PluginChangedPayload } from "@s4n/events";
+import { PERMISSIONS } from "s4n-donate-system-2.0-plugin-sdk";
+import type { PluginChangeAction, PluginChangedPayload } from "s4n-donate-system-2.0-events";
 import type { CoreBus } from "../../realtime/bus.js";
 import type { InstallationRecord, InstallationStore } from "../installations.js";
 import type { SecretStore } from "../settings.js";

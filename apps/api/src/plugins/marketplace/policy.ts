@@ -1,4 +1,4 @@
-import { COMMUNITY_DEFAULT_PERMISSIONS } from "@s4n/plugin-sdk";
+import { COMMUNITY_DEFAULT_PERMISSIONS } from "s4n-donate-system-2.0-plugin-sdk";
 import { isOfficialPluginId, isPaymentPluginId } from "../official.js";
 import type { InstallRuntime, RegistryPlugin, RegistrySourceId } from "./types.js";
 

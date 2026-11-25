@@ -1,5 +1,5 @@
 import type { CSSProperties } from "react";
-import { buildTickerLine, parseTickerSettings } from "@s4n/plugin-ticker";
+import { buildTickerLine, parseTickerSettings } from "s4n-donate-system-2.0-plugin-ticker";
 
 export function TickerSettingsPreview({ drafts }: { drafts: Record<string, string> }) {
   const settings = draftsToSettings(drafts);

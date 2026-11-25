@@ -1,5 +1,5 @@
 import type { CSSProperties } from "react";
-import { goalPercent, parseGoalSettings } from "@s4n/plugin-goals";
+import { goalPercent, parseGoalSettings } from "s4n-donate-system-2.0-plugin-goals";
 import { formatTwd } from "@/lib/money";
 
 export function GoalSettingsPreview({ drafts }: { drafts: Record<string, string> }) {

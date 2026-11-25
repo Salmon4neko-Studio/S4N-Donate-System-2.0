@@ -1,7 +1,7 @@
 import { randomBytes } from "node:crypto";
 import { mkdir, readFile, rm, writeFile } from "node:fs/promises";
 import { isAbsolute, resolve, sep } from "node:path";
-import { isAlertSoundName } from "@s4n/plugin-alerts";
+import { isAlertSoundName } from "s4n-donate-system-2.0-plugin-alerts";
 
 export const ALERT_SOUND_MAX_BYTES = 2 * 1024 * 1024;
 export const ALERT_SOUND_FIELD = "soundFile";

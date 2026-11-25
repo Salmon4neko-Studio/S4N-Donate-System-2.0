@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
-import { asUntrustedText, type ChatMessagePayload } from "@s4n/events";
+import { asUntrustedText, type ChatMessagePayload } from "s4n-donate-system-2.0-events";
 import { createOfficialCatalog } from "../plugins/catalog.js";
 import { createTestApp, setupOperator, TEST_ORIGIN } from "../test/fixture.js";
 import { createChatHost } from "./host.js";

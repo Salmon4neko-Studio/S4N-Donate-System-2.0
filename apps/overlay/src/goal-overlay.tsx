@@ -1,5 +1,5 @@
 import { useEffect, useState, type CSSProperties } from "react";
-import { goalAchieved, goalPercent, parseGoalSettings } from "@s4n/plugin-goals";
+import { goalAchieved, goalPercent, parseGoalSettings } from "s4n-donate-system-2.0-plugin-goals";
 import { noteEvent, readCursor, readSeen } from "./cursor";
 import { overlayStatusLine, type OverlayConnection } from "./status";
 import { formatTwd } from "./money";

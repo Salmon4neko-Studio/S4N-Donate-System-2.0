@@ -3,13 +3,13 @@ import { readFileSync } from "node:fs";
 import { dirname, resolve } from "node:path";
 import { test } from "node:test";
 import { fileURLToPath } from "node:url";
-import { asUntrustedText, type S4nEvent } from "@s4n/events";
+import { asUntrustedText, type S4nEvent } from "s4n-donate-system-2.0-events";
 import {
   assertPermissionsAllowed,
   COMMUNITY_DEFAULT_PERMISSIONS,
   createPluginBus,
   parseManifest,
-} from "@s4n/plugin-sdk";
+} from "s4n-donate-system-2.0-plugin-sdk";
 import { manifest } from "./manifest.js";
 import { shouldShow, watchDonations } from "./overlay.js";
 

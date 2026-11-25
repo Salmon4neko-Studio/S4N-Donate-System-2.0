@@ -14,8 +14,8 @@ RUN corepack enable && corepack prepare pnpm@10.33.4 --activate
 WORKDIR /src
 COPY . .
 RUN pnpm install --frozen-lockfile
-RUN pnpm --filter @s4n/api db:generate
-RUN pnpm --filter @s4n/api deploy --legacy --prod /out
+RUN pnpm --filter s4n-donate-system-2.0-api db:generate
+RUN pnpm --filter s4n-donate-system-2.0-api deploy --legacy --prod /out
 RUN rm -rf /out/generated && cp -a apps/api/generated /out/generated
 RUN mkdir -p /out/plugins && cp -a plugins/. /out/plugins/
 COPY apps/api/docker-entrypoint.sh /out/docker-entrypoint.sh

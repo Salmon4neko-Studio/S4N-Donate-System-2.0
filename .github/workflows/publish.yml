@@ -41,7 +41,7 @@ jobs:
       - uses: docker/metadata-action@v5
         id: meta
         with:
-          images: ghcr.io/salmon4neko-studio/s4n-${{ matrix.name }}
+          images: ghcr.io/salmon4neko-studio/s4n-donate-system-2.0-${{ matrix.name }}
           tags: |
             type=sha,format=long
             type=raw,value=latest,enable=${{ github.event_name == 'push' }}

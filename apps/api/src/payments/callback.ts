@@ -1,4 +1,4 @@
-import type { PaymentProvider } from "@s4n/plugin-sdk";
+import type { PaymentProvider } from "s4n-donate-system-2.0-plugin-sdk";
 import type { CoreBus } from "../realtime/bus.js";
 import { decryptPluginSecrets } from "../plugins/secrets.js";
 import type { SecretStore } from "../plugins/settings.js";
