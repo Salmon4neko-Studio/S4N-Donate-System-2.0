@@ -12,6 +12,16 @@ export default defineConfig({
         root: { label: "繁體中文", lang: "zh-TW" },
       },
       lastUpdated: false,
+      editLink: {
+        baseUrl: "https://github.com/Salmon4neko-Studio/S4N-Donate-System-2.0/edit/main/apps/docs/",
+      },
+      social: [
+        {
+          icon: "github",
+          label: "GitHub",
+          href: "https://github.com/Salmon4neko-Studio/S4N-Donate-System-2.0",
+        },
+      ],
       customCss: ["@s4n/design-tokens/fonts.css", "./src/styles/custom.css"],
       sidebar: [
         {
