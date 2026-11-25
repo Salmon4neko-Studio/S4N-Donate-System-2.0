@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
-import { asUntrustedText, type AnyS4nEvent } from "@s4n/events";
-import type { PaymentProvider } from "@s4n/plugin-sdk";
+import { asUntrustedText, type AnyS4nEvent } from "s4n-donate-system-2.0-events";
+import type { PaymentProvider } from "s4n-donate-system-2.0-plugin-sdk";
 import { createMemoryLedger } from "./memory-ledger.js";
 import { PaymentRegistry } from "../plugins/catalog.js";
 import { createTestApp, setupOperator, TEST_ORIGIN } from "../test/fixture.js";

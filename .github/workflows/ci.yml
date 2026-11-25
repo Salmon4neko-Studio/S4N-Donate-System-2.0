@@ -44,7 +44,7 @@ jobs:
       - name: Install
         run: pnpm install --frozen-lockfile
       - name: Migrate
-        run: pnpm --filter @s4n/api exec prisma migrate deploy
+        run: pnpm --filter s4n-donate-system-2.0-api exec prisma migrate deploy
       - name: Typecheck
         run: pnpm typecheck
       - name: Lint

@@ -5,7 +5,7 @@ description: 用 Caddy、Compose 與 GHCR 映像把儀表板、疊層與 API 放
 
 `compose.yaml` 只給本機開發。正式環境用 `compose.prod.yaml`。密鑰與網域都寫在伺服器的 `.env`，Compose 缺任何一個必填變數就不會啟動。Postgres 不對外面開放。對外只有 Caddy 的 80 與 443。
 
-映像在 `ghcr.io/salmon4neko-studio/s4n-api`、`s4n-web`、`s4n-overlay`、`s4n-docs`。標籤見 [CI 與映像](/guides/ci/)。
+映像在 `ghcr.io/salmon4neko-studio/s4n-donate-system-2.0-api`、`s4n-donate-system-2.0-web`、`s4n-donate-system-2.0-overlay`、`s4n-donate-system-2.0-docs`。標籤見 [CI 與映像](/guides/ci/)。
 
 ## 為什麼疊層用另一個主機名
 
@@ -173,7 +173,9 @@ Cookie 是 `s4n_session`，`HttpOnly`、`SameSite=Lax`。`S4N_ENV=production` �
 
 ## 文件
 
-不設 `S4N_DOCS_HOST` 就沒有文件站。要加時：
+公開文件站是 https://docs.donate-system.salmon4neko.com/ 。用 Cloudflare Workers 建置時，指令見 [CI 與映像](/guides/ci/)。
+
+自架時，不設 `S4N_DOCS_HOST` 就沒有文件站。要加時：
 
 ```bash
 # .env

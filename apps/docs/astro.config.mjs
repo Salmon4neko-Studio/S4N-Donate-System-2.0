@@ -2,6 +2,7 @@ import { defineConfig } from "astro/config";
 import starlight from "@astrojs/starlight";
 
 export default defineConfig({
+  site: "https://docs.donate-system.salmon4neko.com",
   server: { port: 4321, host: true },
   integrations: [
     starlight({
@@ -12,6 +13,7 @@ export default defineConfig({
         root: { label: "繁體中文", lang: "zh-TW" },
       },
       lastUpdated: false,
+      favicon: "/favicon.png",
       editLink: {
         baseUrl: "https://github.com/Salmon4neko-Studio/S4N-Donate-System-2.0/edit/main/apps/docs/",
       },
@@ -21,8 +23,16 @@ export default defineConfig({
           label: "GitHub",
           href: "https://github.com/Salmon4neko-Studio/S4N-Donate-System-2.0",
         },
+        {
+          icon: "external",
+          label: "專案官網",
+          href: "https://donate-system.salmon4neko.com/",
+        },
       ],
-      customCss: ["@s4n/design-tokens/fonts.css", "./src/styles/custom.css"],
+      components: {
+        SocialIcons: "./src/components/SocialIcons.astro",
+      },
+      customCss: ["s4n-donate-system-2.0-design-tokens/fonts.css", "./src/styles/custom.css"],
       sidebar: [
         {
           label: "開始",

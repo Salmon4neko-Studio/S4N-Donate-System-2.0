@@ -1,4 +1,4 @@
-import type { PluginManifest } from "@s4n/plugin-sdk";
+import type { PluginManifest } from "s4n-donate-system-2.0-plugin-sdk";
 
 export const CHAT_OVERLAY_PLUGIN_ID = "official.chat-overlay";
 

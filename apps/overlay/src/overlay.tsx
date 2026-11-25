@@ -6,7 +6,7 @@ import {
   renderAlertCopy,
   type AlertAppearance,
   type DonationAlert,
-} from "@s4n/plugin-alerts";
+} from "s4n-donate-system-2.0-plugin-alerts";
 import { apiOrigin } from "./api-origin";
 import { noteEvent, readCursor, readSeen } from "./cursor";
 import { overlayStatusLine } from "./status";

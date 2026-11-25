@@ -1,5 +1,5 @@
 {
-  "name": "@s4n/docs",
+  "name": "s4n-donate-system-2.0-docs",
   "version": "0.0.0",
   "private": true,
   "type": "module",
@@ -10,7 +10,7 @@
     "typecheck": "astro check"
   },
   "dependencies": {
-    "@s4n/design-tokens": "workspace:*",
+    "s4n-donate-system-2.0-design-tokens": "workspace:*",
     "@astrojs/starlight": "^0.42.10",
     "astro": "^7.4.8",
     "sharp": "^0.34.5"

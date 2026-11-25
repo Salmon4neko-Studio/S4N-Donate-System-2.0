@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
-import { assertPermissionsAllowed, COMMUNITY_DEFAULT_PERMISSIONS } from "@s4n/plugin-sdk";
+import { assertPermissionsAllowed, COMMUNITY_DEFAULT_PERMISSIONS } from "s4n-donate-system-2.0-plugin-sdk";
 import { OFFICIAL_PLUGIN_IDS } from "./official.js";
 
 test("community plugins cannot request official-only permissions", () => {

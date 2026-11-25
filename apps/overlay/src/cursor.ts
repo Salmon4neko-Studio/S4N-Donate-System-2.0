@@ -1,4 +1,4 @@
-import { acceptEventId, nextCursor } from "@s4n/events";
+import { acceptEventId, nextCursor } from "s4n-donate-system-2.0-events";
 
 const CAP = 500;
 

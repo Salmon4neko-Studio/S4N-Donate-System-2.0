@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
-import { asUntrustedText } from "@s4n/events";
-import { createPluginBus } from "@s4n/plugin-sdk";
+import { asUntrustedText } from "s4n-donate-system-2.0-events";
+import { createPluginBus } from "s4n-donate-system-2.0-plugin-sdk";
 
 test("plugins cannot emit core payment events, even through a cast", () => {
   const bus = createPluginBus({

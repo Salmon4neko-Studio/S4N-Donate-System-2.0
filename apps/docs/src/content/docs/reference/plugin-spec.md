@@ -29,7 +29,7 @@ v1 把聊天拆成兩種外掛：
 | 來源 | `official.twitch-chat` | `connector` | 連到平台，送出正規化事件 |
 | 顯示 | `official.chat-overlay` | `overlay` | 訂閱那些事件並畫在 OBS |
 
-來源實作 `@s4n/plugin-sdk` 的 `ChatSource`：`start`、`stop`、`applySettings`，並透過 `ChatSourceHost` 發送 `s4n.chat.message`、`s4n.chat.delete`、`s4n.chat.clear`。顯示外掛不匯入任何來源。下一個版本的 YouTube 來源只要實作同一個 `ChatSource` 並註冊進官方目錄，聊天疊層不用改。
+來源實作 `s4n-donate-system-2.0-plugin-sdk` 的 `ChatSource`：`start`、`stop`、`applySettings`，並透過 `ChatSourceHost` 發送 `s4n.chat.message`、`s4n.chat.delete`、`s4n.chat.clear`。顯示外掛不匯入任何來源。下一個版本的 YouTube 來源只要實作同一個 `ChatSource` 並註冊進官方目錄，聊天疊層不用改。
 
 Twitch 來源需要 `events.emit`、`secrets` 與 `network`。頻道名稱是一般設定。Client ID 與 Client Secret 是密文，選填。顯示外掛只要 `events.subscribe`、`overlay.slot`、`dashboard.settings`，自己不連外網。
 
@@ -51,7 +51,7 @@ Twitch 來源需要 `events.emit`、`secrets` 與 `network`。頻道名稱是一
 
 ## 事件
 
-外掛只能透過 `@s4n/plugin-sdk` 的 `createPluginBus` 訂閱與發送。
+外掛只能透過 `s4n-donate-system-2.0-plugin-sdk` 的 `createPluginBus` 訂閱與發送。
 
 這些事件會寫進 PostgreSQL 的事件紀錄。每一則有單調的 `sequence` 與自己的 `id`。送達是至少一次：斷線的客戶端帶著最後的序號重連，伺服器依序補上，客戶端用 `id` 排除重複。外掛的 `emit` 不能假設對方只會收到一次。保留期限、重播上限與升級見 [事件紀錄](/guides/events/)。
 
@@ -77,6 +77,6 @@ Twitch 來源需要 `events.emit`、`secrets` 與 `network`。頻道名稱是一
 
 ## 密文欄位
 
-在 `settingsSchema.properties` 的欄位上設 `x-s4n-secret: true`。核心加密後存進 `EncryptedPluginSetting`。儀表板的外掛頁只看得到欄位名稱與是否已設定。沒有這個旗標的欄位是一般設定，出現在 `/plugins/:id/settings`。`@s4n/plugin-sdk` 的 `secretFieldKeys` 與 `publicFieldKeys` 依這個旗標分開，沒有第二個旗標。
+在 `settingsSchema.properties` 的欄位上設 `x-s4n-secret: true`。核心加密後存進 `EncryptedPluginSetting`。儀表板的外掛頁只看得到欄位名稱與是否已設定。沒有這個旗標的欄位是一般設定，出現在 `/plugins/:id/settings`。`s4n-donate-system-2.0-plugin-sdk` 的 `secretFieldKeys` 與 `publicFieldKeys` 依這個旗標分開，沒有第二個旗標。
 
 範例見 [範例外掛](/reference/example/)，完整檔案在 `plugins/ecpay/s4n-plugin.json` 與 `plugins/opay/s4n-plugin.json`。

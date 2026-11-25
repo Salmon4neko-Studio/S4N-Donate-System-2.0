@@ -1,4 +1,4 @@
-import { isHexColor, normalizeHexColor } from "@s4n/plugin-sdk";
+import { isHexColor, normalizeHexColor } from "s4n-donate-system-2.0-plugin-sdk";
 import { alertDurationMs, visibleUntrusted, type DonationAlert } from "./alert.js";
 
 export const ALERT_MOTIONS = ["rise", "fade", "slide-left", "slide-right", "bounce", "scale"] as const;

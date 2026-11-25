@@ -12,7 +12,7 @@ S4N DONATE SYSTEM 2.0 是給實況主自行架設的贊助平台：營運者在�
 
 使用教學與部署步驟不在本 README，請見文件站（來源：[`apps/docs`](apps/docs)）。
 
-> **TODO：** 正式文件網址確認後再填入（例如 Cloudflare Workers 部署完成後的公開網址）。
+文件站：https://docs.donate-system.salmon4neko.com/
 
 ---
 
@@ -38,9 +38,9 @@ flowchart TB
   end
 
   subgraph shared["共用套件"]
-    ev["@s4n/events"]
-    sdk["@s4n/plugin-sdk"]
-    tokens["@s4n/design-tokens"]
+    ev["s4n-donate-system-2.0-events"]
+    sdk["s4n-donate-system-2.0-plugin-sdk"]
+    tokens["s4n-donate-system-2.0-design-tokens"]
   end
 
   subgraph plugins["外掛"]
@@ -67,7 +67,7 @@ flowchart TB
   docs --> tokens
 ```
 
-正式環境由 Caddy 終止 TLS：儀表板與 API 同一個網域，OBS 疊層使用獨立主機名；PostgreSQL 不對外發布埠。映像推送到 `ghcr.io/salmon4neko-studio/s4n-{api,web,overlay,docs}`。
+正式環境由 Caddy 終止 TLS：儀表板與 API 同一個網域，OBS 疊層使用獨立主機名；PostgreSQL 不對外發布埠。映像推送到 `ghcr.io/salmon4neko-studio/s4n-donate-system-2.0-{api,web,overlay,docs}`。
 
 ### 目錄
 

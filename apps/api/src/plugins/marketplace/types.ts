@@ -1,4 +1,4 @@
-import type { Permission, PluginKind } from "@s4n/plugin-sdk";
+import type { Permission, PluginKind } from "s4n-donate-system-2.0-plugin-sdk";
 
 export const REGISTRY_FORMAT = "s4n-registry-index";
 export const REGISTRY_VERSION = 1;

@@ -1,4 +1,4 @@
-import type { PluginManifest } from "@s4n/plugin-sdk";
+import type { PluginManifest } from "s4n-donate-system-2.0-plugin-sdk";
 
 /** Same fields as `s4n-plugin.json`. The test parses both and compares them. */
 export const manifest = {

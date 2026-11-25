@@ -1,4 +1,4 @@
-import type { ChatClearPayload, ChatDeletePayload, ChatMessagePayload } from "@s4n/events";
+import type { ChatClearPayload, ChatDeletePayload, ChatMessagePayload } from "s4n-donate-system-2.0-events";
 import {
   ANONYMOUS_PASS,
   anonymousNick,

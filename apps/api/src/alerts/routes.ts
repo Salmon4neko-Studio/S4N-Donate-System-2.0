@@ -1,5 +1,5 @@
 import type { Hono } from "hono";
-import { isAlertSoundName } from "@s4n/plugin-alerts";
+import { isAlertSoundName } from "s4n-donate-system-2.0-plugin-alerts";
 import type { MiddlewareHandler } from "hono";
 import type { SessionEnv } from "../auth/session.js";
 import { MarketplaceError, type MarketplaceService } from "../plugins/marketplace/service.js";

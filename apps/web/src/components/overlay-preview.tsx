@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState, type ChangeEvent, type CSSProperties, type FormEvent, type PointerEvent as ReactPointerEvent } from "react";
-import { clampOverlayRect } from "@s4n/plugin-sdk";
+import { clampOverlayRect } from "s4n-donate-system-2.0-plugin-sdk";
 import { buttonClass, choiceClass, Field, Note, TextArea, TextInput } from "@/components/fields";
 import { type OverlaySlotState } from "@/lib/api";
 import {

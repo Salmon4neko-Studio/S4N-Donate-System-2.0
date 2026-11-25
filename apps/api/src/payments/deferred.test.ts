@@ -1,9 +1,9 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
 import type { Hono } from "hono";
-import { asUntrustedText, type AnyS4nEvent } from "@s4n/events";
-import type { PaymentProvider } from "@s4n/plugin-sdk";
-import { aioCheckMacValue } from "@s4n/plugin-sdk/aio";
+import { asUntrustedText, type AnyS4nEvent } from "s4n-donate-system-2.0-events";
+import type { PaymentProvider } from "s4n-donate-system-2.0-plugin-sdk";
+import { aioCheckMacValue } from "s4n-donate-system-2.0-plugin-sdk/aio";
 import type { SessionEnv } from "../auth/session.js";
 import { PaymentRegistry } from "../plugins/catalog.js";
 import { createTestApp, setupOperator, TEST_ORIGIN } from "../test/fixture.js";

@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
-import { S4N_EVENT_NAMES, asUntrustedText, type S4nEventMap } from "@s4n/events";
+import { S4N_EVENT_NAMES, asUntrustedText, type S4nEventMap } from "s4n-donate-system-2.0-events";
 
 const samples = {
   "s4n.donation.created": {

@@ -6,7 +6,7 @@ import {
   reduceChatLines,
   type ChatLineView,
   type ChatOverlaySettings,
-} from "@s4n/plugin-chat-overlay";
+} from "s4n-donate-system-2.0-plugin-chat-overlay";
 import { apiOrigin } from "./api-origin";
 import { noteEvent, readCursor, readSeen } from "./cursor";
 import { overlayStatusLine } from "./status";

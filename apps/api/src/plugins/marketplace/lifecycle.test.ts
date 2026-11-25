@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
-import { createPluginBus } from "@s4n/plugin-sdk";
+import { createPluginBus } from "s4n-donate-system-2.0-plugin-sdk";
 import { createCoreBus } from "../../realtime/bus.js";
 import { createDurableBus } from "../../realtime/bus.js";
 import { createMemoryEventStore } from "../../realtime/event-store.js";

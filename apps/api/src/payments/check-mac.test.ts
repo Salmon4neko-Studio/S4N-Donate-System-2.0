@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
-import { aioCheckMacValue, aioMacEqual, formatTaipeiTimestamp, verifyAioQuery } from "@s4n/plugin-sdk/aio";
+import { aioCheckMacValue, aioMacEqual, formatTaipeiTimestamp, verifyAioQuery } from "s4n-donate-system-2.0-plugin-sdk/aio";
 
 /**
  * Published AIO example from https://developers.ecpay.com.tw/2902/

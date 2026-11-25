@@ -1,5 +1,5 @@
 import type { MiddlewareHandler } from "hono";
-import { PERMISSIONS } from "@s4n/plugin-sdk";
+import { PERMISSIONS } from "s4n-donate-system-2.0-plugin-sdk";
 import { InstallationRejected } from "../installations.js";
 import type { InstallationStore } from "../installations.js";
 import type { LoadedPlugin } from "../catalog.js";

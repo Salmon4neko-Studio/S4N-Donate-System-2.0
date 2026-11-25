@@ -10,7 +10,7 @@ import { signMessage } from "../src/plugins/marketplace/signature.ts";
  * Build the official registry envelope.
  * The private key is S4N_REGISTRY_SIGNING_KEY (PKCS8 PEM). It is not read from the repo.
  *
- *   S4N_REGISTRY_SIGNING_KEY="$(cat signing-key.pem)" pnpm --filter @s4n/api exec tsx scripts/sign-registry.ts
+ *   S4N_REGISTRY_SIGNING_KEY="$(cat signing-key.pem)" pnpm --filter s4n-donate-system-2.0-api exec tsx scripts/sign-registry.ts
  */
 const pem = process.env.S4N_REGISTRY_SIGNING_KEY;
 if (pem === undefined || !pem.includes("PRIVATE KEY")) {

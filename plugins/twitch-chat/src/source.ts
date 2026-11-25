@@ -1,4 +1,4 @@
-import type { ChatSource, ChatSourceHost, ChatSourceSettings } from "@s4n/plugin-sdk";
+import type { ChatSource, ChatSourceHost, ChatSourceSettings } from "s4n-donate-system-2.0-plugin-sdk";
 import { createBadgeCache, type HelixCredentials } from "./badges.js";
 import { normalizeChannel } from "./irc.js";
 import { TWITCH_CHAT_PLUGIN_ID } from "./manifest.js";

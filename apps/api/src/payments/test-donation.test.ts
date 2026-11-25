@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
-import type { AnyS4nEvent } from "@s4n/events";
-import { readDonationAlert } from "@s4n/plugin-alerts";
+import type { AnyS4nEvent } from "s4n-donate-system-2.0-events";
+import { readDonationAlert } from "s4n-donate-system-2.0-plugin-alerts";
 import { createMemoryLedger } from "./memory-ledger.js";
 import { createTestApp, setupOperator, TEST_ORIGIN } from "../test/fixture.js";
 

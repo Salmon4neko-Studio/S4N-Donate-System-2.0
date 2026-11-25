@@ -1,4 +1,4 @@
-import { isHexColor, normalizeHexColor } from "@s4n/plugin-sdk";
+import { isHexColor, normalizeHexColor } from "s4n-donate-system-2.0-plugin-sdk";
 
 const HIDDEN = /[\u0000-\u001F\u007F-\u009F\u202A-\u202E\u2066-\u2069\u200B-\u200F\uFEFF\u2060]/g;
 

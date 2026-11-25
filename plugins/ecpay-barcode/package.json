@@ -1,5 +1,5 @@
 {
-  "name": "@s4n/plugin-ecpay-barcode",
+  "name": "s4n-donate-system-2.0-plugin-ecpay-barcode",
   "version": "0.0.0",
   "private": true,
   "type": "module",
@@ -10,7 +10,7 @@
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
-    "@s4n/plugin-sdk": "workspace:*"
+    "s4n-donate-system-2.0-plugin-sdk": "workspace:*"
   },
   "devDependencies": {
     "@types/node": "^22.19.0",

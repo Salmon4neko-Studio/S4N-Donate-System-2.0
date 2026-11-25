@@ -1,5 +1,5 @@
 import { Prisma, type PrismaClient } from "../../generated/prisma/client.js";
-import { parseOverlayRect, type OverlayRect } from "@s4n/plugin-sdk";
+import { parseOverlayRect, type OverlayRect } from "s4n-donate-system-2.0-plugin-sdk";
 import type { OverlayLayoutStore, StoredLayout } from "./overlay-layout.js";
 
 export function createPrismaOverlayLayoutStore(prisma: PrismaClient): OverlayLayoutStore {

@@ -1,4 +1,4 @@
-import { S4N_EVENT_NAMES, type S4nEventName } from "@s4n/events";
+import { S4N_EVENT_NAMES, type S4nEventName } from "s4n-donate-system-2.0-events";
 
 const MAX_PAYLOAD_CHARS = 16_384;
 const MAX_DEPTH = 8;

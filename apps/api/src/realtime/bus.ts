@@ -1,5 +1,5 @@
 import { randomUUID } from "node:crypto";
-import type { AnyS4nEvent, S4nEventMap, S4nEventName } from "@s4n/events";
+import type { AnyS4nEvent, S4nEventMap, S4nEventName } from "s4n-donate-system-2.0-events";
 import {
   assertEventPayloadSafe,
   createMemoryEventStore,

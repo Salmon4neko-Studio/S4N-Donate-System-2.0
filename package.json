@@ -1,5 +1,5 @@
 {
-  "name": "s4n-donate-system",
+  "name": "s4n-donate-system-2.0",
   "private": true,
   "version": "0.0.0",
   "type": "module",
@@ -13,13 +13,13 @@
   },
   "scripts": {
     "predev": "pnpm db:generate",
-    "dev": "pnpm --parallel --filter @s4n/api --filter @s4n/web --filter @s4n/overlay --filter @s4n/docs dev",
+    "dev": "pnpm --parallel --filter s4n-donate-system-2.0-api --filter s4n-donate-system-2.0-web --filter s4n-donate-system-2.0-overlay --filter s4n-donate-system-2.0-docs dev",
     "typecheck": "pnpm db:generate && pnpm -r --if-present typecheck",
     "test": "pnpm -r --if-present test",
     "build": "pnpm -r --if-present build",
-    "db:generate": "pnpm --filter @s4n/api db:generate",
-    "db:migrate": "pnpm --filter @s4n/api db:migrate",
-    "db:deploy": "pnpm --filter @s4n/api db:deploy"
+    "db:generate": "pnpm --filter s4n-donate-system-2.0-api db:generate",
+    "db:migrate": "pnpm --filter s4n-donate-system-2.0-api db:migrate",
+    "db:deploy": "pnpm --filter s4n-donate-system-2.0-api db:deploy"
   },
   "devDependencies": {
     "typescript": "catalog:"

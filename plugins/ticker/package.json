@@ -1,5 +1,5 @@
 {
-  "name": "@s4n/plugin-ticker",
+  "name": "s4n-donate-system-2.0-plugin-ticker",
   "version": "0.1.0",
   "private": true,
   "type": "module",
@@ -11,7 +11,7 @@
     "test": "tsx --test src/text.test.ts"
   },
   "dependencies": {
-    "@s4n/plugin-sdk": "workspace:*"
+    "s4n-donate-system-2.0-plugin-sdk": "workspace:*"
   },
   "devDependencies": {
     "@types/node": "^22.19.0",

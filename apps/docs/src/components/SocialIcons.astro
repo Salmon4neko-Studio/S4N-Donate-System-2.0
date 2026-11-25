@@ -1,0 +1,46 @@
+---
+/// <reference path="../env.d.ts" />
+import config from "virtual:starlight/user-config";
+import { Icon } from "@astrojs/starlight/components";
+
+const links = config.social || [];
+const homeHref = "https://donate-system.salmon4neko.com/";
+---
+
+{
+  links.length > 0 && (
+    <>
+      {links.map(({ label, href, icon }) => (
+        <a href={href} rel="me" class="sl-flex">
+          <span class="sr-only">{label}</span>
+          {href === homeHref ? (
+            <svg class="home-icon" aria-hidden="true" width="16" height="16" viewBox="0 0 24 24">
+              <path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z" />
+            </svg>
+          ) : (
+            <Icon name={icon} />
+          )}
+        </a>
+      ))}
+    </>
+  )
+}
+
+<style>
+  @layer starlight.core {
+    a {
+      color: var(--sl-color-text-accent);
+      padding: 0.5em;
+      margin: -0.5em;
+    }
+    a:hover {
+      color: var(--sl-color-white);
+    }
+    .home-icon {
+      width: 1em;
+      height: 1em;
+      fill: currentColor;
+      overflow: visible;
+    }
+  }
+</style>

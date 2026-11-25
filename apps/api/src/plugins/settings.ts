@@ -6,7 +6,7 @@ import {
   type PluginManifest,
   type SettingsField,
   type SettingsSchema,
-} from "@s4n/plugin-sdk";
+} from "s4n-donate-system-2.0-plugin-sdk";
 import { sealSecret, secretAad, type SealedSecret } from "../crypto/secret-box.js";
 
 export interface RedactedField {

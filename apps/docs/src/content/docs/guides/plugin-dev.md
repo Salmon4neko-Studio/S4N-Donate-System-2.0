@@ -3,7 +3,7 @@ title: 外掛開發
 description: 來源、顯示與付款外掛的差別、本機怎麼測、以及規格 0.1 的安全規則。
 ---
 
-外掛是一份 `s4n-plugin.json` 加上工人或畫面。核心握有帳本、付款訂單、事件紀錄、疊層權杖與密文。外掛只能透過 `@s4n/plugin-sdk` 跟核心說話。
+外掛是一份 `s4n-plugin.json` 加上工人或畫面。核心握有帳本、付款訂單、事件紀錄、疊層權杖與密文。外掛只能透過 `s4n-donate-system-2.0-plugin-sdk` 跟核心說話。
 
 可編譯的社群範例在 `plugins/example-thanks`。它沒有放進官方目錄，儀表板不會列出它。API 參考見 [外掛 SDK](/reference/plugin-sdk/)。
 
@@ -27,7 +27,7 @@ description: 來源、顯示與付款外掛的差別、本機怎麼測、以及�
 
 ## 規格版本
 
-清單的 `api` 必須是 `"0.1"`，對應 `@s4n/plugin-sdk` 的 `PLUGIN_API_VERSION`。解析器遇到別的值會拒絕。
+清單的 `api` 必須是 `"0.1"`，對應 `s4n-donate-system-2.0-plugin-sdk` 的 `PLUGIN_API_VERSION`。解析器遇到別的值會拒絕。
 
 `0.1` 裡面的相容追加（新的可選欄位、新的事件名稱）會寫在 [外掛規格 0.1](/reference/plugin-spec/) 與 [外掛 SDK](/reference/plugin-sdk/)。不相容的變更會把 `PLUGIN_API_VERSION` 改成下一個版本，舊清單不會被載入。現在沒有 `0.2`。
 
@@ -38,8 +38,8 @@ description: 來源、顯示與付款外掛的差別、本機怎麼測、以及�
 範例的測試會解析清單、確認它不能請求官方權限，並用真實的 `createPluginBus` 訂閱一則測試贊助。它也確認外掛送不出 `s4n.donation.test`。
 
 ```bash
-pnpm --filter @s4n/plugin-example-thanks test
-pnpm --filter @s4n/plugin-example-thanks typecheck
+pnpm --filter s4n-donate-system-2.0-plugin-example-thanks test
+pnpm --filter s4n-donate-system-2.0-plugin-example-thanks typecheck
 ```
 
 `pnpm test` 與 `pnpm typecheck` 會一併跑到這個套件。測試不需要資料庫。
@@ -78,7 +78,7 @@ pnpm --filter @s4n/plugin-example-thanks typecheck
 
 ```bash
 export S4N_REGISTRY_SIGNING_KEY="$(cat /path/to/signing-key.pem)"
-pnpm --filter @s4n/api exec tsx scripts/sign-registry.ts
+pnpm --filter s4n-donate-system-2.0-api exec tsx scripts/sign-registry.ts
 ```
 
 `S4N_REGISTRY_SIGNING_KEY` 是 PKCS#8 PEM。公鑰寫在 `apps/api/src/plugins/marketplace/pinned-key.ts`。換一把鑰匙時，公鑰與新的 `official.json` 要在同一個審查過的提交裡一起換。只換索引、不換公鑰，而私鑰又不在手上，簽章不會通過。

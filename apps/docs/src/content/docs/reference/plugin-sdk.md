@@ -1,9 +1,9 @@
 ---
 title: 外掛 SDK
-description: "@s4n/plugin-sdk 的清單、權限、事件、疊層、聊天來源與付款契約。規格版本 0.1。"
+description: "s4n-donate-system-2.0-plugin-sdk 的清單、權限、事件、疊層、聊天來源與付款契約。規格版本 0.1。"
 ---
 
-套件是 `@s4n/plugin-sdk`。事件型別在 `@s4n/events`。下面的片段都對得上 `plugins/example-thanks`，那個套件的測試會編譯並執行它們。
+套件是 `s4n-donate-system-2.0-plugin-sdk`。事件型別在 `s4n-donate-system-2.0-events`。下面的片段都對得上 `plugins/example-thanks`，那個套件的測試會編譯並執行它們。
 
 ```ts
 import {
@@ -15,11 +15,11 @@ import {
   type PaymentProvider,
   type PluginBus,
   type PluginManifest,
-} from "@s4n/plugin-sdk";
-import { acceptEventId, nextCursor, type S4nEvent } from "@s4n/events";
+} from "s4n-donate-system-2.0-plugin-sdk";
+import { acceptEventId, nextCursor, type S4nEvent } from "s4n-donate-system-2.0-events";
 ```
 
-`PLUGIN_API_VERSION` 目前是 `"0.1"`。檢查碼輔助函式在 `@s4n/plugin-sdk/aio`，給綠界與歐付寶用，社群外掛不需要。
+`PLUGIN_API_VERSION` 目前是 `"0.1"`。檢查碼輔助函式在 `s4n-donate-system-2.0-plugin-sdk/aio`，給綠界與歐付寶用，社群外掛不需要。
 
 ## 清單欄位
 
@@ -153,7 +153,7 @@ export interface ChatSource {
 }
 ```
 
-`ChatSourceHost` 只有三個方法：`emitMessage`、`emitDelete`、`emitClear`。它們送出 `@s4n/events` 的正規化事件。顯示外掛訂閱那些事件，不匯入來源。
+`ChatSourceHost` 只有三個方法：`emitMessage`、`emitDelete`、`emitClear`。它們送出 `s4n-donate-system-2.0-events` 的正規化事件。顯示外掛訂閱那些事件，不匯入來源。
 
 `applySettings` 收到一般設定，以及只活在這個程序裡的解密密文。Twitch 的頻道名稱是一般設定。Client ID 與 Client Secret 是密文，選填。沒有填時用匿名 `justinfan`。密文與換到的應用程式權杖不得進 OBS 網址或事件。徽章圖的快取留在程序記憶體，重啟後先顯示文字。
 

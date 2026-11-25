@@ -2,7 +2,7 @@ import assert from "node:assert/strict";
 import type { Server } from "node:http";
 import { test } from "node:test";
 import { serve } from "@hono/node-server";
-import { acceptEventId, asUntrustedText, nextCursor, type ChatMessagePayload } from "@s4n/events";
+import { acceptEventId, asUntrustedText, nextCursor, type ChatMessagePayload } from "s4n-donate-system-2.0-events";
 import { WebSocket, WebSocketServer } from "ws";
 import { createPrisma } from "../db.js";
 import { createOfficialCatalog } from "../plugins/catalog.js";

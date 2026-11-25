@@ -1,5 +1,5 @@
 {
-  "name": "@s4n/plugin-twitch-chat",
+  "name": "s4n-donate-system-2.0-plugin-twitch-chat",
   "version": "0.0.0",
   "private": true,
   "type": "module",
@@ -11,8 +11,8 @@
     "test": "tsx --test src/irc.test.ts src/session.test.ts src/badges.test.ts"
   },
   "dependencies": {
-    "@s4n/events": "workspace:*",
-    "@s4n/plugin-sdk": "workspace:*",
+    "s4n-donate-system-2.0-events": "workspace:*",
+    "s4n-donate-system-2.0-plugin-sdk": "workspace:*",
     "ws": "^8.19.0"
   },
   "devDependencies": {

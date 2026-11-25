@@ -1,4 +1,4 @@
-import { isSecretField } from "@s4n/plugin-sdk";
+import { isSecretField } from "s4n-donate-system-2.0-plugin-sdk";
 import type { LoadedPlugin } from "../plugins/catalog.js";
 import type { InstallationStore } from "../plugins/installations.js";
 import type { SecretStore } from "../plugins/settings.js";

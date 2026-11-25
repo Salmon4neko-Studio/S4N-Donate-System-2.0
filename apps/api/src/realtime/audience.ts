@@ -1,4 +1,4 @@
-import type { AnyS4nEvent } from "@s4n/events";
+import type { AnyS4nEvent } from "s4n-donate-system-2.0-events";
 
 /** Overlay plugin that may receive this event. Null means no overlay slot. */
 export function overlayPluginFor(event: AnyS4nEvent): string | null {

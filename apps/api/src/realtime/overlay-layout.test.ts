@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
-import { clampOverlayRect } from "@s4n/plugin-sdk";
+import { clampOverlayRect } from "s4n-donate-system-2.0-plugin-sdk";
 import { createTestApp, setupOperator, TEST_ORIGIN } from "../test/fixture.js";
 
 test("overlay layout keeps ratios when the canvas size changes", async () => {

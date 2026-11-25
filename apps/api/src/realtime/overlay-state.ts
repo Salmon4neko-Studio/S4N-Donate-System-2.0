@@ -1,6 +1,6 @@
 import type { Ledger } from "../payments/ledger.js";
-import { goalStatuses, parseGoalSettings } from "@s4n/plugin-goals";
-import { buildTickerLine, parseTickerSettings } from "@s4n/plugin-ticker";
+import { goalStatuses, parseGoalSettings } from "s4n-donate-system-2.0-plugin-goals";
+import { buildTickerLine, parseTickerSettings } from "s4n-donate-system-2.0-plugin-ticker";
 import type { InstallationStore } from "../plugins/installations.js";
 import type { SecretStore } from "../plugins/settings.js";
 import type { CoreBus } from "./bus.js";

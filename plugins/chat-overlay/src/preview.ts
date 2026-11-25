@@ -1,4 +1,4 @@
-import { asUntrustedText, type ChatMessagePayload } from "@s4n/events";
+import { asUntrustedText, type ChatMessagePayload } from "s4n-donate-system-2.0-events";
 import { visiblePlain } from "./filter.js";
 
 /** Global Twitch CDN images used only so a preview can show badges without Helix. */

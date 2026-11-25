@@ -1,4 +1,4 @@
-import { parseOverlayRect, type OverlayRect } from "@s4n/plugin-sdk";
+import { parseOverlayRect, type OverlayRect } from "s4n-donate-system-2.0-plugin-sdk";
 import type { LoadedPlugin } from "../plugins/catalog.js";
 
 export const CANVAS_MIN = 160;

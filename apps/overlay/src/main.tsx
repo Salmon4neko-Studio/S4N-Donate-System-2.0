@@ -1,7 +1,7 @@
 import { StrictMode, useState } from "react";
 import { createRoot } from "react-dom/client";
 import { OverlayStage } from "./stage";
-import "@s4n/plugin-alerts/motion.css";
+import "s4n-donate-system-2.0-plugin-alerts/motion.css";
 import "./index.css";
 
 const params = new URLSearchParams(window.location.search);

@@ -1,4 +1,4 @@
-import { asUntrustedText } from "@s4n/events";
+import { asUntrustedText } from "s4n-donate-system-2.0-events";
 import type { LedgerOrder } from "./ledger.js";
 
 const AMOUNT_HARD_MAX = 10_000_000;

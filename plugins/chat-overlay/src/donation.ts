@@ -1,4 +1,4 @@
-import { asUntrustedText, type ChatMessagePayload, type DonationSucceededPayload, type DonationTestPayload } from "@s4n/events";
+import { asUntrustedText, type ChatMessagePayload, type DonationSucceededPayload, type DonationTestPayload } from "s4n-donate-system-2.0-events";
 import { visiblePlain } from "./filter.js";
 
 type DonationLike = DonationSucceededPayload | DonationTestPayload;
