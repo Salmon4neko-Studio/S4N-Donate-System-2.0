@@ -3,7 +3,7 @@ title: Docker Compose
 description: 本機用 Compose 啟動 PostgreSQL、API、儀表板、疊層與文件。
 ---
 
-這份是本機的 `compose.yaml`。正式環境用 `compose.prod.yaml`，見 [正式環境](/guides/production/)。
+這份是本機的 `compose.yaml`。正式環境用 `compose.prod.yaml`，見 [正式環境](/guides/production/)。Coolify v4 用 `compose.coolify.yaml`，見 [Coolify](/guides/coolify/)。
 
 在儲存庫根目錄：
 

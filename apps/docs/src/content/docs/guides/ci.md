@@ -34,7 +34,7 @@ description: 拉取要求上跑的檢查，以及推到 GHCR 的映像標籤。
 - `latest`（推上 `main` 或版本標籤時）
 - 版本標籤另有 `1.2.3`、`1.2`、`1`
 
-平台是 `linux/amd64`。正式 Compose 的 `S4N_IMAGE_TAG` 填上面其中一個。用 sha 可以把某一台機器釘在一次建置上。
+平台是 `linux/amd64`。正式 Compose 與 Coolify Compose 的 `S4N_IMAGE_TAG` 都填上面其中一個。用 sha 可以把某一台機器釘在一次建置上。Coolify 怎麼拉這些映像，見 [Coolify](/guides/coolify/)。
 
 API 映像是多階段的：建構階段產生 Prisma Client，再用 `pnpm deploy --prod` 留下正式依賴。執行階段以 `node` 使用者跑，啟動時先 `prisma migrate deploy`。`tsx` 是執行期依賴，因為 API 與工作區套件仍是 TypeScript。web、overlay、docs 的最後階段是非 root 的 nginx，聽 8080。
 
