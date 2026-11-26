@@ -1,27 +1,29 @@
+/* S4N shared design tokens */
 :root {
+  --s4n-primary: #F28500;
+  --s4n-primary-hover: #d97700;
+  --s4n-primary-active: #bf6900;
+  --s4n-link-hover: #ff9a1f;
+  --s4n-on-primary: #fff;
+
   --sl-font: "jf open 粉圓", "PingFang TC", "Microsoft JhengHei", sans-serif;
 
-  /* 暗色：實心 #F28500 配 #1a1512（7.01:1）。標題與連結用同一支橘色，在深底上約 6.9:1。 */
+  /* 淺色與暗色都用同一支主色。連結、標題、實心底是 #F28500，實心上的字是白。白字對比較低，與行銷站同一份規格。 */
   --sl-color-accent-low: #4a2c12;
-  --sl-color-accent: #f28500;
-  --sl-color-accent-high: #ffb04a;
-  --sl-color-text-accent: #f28500;
-  --sl-color-text-invert: #1a1512;
-  --sl-color-bg-accent: #f28500;
-  --s4n-sidebar-hover-text: #ffb04a;
-  --s4n-heading-rule: #f28500;
+  --sl-color-accent: var(--s4n-primary);
+  --sl-color-accent-high: var(--s4n-link-hover);
+  --sl-color-text-accent: var(--s4n-primary);
+  --sl-color-text-invert: var(--s4n-on-primary);
+  --sl-color-bg-accent: var(--s4n-primary);
+  --s4n-heading-rule: var(--s4n-primary);
+  --sl-badge-default-bg: var(--s4n-primary);
+  --sl-badge-default-border: var(--s4n-primary);
+  --sl-badge-default-text: var(--s4n-on-primary);
 }
 
 :root[data-theme="light"] {
-  /* 淺色小字用 #995400（白底 5.80:1）。實心按鈕與目前項目仍是 #F28500 配 #1a1512。 */
+  /* 淺色只換淡底。連結與標題仍是主色，不再改成較深的棕色。 */
   --sl-color-accent-low: #fae8d1;
-  --sl-color-accent: #f28500;
-  --sl-color-accent-high: #995400;
-  --sl-color-text-accent: #995400;
-  --sl-color-text-invert: #1a1512;
-  --sl-color-bg-accent: #f28500;
-  --s4n-sidebar-hover-text: #1a1512;
-  --s4n-heading-rule: #995400;
 }
 
 .sidebar-content .group-label,
@@ -30,17 +32,31 @@
 }
 
 .sidebar-content a:hover,
-.sidebar-content a:focus-visible {
-  color: var(--s4n-sidebar-hover-text);
+.sidebar-content a:focus-visible,
+.sidebar-content a:active {
+  color: var(--s4n-link-hover);
   background-color: var(--sl-color-accent-low);
+  text-decoration: underline;
 }
 
-.sidebar-content a[aria-current="page"],
+.sidebar-content a[aria-current="page"] {
+  color: var(--s4n-on-primary);
+  background-color: var(--s4n-primary);
+  text-decoration: none;
+}
+
 .sidebar-content a[aria-current="page"]:hover,
 .sidebar-content a[aria-current="page"]:focus,
 .sidebar-content a[aria-current="page"]:focus-visible {
-  color: var(--sl-color-text-invert);
-  background-color: var(--sl-color-accent);
+  color: var(--s4n-on-primary);
+  background-color: var(--s4n-primary-hover);
+  text-decoration: none;
+}
+
+.sidebar-content a[aria-current="page"]:active {
+  color: var(--s4n-on-primary);
+  background-color: var(--s4n-primary-active);
+  text-decoration: none;
 }
 
 .sl-markdown-content h1:not(:where(.not-content *)) {
@@ -50,4 +66,40 @@
 .sl-markdown-content :is(h2, h3):not(:where(.not-content *)) {
   box-shadow: inset 0 -2px 0 var(--s4n-heading-rule);
   padding-bottom: 0.12em;
+}
+
+.sl-markdown-content a:hover:not(:where(.not-content *)),
+.sl-markdown-content a:focus-visible:not(:where(.not-content *)),
+.sl-markdown-content a:active:not(:where(.not-content *)) {
+  color: var(--s4n-link-hover);
+  text-decoration: underline;
+}
+
+.right-sidebar-panel :where(a):hover,
+.right-sidebar-panel :where(a):focus-visible,
+.right-sidebar-panel :where(a):active,
+.site-title:hover,
+.site-title:focus-visible,
+.site-title:active {
+  color: var(--s4n-link-hover);
+  text-decoration: underline;
+}
+
+.sl-link-button.primary {
+  background: var(--s4n-primary);
+  border-color: var(--s4n-primary);
+  color: var(--s4n-on-primary);
+}
+
+.sl-link-button.primary:hover,
+.sl-link-button.primary:focus-visible {
+  background: var(--s4n-primary-hover);
+  border-color: var(--s4n-primary-hover);
+  color: var(--s4n-on-primary);
+}
+
+.sl-link-button.primary:active {
+  background: var(--s4n-primary-active);
+  border-color: var(--s4n-primary-active);
+  color: var(--s4n-on-primary);
 }
