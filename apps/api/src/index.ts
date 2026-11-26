@@ -9,7 +9,7 @@ import { createPrismaAuthStore } from "./auth/prisma-store.js";
 import { parseMasterKey } from "./crypto/master-key.js";
 import { createPrisma } from "./db.js";
 import { loadEnv } from "./env.js";
-import { forwardedRequest } from "./http.js";
+import { clientAccessLine, forwardedRequest } from "./http.js";
 import { expireDueOrders, startPaymentExpiry } from "./payments/expiry.js";
 import { createPrismaLedger } from "./payments/prisma-ledger.js";
 import { createOfficialCatalog, createPaymentRegistry } from "./plugins/catalog.js";
@@ -171,8 +171,13 @@ async function main(): Promise<void> {
   const sockets = new WebSocketServer({ noServer: true });
   const server = serve(
     {
-      fetch: (request, bindings) =>
-        app.fetch(env.trustProxy ? forwardedRequest(request) : request, bindings),
+      fetch: (request, bindings) => {
+        if (env.trustProxy) {
+          const line = clientAccessLine(request);
+          if (line !== undefined) console.log(line);
+        }
+        return app.fetch(env.trustProxy ? forwardedRequest(request) : request, bindings);
+      },
       port: env.port,
       hostname: "0.0.0.0",
       websocket: { server: sockets },

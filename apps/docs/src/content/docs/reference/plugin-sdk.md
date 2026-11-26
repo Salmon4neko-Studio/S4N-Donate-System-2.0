@@ -63,7 +63,7 @@ import { acceptEventId, nextCursor, type S4nEvent } from "s4n-donate-system-2.0-
 
 密文欄位加 `x-s4n-secret: true`。沒有這個旗標的欄位就是一般設定。不需要另一個旗標。`secretFieldKeys` 列出密文，`publicFieldKeys` 列出一般設定，`isSecretField` 判斷單一欄位。`hasPluginSettingsNav` 在外掛有一般設定，或 `kind` 含 `overlay` 時為真；儀表板用它決定啟用後要不要出現在側欄「外掛」。
 
-核心用 `S4N_MASTER_KEY`（32 位元組）做 AES-256-GCM，附加驗證資料是 `s4n.plugin-setting:<pluginId>:<fieldKey>`。同一段密文不能挪到別的欄位。加密方式與這次的頁面搬移無關。
+核心用 `S4N_MASTER_KEY`（32 位元組）做 AES-256-GCM，附加驗證資料是 `s4n.plugin-setting:<pluginId>:<fieldKey>`。同一段密文不能挪到別的欄位。
 
 外掛頁只編輯密文。徽章只有兩種字：**已設定**、**未設定**。儲存之後的回應沒有明文，也沒有密文。輸入框留空表示保留已經存好的值。一般設定在 `/plugins/:id/settings`，由側欄「外掛」進入。`GET` 與 `PUT /api/plugins/:id/settings` 同時回 `fields`、`secretFields` 與 `publicFields`。只送其中一邊時，必填檢查也只看那一邊，所以可以先存密文、再存環境。
 

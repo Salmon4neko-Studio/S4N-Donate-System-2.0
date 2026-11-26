@@ -32,10 +32,27 @@ function splitForwardedHost(host: string): { hostname: string; port: string } | 
 /**
  * Rate-limit identity. Direct clients keep the raw header.
  * Behind the edge proxy, only the last hop counts, so a spoofed prefix cannot mint a new bucket.
+ * That last hop must already be the visitor. A second proxy that appends itself would make every
+ * login share the proxy address. The Coolify Caddyfile writes a single client IP instead.
  */
 export function clientKey(header: string | undefined, trustProxy = false): string {
   if (!trustProxy) return header ?? "local";
   return forwardedHop(header) ?? "local";
+}
+
+/** One log line for a proxied request. Absent when the edge did not send a client address. */
+export function clientAccessLine(request: Request): string | undefined {
+  const forwardedFor = request.headers.get("x-forwarded-for");
+  if (forwardedFor === null || forwardedFor.trim() === "") return undefined;
+  let pathname = "/";
+  try {
+    pathname = new URL(request.url).pathname;
+  } catch {
+    pathname = "/";
+  }
+  const proto = forwardedHop(request.headers.get("x-forwarded-proto")) ?? "-";
+  const line = `client ${clientKey(forwardedFor, true)} proto ${proto} ${request.method} ${pathname}`;
+  return line.replace(/[\r\n]/g, "");
 }
 
 /**

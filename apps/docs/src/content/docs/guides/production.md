@@ -5,6 +5,8 @@ description: 用 Caddy、Compose 與 GHCR 映像把儀表板、疊層與 API 放
 
 `compose.yaml` 只給本機開發。正式環境用 `compose.prod.yaml`。密鑰與網域都寫在伺服器的 `.env`，Compose 缺任何一個必填變數就不會啟動。Postgres 不對外面開放。對外只有 Caddy 的 80 與 443。
 
+要放在 Coolify v4 上時改用 `compose.coolify.yaml`。80 與 443 由 Coolify 的代理負責，這份檔案裡的 Caddy 不發布埠、也不申請憑證。步驟見 [Coolify](/guides/coolify/)。
+
 映像在 `ghcr.io/salmon4neko-studio/s4n-donate-system-2.0-api`、`s4n-donate-system-2.0-web`、`s4n-donate-system-2.0-overlay`、`s4n-donate-system-2.0-docs`。標籤見 [CI 與映像](/guides/ci/)。
 
 ## 為什麼疊層用另一個主機名

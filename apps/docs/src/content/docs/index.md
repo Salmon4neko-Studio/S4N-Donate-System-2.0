@@ -3,7 +3,7 @@ title: S4N DONATE SYSTEM 2.0
 description: 模組化贊助平台。綠界與歐付寶可以開單。
 ---
 
-這份文件描述 **S4N DONATE SYSTEM 2.0**：營運者登入、外掛管理、疊層事件，以及綠界與歐付寶的信用卡、ATM、超商代碼與超商條碼。
+這份文件描述 **S4N DONATE SYSTEM 2.0**：營運者登入、外掛管理、疊層事件，以及綠界的信用卡、ATM、超商代碼與超商條碼，和歐付寶的信用卡、ATM 與超商代碼。歐付寶超商條碼先不提供。
 
 :::note
 English. These docs are written in Traditional Chinese. A short English summary is at the bottom of the repository README.
@@ -20,7 +20,7 @@ English. These docs are written in Traditional Chinese. A short English summary 
 - 外掛頁只負責啟用與密文。一般設定在側欄「外掛」，見 [登入、外掛與疊層](/guides/operator/)
 - 測試贊助：送到疊層，不寫入帳本
 - 帳本：待付款、待繳費、已付款、已過期、待人工處理、失敗，可依狀態篩選
-- 贊助頁：綠界與歐付寶的信用卡、ATM 虛擬帳號、超商代碼、超商條碼
+- 贊助頁：綠界的信用卡、ATM 虛擬帳號、超商代碼、超商條碼；歐付寶的信用卡、ATM 虛擬帳號、超商代碼。歐付寶超商條碼先不提供
 - 贊助提醒：一條 OBS 網址上的共用畫布。範本、顏色、動畫與提示音在外掛設定
 - 目標進度：依帳本已付款計算，經 WebSocket 推到同一張畫布
 - 跑馬燈：純文字，可接最近的贊助，跟其他疊層共用畫布
@@ -34,4 +34,4 @@ English. These docs are written in Traditional Chinese. A short English summary 
 - YouTube 聊天連接器（Twitch 已有。下一個來源沿用同一份聊天事件，不必改聊天疊層）
 - 多個 API 實例共用的登入限流（事件紀錄已經在 PostgreSQL，見 [事件紀錄](/guides/events/)）
 
-下一步請看 [本機開發](/guides/local-dev/)，登入與 OBS 見 [登入、外掛與疊層](/guides/operator/)，事件怎麼留下來見 [事件紀錄](/guides/events/)，金流見 [綠界與歐付寶](/guides/payments/)。放到伺服器見 [正式環境](/guides/production/) 與 [CI 與映像](/guides/ci/)。
+下一步請看 [本機開發](/guides/local-dev/)，登入與 OBS 見 [登入、外掛與疊層](/guides/operator/)，事件怎麼留下來見 [事件紀錄](/guides/events/)，金流見 [綠界與歐付寶](/guides/payments/)。放到伺服器見 [正式環境](/guides/production/)、[Coolify](/guides/coolify/) 與 [CI 與映像](/guides/ci/)。

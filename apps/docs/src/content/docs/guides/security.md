@@ -95,10 +95,10 @@ OBS 不帶登入 Cookie。疊層網址帶一組每個營運者一枚的權杖。
 - `S4N_MASTER_KEY` 用 `openssl rand -base64 32` 產生，並有一份放在這台伺服器以外。遺失就解不開已密封的設定。不要用 `.env.example` 的全零金鑰，正式環境也會拒絕它
 - 資料庫密碼用 `openssl rand -hex 24` 這類網址安全的值。不要用 `s4n_dev_password`
 - `.env` 只在伺服器上，沒有提交。映像建構會忽略 `.env` 與 `.env.example`
-- 防火牆只開 SSH、80、443。`compose.prod.yaml` 不發布 5432 或 8787。API 只在 Docker 網路裡，Caddy 才看得到它
-- `S4N_TRUST_PROXY` 由正式 Compose 設成 `1`。Caddy 覆寫轉送標頭。不要把 API 埠直接暴露出來，否則客戶端可以偽造那些標頭
+- 防火牆只開 SSH、80、443。`compose.prod.yaml` 與 `compose.coolify.yaml` 都不發布 5432 或 8787。API 只在 Docker 網路裡。自己管 TLS 時，對外只有 Caddy。放在 Coolify 時，80 與 443 是 Coolify 的代理，見 [Coolify](/guides/coolify/)
+- `S4N_TRUST_PROXY` 由這兩份 Compose 設成 `1`，只採 `X-Forwarded-For` 的最後一跳。`compose.prod.yaml` 的 Caddy 是唯一入口，轉送標頭會收成訪客那一跳。Coolify 前面還有一層代理，`S4N_TLS_MODE=proxy` 會先把訪客位址收成單一的 `X-Forwarded-For`，並把 `X-Forwarded-Proto` 寫成 `https`。不要把 API 埠直接暴露出來，否則客戶端可以偽造那些標頭
 - `S4N_PUBLIC_BASE_URL` 是儀表板網域的 https 來源，沒有路徑。付款通知打這個網域的 `/api/payments/...`
 - 疊層使用另一個主機名。儀表板的預覽 iframe 不該跟登入頁同一個來源
 - Cookie 在正式環境是 `Secure` 加 `SameSite=Lax`。會改狀態的請求只接受儀表板來源
-- 備份 volume 要拷到別台機器。主金鑰與 dump 一起留。提示音在 `s4n_prod_alert_sounds`，不在資料庫裡，要另外拷。Caddy 的憑證資料不要進版本庫
+- 備份 volume 要拷到別台機器。主金鑰與 dump 一起留。提示音不在資料庫裡。`compose.prod.yaml` 把音效放在 `s4n_prod_alert_sounds`。Coolify 會給對應的 volume 加上資源前綴，見 [Coolify](/guides/coolify/)。Caddy 的憑證資料不要進版本庫
 - GHCR 套件的可見範圍要自己確認。私有套件的伺服器要另外登入，不要把權杖寫進儲存庫

@@ -1,0 +1,155 @@
+# Coolify v4 的 Docker Compose。不要拿它取代 compose.prod.yaml。
+# 80 與 443 是 Coolify 的代理（Traefik 或 Caddy）。這裡的 Caddy 不發布埠、不申請憑證，
+# 只在網路上聽 80，並依主機名把儀表板、疊層、/api、/ws 轉進去。
+# 密鑰沒有預設值。S4N_MASTER_KEY 必須由 openssl rand -base64 32 產生。
+
+name: s4n-coolify
+
+x-restart: &restart
+  restart: unless-stopped
+
+x-logging: &logging
+  logging:
+    driver: json-file
+    options:
+      max-size: "10m"
+      max-file: "5"
+
+services:
+  postgres:
+    <<: [*restart, *logging]
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-s4n}
+      POSTGRES_PASSWORD: ${SERVICE_PASSWORD_POSTGRES}
+      POSTGRES_DB: ${POSTGRES_DB:-s4n}
+    volumes:
+      - s4n_postgres:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U \"$$POSTGRES_USER\" -d \"$$POSTGRES_DB\""]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+
+  api:
+    <<: [*restart, *logging]
+    image: ghcr.io/salmon4neko-studio/s4n-donate-system-2.0-api:${S4N_IMAGE_TAG:-latest}
+    environment:
+      DATABASE_URL: postgresql://${POSTGRES_USER:-s4n}:${SERVICE_PASSWORD_POSTGRES}@postgres:5432/${POSTGRES_DB:-s4n}
+      S4N_MASTER_KEY: ${S4N_MASTER_KEY:?請在 Coolify 設定 S4N_MASTER_KEY}
+      S4N_ENV: production
+      S4N_TRUST_PROXY: "1"
+      S4N_DASHBOARD_ORIGIN: https://${S4N_DOMAIN:?請在 Coolify 設定 S4N_DOMAIN}
+      S4N_OVERLAY_ORIGIN: https://${S4N_OVERLAY_HOST:?請在 Coolify 設定 S4N_OVERLAY_HOST}
+      S4N_PUBLIC_BASE_URL: https://${S4N_DOMAIN:?請在 Coolify 設定 S4N_DOMAIN}
+      PORT: "8787"
+    volumes:
+      - s4n_alert_sounds:/data/alert-sounds
+    depends_on:
+      postgres:
+        condition: service_healthy
+    healthcheck:
+      test:
+        [
+          "CMD",
+          "node",
+          "-e",
+          "fetch('http://127.0.0.1:8787/api/health').then((r)=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))",
+        ]
+      interval: 10s
+      timeout: 5s
+      retries: 20
+      start_period: 40s
+
+  web:
+    <<: [*restart, *logging]
+    image: ghcr.io/salmon4neko-studio/s4n-donate-system-2.0-web:${S4N_IMAGE_TAG:-latest}
+    depends_on:
+      api:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "wget", "-q", "-O", "/dev/null", "http://127.0.0.1:8080/"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 10s
+
+  overlay:
+    <<: [*restart, *logging]
+    image: ghcr.io/salmon4neko-studio/s4n-donate-system-2.0-overlay:${S4N_IMAGE_TAG:-latest}
+    depends_on:
+      api:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "wget", "-q", "-O", "/dev/null", "http://127.0.0.1:8080/"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 10s
+
+  # 文件預設不啟動。要對外時設定 S4N_DOCS_HOST，並把 COMPOSE_PROFILES 設成 docs。
+  docs:
+    <<: [*restart, *logging]
+    profiles: ["docs"]
+    image: ghcr.io/salmon4neko-studio/s4n-donate-system-2.0-docs:${S4N_IMAGE_TAG:-latest}
+    healthcheck:
+      test: ["CMD", "wget", "-q", "-O", "/dev/null", "http://127.0.0.1:8080/"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 10s
+
+  caddy:
+    <<: [*restart, *logging]
+    image: caddy:2.10-alpine
+    environment:
+      # 空值不是路徑。Coolify 會把這個服務的網域轉到容器埠 80。第二個網域在 Domains 再加上。
+      SERVICE_FQDN_CADDY_80: ""
+      S4N_DOMAIN: ${S4N_DOMAIN:?請在 Coolify 設定 S4N_DOMAIN}
+      S4N_OVERLAY_HOST: ${S4N_OVERLAY_HOST:?請在 Coolify 設定 S4N_OVERLAY_HOST}
+      S4N_DOCS_HOST: ${S4N_DOCS_HOST:-}
+      S4N_TLS_MODE: proxy
+    volumes:
+      - ./deploy/caddy/entrypoint.sh:/entrypoint.sh:ro
+    entrypoint: ["/bin/sh", "/entrypoint.sh"]
+    depends_on:
+      api:
+        condition: service_healthy
+      web:
+        condition: service_healthy
+      overlay:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "wget", "-q", "-O", "/dev/null", "http://127.0.0.1:2019/config/"]
+      interval: 10s
+      timeout: 5s
+      retries: 12
+      start_period: 15s
+
+  backup:
+    <<: [*restart, *logging]
+    image: postgres:16-alpine
+    user: "0:0"
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-s4n}
+      POSTGRES_PASSWORD: ${SERVICE_PASSWORD_POSTGRES}
+      POSTGRES_DB: ${POSTGRES_DB:-s4n}
+      S4N_BACKUP_RETENTION: ${S4N_BACKUP_RETENTION:-14}
+    volumes:
+      - ./deploy/backup.sh:/backup.sh:ro
+      - s4n_backups:/backups
+    entrypoint: ["/bin/sh", "/backup.sh"]
+    depends_on:
+      postgres:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "test -f /backups/.last-ok"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 120s
+
+volumes:
+  s4n_postgres:
+  s4n_backups:
+  s4n_alert_sounds:

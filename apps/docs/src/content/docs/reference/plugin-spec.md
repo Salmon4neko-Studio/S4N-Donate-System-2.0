@@ -24,7 +24,7 @@ description: s4n-plugin.json、權限、密文欄位，以及外掛可以收發�
 
 v1 把聊天拆成兩種外掛：
 
-| 角色 | 這次的 id | `kind` | 做什麼 |
+| 角色 | 這個版本的 id | `kind` | 做什麼 |
 | --- | --- | --- | --- |
 | 來源 | `official.twitch-chat` | `connector` | 連到平台，送出正規化事件 |
 | 顯示 | `official.chat-overlay` | `overlay` | 訂閱那些事件並畫在 OBS |
@@ -42,7 +42,7 @@ Twitch 來源需要 `events.emit`、`secrets` 與 `network`。頻道名稱是一
 | `overlay.slot` | 所有外掛 | 宣告疊層版位。要排進共用畫布，清單還要有 `overlaySlot` 矩形 |
 | `dashboard.settings` | 所有外掛 | 儀表板上的設定 |
 | `tts.speak` | 所有外掛 | 舊的權限名稱。沒有語音外掛 |
-| `payments.read` | 所有外掛 | 唯讀付款資料。這次沒有讀取 API |
+| `payments.read` | 所有外掛 | 唯讀付款資料。這個版本沒有讀取 API |
 | `payments.provider` | 僅官方 | 註冊付款提供者、建立付款、驗證回呼。不能寫帳 |
 | `secrets` | 僅官方 | 設定裡可以有密文欄位 |
 | `network` | 僅官方 | 對外連線。綠界與歐付寶用它向廠商查單 |
